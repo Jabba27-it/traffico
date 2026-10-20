@@ -19,6 +19,7 @@ export const ROAD_WIDTH = 24;
  * @property {number} id
  * @property {number} a  id del nodo di partenza
  * @property {number} b  id del nodo di arrivo
+ * @property {number} [cost]  tratti di strada pagati per questo arco (anche frazioni)
  */
 
 export class RoadGraph {
@@ -86,8 +87,16 @@ export class RoadGraph {
     if (!edge) throw new Error(`Arco ${edgeId} inesistente`);
     this.edges.delete(edgeId);
     const node = this.addNode(x, y);
-    this.addEdge(edge.a, node.id);
-    this.addEdge(node.id, edge.b);
+    const first = this.addEdge(edge.a, node.id);
+    const second = this.addEdge(node.id, edge.b);
+    // Il costo pagato si divide fra le due metà in proporzione alla lunghezza.
+    if (edge.cost && first && second) {
+      const a = /** @type {RoadNode} */ (this.nodes.get(edge.a));
+      const b = /** @type {RoadNode} */ (this.nodes.get(edge.b));
+      const total = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+      first.cost = (edge.cost * Math.hypot(x - a.x, y - a.y)) / total;
+      second.cost = edge.cost - first.cost;
+    }
     return node;
   }
 

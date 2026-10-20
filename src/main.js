@@ -2,7 +2,7 @@ import { RoadGraph } from './sim/graph.js';
 import { parseLevel } from './sim/level.js';
 import { Simulation } from './sim/simulation.js';
 import { setupCanvas, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
-import { drawRoads, drawPreview } from './render/roads.js';
+import { drawRoads, drawPreview, drawRemoval } from './render/roads.js';
 import { drawStations } from './render/stations.js';
 import { drawVehicles } from './render/vehicles.js';
 import { drawCongestion } from './render/congestion.js';
@@ -39,7 +39,11 @@ async function start() {
     canvas,
     graph,
     (x, y) => screenToWorld(view, x, y),
-    (points, snapRadius) => sim.buildRoad(points, snapRadius),
+    {
+      build: (points, snapRadius) => sim.buildRoad(points, snapRadius),
+      findPiece: (x, y) => sim.findRoadPiece(x, y),
+      remove: (piece) => sim.removeRoad(piece),
+    },
   );
   const hud = createHud(document.body);
   const speed = createSpeedControls(document.body);
@@ -84,6 +88,9 @@ async function start() {
       const plan = sim.planRoad(preview);
       drawPreview(ctx, preview, plan.cut, sim.roadCost(plan), level.world.width);
     }
+    const removal = drawing.removal();
+    const finger = drawing.finger();
+    if (removal && finger) drawRemoval(ctx, graph, removal, sim.refundOf(removal), finger, level.world.width);
     drawVehicles(ctx, graph, sim.vehicles);
     drawCongestion(ctx, sim.stations, level.congestion.tolerance, now / 1000);
     drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed);

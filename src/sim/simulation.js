@@ -9,6 +9,9 @@ import { STATION_RADIUS, createStation } from './stations.js';
 import { pickNewStation } from './growth.js';
 import { updateCongestion } from './congestion.js';
 import { planRoad, buildPlannedRoad } from './roadBuilder.js';
+import { findRoadPiece, removeRoadPiece, removeIsolatedNodes, edgeLength } from './roadEditing.js';
+
+/** @typedef {import('./roadEditing.js').RoadPiece} RoadPiece */
 
 /** @typedef {{x: number, y: number}} Point */
 /** @typedef {import('./roadBuilder.js').RoadPlan} RoadPlan */
@@ -136,8 +139,17 @@ export class Simulation {
   buildRoad(points, snapRadius) {
     const plan = this.planRoad(points);
     if (plan.runs.length === 0) return;
+    const before = new Set(this.graph.edges.keys());
     buildPlannedRoad(this.graph, plan, snapRadius);
-    this.roadBudget -= this.roadCost(plan);
+    const cost = this.roadCost(plan);
+    this.roadBudget -= cost;
+
+    // Ogni arco nuovo ricorda la sua parte del costo, così rimuoverlo
+    // restituisce esattamente quanto era stato pagato.
+    const added = [...this.graph.edges.values()].filter((e) => !before.has(e.id) && !e.cost);
+    const lengths = added.map((e) => edgeLength(this.graph, e.id));
+    const total = lengths.reduce((a, b) => a + b, 0);
+    if (total > 0) added.forEach((e, i) => (e.cost = (cost * lengths[i]) / total));
   }
 
   /** true quando il livello è fallito: da lì la simulazione è ferma. */
@@ -159,10 +171,7 @@ export class Simulation {
     this.growthTimer -= dt;
     if (this.growthTimer <= 0) this.grow();
 
-    if (this.graph.version !== this.routedVersion) {
-      for (const v of this.vehicles) this.reroute(v);
-      this.routedVersion = this.graph.version;
-    }
+    if (this.graph.version !== this.routedVersion) this.updateRoutes();
 
     for (const station of this.stations) {
       const spawn = /** @type {number} */ (this.spawnTimers.get(station.id)) - dt;
@@ -255,18 +264,21 @@ export class Simulation {
    * finisce il tratto in corso (niente inversioni a metà strada) e da lì prende
    * il percorso più rapido, anche verso un'altra stazione della sua forma.
    * @param {Vehicle} v
+   * @returns {boolean} false se il veicolo non può più proseguire: la sua strada
+   *   è stata rimossa o non porta più a nessuna stazione della sua forma
    */
   reroute(v) {
     const here = v.path[v.leg];
     let next = v.path[v.leg + 1];
-    if (next === undefined) return;
+    if (next === undefined) return true;
 
-    // Se il tratto in corso è stato spezzato da un nuovo incrocio, il prossimo
-    // nodo è il primo incrocio davanti al veicolo: lì potrà già svoltare.
     if (!this.graph.hasEdge(here, next)) {
       const a = /** @type {RoadNode} */ (this.graph.nodes.get(here));
       const b = /** @type {RoadNode} */ (this.graph.nodes.get(next));
       const length = distance(a, b);
+      let found = false;
+      // Il tratto in corso è stato spezzato da un nuovo incrocio: il prossimo
+      // nodo è il primo incrocio davanti al veicolo, dove potrà già svoltare.
       let bestT = Infinity;
       for (const n of this.graph.nodes.values()) {
         if (n.id === here || n.id === next) continue;
@@ -274,16 +286,76 @@ export class Simulation {
         if (distance(c, n) < 0.5 && c.t * length > v.along && c.t < bestT) {
           bestT = c.t;
           next = n.id;
+          found = true;
         }
       }
+      // Oppure il tratto è stato deviato dentro una stazione comparsa sopra.
+      if (!found) {
+        for (const n of this.graph.nodes.values()) {
+          if (n.stationId !== undefined && this.graph.hasEdge(here, n.id) && this.graph.hasEdge(n.id, next)) {
+            next = n.id;
+            found = true;
+            break;
+          }
+        }
+      }
+      // Altrimenti la strada sotto il veicolo è stata rimossa.
+      if (!found) return false;
     }
 
     const paths = shortestPaths(this.graph, next);
     const target = this.nearestStation(paths, v.shape);
-    if (!target) return;
+    if (!target) return false;
     v.path = [here, .../** @type {number[]} */ (pathTo(paths, target.nodeId))];
     v.leg = 0;
     v.toStationId = target.id;
+    return true;
+  }
+
+  /**
+   * Ricalcola i percorsi di tutti i veicoli in viaggio. Chi non può più
+   * proseguire torna in testa alla coda della sua stazione d'origine.
+   */
+  updateRoutes() {
+    this.vehicles = this.vehicles.filter((v) => {
+      if (this.reroute(v)) return true;
+      const origin = this.stations.find((s) => s.id === v.fromStationId);
+      origin?.queue.unshift(v.shape);
+      return false;
+    });
+    this.routedVersion = this.graph.version;
+  }
+
+  /**
+   * Il pezzo di strada sotto il punto (x, y), se c'è.
+   * @param {number} x
+   * @param {number} y
+   * @returns {RoadPiece | null}
+   */
+  findRoadPiece(x, y) {
+    return findRoadPiece(this.graph, x, y);
+  }
+
+  /**
+   * Tratti restituiti rimuovendo un pezzo di strada: quanto era stato pagato
+   * per i suoi archi, arrotondato per difetto.
+   * @param {RoadPiece} piece
+   */
+  refundOf(piece) {
+    return Math.floor(piece.cost + 1e-6);
+  }
+
+  /**
+   * Rimuove un pezzo di strada e restituisce i suoi tratti.
+   * @param {RoadPiece} piece
+   */
+  removeRoad(piece) {
+    const touched = removeRoadPiece(this.graph, piece);
+    this.roadBudget += this.refundOf(piece);
+    // Subito, e non al prossimo passo: anche in pausa nessun veicolo deve
+    // restare su nodi che stanno per sparire.
+    this.updateRoutes();
+    removeIsolatedNodes(this.graph, touched);
   }
 
   /**

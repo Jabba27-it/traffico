@@ -7,6 +7,7 @@ import { ROAD_WIDTH } from '../sim/graph.js';
 const ROAD_COLOR = '#5d6169';
 const PREVIEW_COLOR = 'rgba(93, 97, 105, 0.4)';
 const BLOCKED_COLOR = 'rgba(224, 69, 58, 0.45)';
+const REMOVAL_COLOR = 'rgba(224, 69, 58, 0.85)';
 const LABEL_COLOR = '#3d4047';
 const BLOCKED_TEXT = '#c0392b';
 /** Il numero del costo sta sopra il dito, per non restare coperto. */
@@ -64,6 +65,44 @@ export function drawPreview(ctx, points, cut, cost, worldWidth) {
   ctx.strokeText(label, x, tip.y - LABEL_OFFSET);
   ctx.fillStyle = cut ? BLOCKED_TEXT : LABEL_COLOR;
   ctx.fillText(label, x, tip.y - LABEL_OFFSET);
+}
+
+/**
+ * Il pezzo di strada che sta per essere rimosso, in rosso, con i tratti
+ * che verranno restituiti.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {RoadGraph} graph
+ * @param {import('../sim/roadEditing.js').RoadPiece} piece
+ * @param {number} refund
+ * @param {{x: number, y: number}} finger
+ * @param {number} worldWidth
+ */
+export function drawRemoval(ctx, graph, piece, refund, finger, worldWidth) {
+  ctx.lineCap = 'round';
+  ctx.lineWidth = ROAD_WIDTH;
+  ctx.strokeStyle = REMOVAL_COLOR;
+  ctx.beginPath();
+  for (const id of piece.edgeIds) {
+    const e = graph.edges.get(id);
+    const a = e && graph.nodes.get(e.a);
+    const b = e && graph.nodes.get(e.b);
+    if (!a || !b) continue;
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+  }
+  ctx.stroke();
+
+  const label = `Rimuovi +${refund}`;
+  ctx.font = 'bold 15px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+  const half = ctx.measureText(label).width / 2 + 6;
+  const x = Math.max(half, Math.min(worldWidth - half, finger.x));
+  ctx.strokeText(label, x, finger.y - LABEL_OFFSET);
+  ctx.fillStyle = BLOCKED_TEXT;
+  ctx.fillText(label, x, finger.y - LABEL_OFFSET);
 }
 
 /**

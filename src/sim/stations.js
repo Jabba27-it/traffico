@@ -46,8 +46,10 @@ export function createStation(graph, def, id, bornAt, capacity) {
     if (!a || !b) continue;
     if (distance(closestPointOnSegment(node, a, b), node) > STATION_RADIUS) continue;
     graph.removeEdge(e.id);
-    graph.addEdge(e.a, node.id);
-    graph.addEdge(node.id, e.b);
+    const first = graph.addEdge(e.a, node.id);
+    const second = graph.addEdge(node.id, e.b);
+    // Il costo pagato passa ai due nuovi archi, metà ciascuno.
+    if (e.cost && first && second) first.cost = second.cost = e.cost / 2;
   }
   return { id, shape: def.shape, x: def.x, y: def.y, nodeId: node.id, queue: [], bornAt, capacity, overload: 0 };
 }
