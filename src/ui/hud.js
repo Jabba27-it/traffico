@@ -9,6 +9,7 @@
  * @property {number} dayProgress  quanto del giorno è passato, da 0 a 1
  * @property {number} roads        tratti di strada disponibili
  * @property {number} bridges      ponti disponibili
+ * @property {number} overpasses   cavalcavia disponibili
  * @property {boolean[]} stars     stelle guadagnate
  */
 
@@ -33,6 +34,7 @@ export function createHud(parent, options) {
   const trips = addItem(root, 'Viaggi');
   const roads = addItem(root, 'Strade');
   const bridges = options.bridges ? addItem(root, 'Ponti') : null;
+  const overpasses = addItem(root, 'Cavalc.');
   const stars = options.stars ? addItem(root, 'Stelle') : null;
   if (stars) {
     const item = /** @type {HTMLElement} */ (stars.parentElement);
@@ -50,7 +52,7 @@ export function createHud(parent, options) {
         lastBar = percent;
         barFill.style.width = `${percent}%`;
       }
-      const text = `${values.day}|${values.score}|${values.trips}|${values.roads}|${values.bridges}|${values.stars}`;
+      const text = `${values.day}|${values.score}|${values.trips}|${values.roads}|${values.bridges}|${values.overpasses}|${values.stars}`;
       if (text === last) return; // tocca il DOM solo quando qualcosa cambia
       last = text;
       day.textContent = `${WEEKDAYS[(values.day - 1) % 7]} ${values.day}`;
@@ -62,6 +64,8 @@ export function createHud(parent, options) {
         bridges.textContent = String(values.bridges);
         bridges.classList.toggle('hud-empty', values.bridges === 0);
       }
+      overpasses.textContent = String(values.overpasses);
+      overpasses.classList.toggle('hud-empty', values.overpasses === 0);
       if (stars) stars.innerHTML = starsHtml(values.stars);
     },
   };

@@ -58,6 +58,7 @@ import { SHAPES } from './stations.js';
  * @property {number} roads     tratti di strada in più
  * @property {number} capacity  capienza in più per la stazione migliorata
  * @property {number} bridges   ponti in più (solo nei livelli con acqua)
+ * @property {number} overpasses cavalcavia in più
  */
 
 /**
@@ -92,6 +93,7 @@ import { SHAPES } from './stations.js';
  * @property {import('./water.js').Water[]} waters
  * @property {number} bridges  ponti disponibili all'inizio
  * @property {Stars | null} stars
+ * @property {number} overpasses  cavalcavia disponibili all'inizio
  * @property {{min: number, max: number}} spawn  secondi fra un veicolo nuovo e il successivo, per stazione
  * @property {{name: string, x: number, y: number}[]} districts
  *   quartieri: una stazione nata a caso prende il nome del quartiere più vicino
@@ -187,7 +189,9 @@ export function parseLevel(json) {
     roads: isNum(p.strade) ? p.strade : 15,
     capacity: isNum(p.capienza) ? p.capienza : 3,
     bridges: isNum(p.ponti) ? p.ponti : 1,
+    overpasses: isNum(p.cavalcavia) ? p.cavalcavia : 1,
   };
+  const overpasses = isNum(json.cavalcavia?.iniziali) ? json.cavalcavia.iniziali : 1;
 
   /** @type {import('./water.js').Water[]} */
   const waters = [];
@@ -246,6 +250,7 @@ export function parseLevel(json) {
   const spawn = { min: spawnMin, max: isNum(vh.ogniMax) && vh.ogniMax >= spawnMin ? vh.ogniMax : spawnMin + 2 };
 
   return {
+    overpasses,
     spawn,
     districts,
     stars,

@@ -4,7 +4,8 @@ import { Simulation } from './sim/simulation.js';
 import { setupCanvas, fitCamera, scaleFor, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
 import { createCamera, cameraRect, zoomAround } from './render/camera.js';
 import { attachPinch } from './input/pinch.js';
-import { drawRoads, drawLaneMarks, drawPreview, drawRemoval, drawWater, drawOutsideVeil } from './render/roads.js';
+import { drawRoads, drawLaneMarks, drawOverpasses, drawPreview, drawRemoval, drawWater, drawOutsideVeil } from './render/roads.js';
+import { currentPiece } from './sim/vehicles.js';
 import { drawStations, drawSelectable } from './render/stations.js';
 import { STATION_RADIUS } from './sim/stations.js';
 import { drawVehicles } from './render/vehicles.js';
@@ -28,6 +29,14 @@ const INDEX_URL = 'levels/indice.json';
 const MENU_ICON =
   '<svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><rect x="2" y="3" width="14" height="2.2" rx="1"/><rect x="2" y="8" width="14" height="2.2" rx="1"/><rect x="2" y="13" width="14" height="2.2" rx="1"/></svg>';
 const STAR_NAMES = ['Prima', 'Seconda', 'Terza'];
+const OVERPASS_MESSAGES = {
+  built: 'Cavalcavia costruito',
+  removed: 'Cavalcavia tolto: torna incrocio',
+  'none-left': 'Non hai cavalcavia: arrivano con i premi',
+  'not-a-cross': 'Il cavalcavia va su un incrocio a croce',
+};
+/** Quante carte premio si propongono a fine settimana (scelte a caso fra quelle possibili). */
+const REWARD_CHOICES = 3;
 const OUTSIDE = '#e3dfd5';
 const BACKGROUND = '#f2efe8';
 /** Passo fisso della simulazione, in secondi. */
@@ -76,6 +85,10 @@ async function start() {
     findPiece: (x, y, radius) => sim.findRoadPiece(x, y, radius),
     remove: (piece) => sim.removeRoad(piece),
     active: () => !choosingStation,
+    tap: (x, y, radius) => {
+      const result = sim.toggleOverpass(x, y, Math.max(radius, 20));
+      if (result) showToast(document.body, OVERPASS_MESSAGES[result]);
+    },
   });
   attachPinch(canvas, {
     toWorld,
@@ -201,6 +214,17 @@ async function start() {
           },
         });
       }
+      cards.push({
+        icon: REWARD_ICONS.overpass,
+        value: `+${level.rewards.overpasses}`,
+        label: 'cavalcavia',
+        onPick: () => {
+          sim.chooseOverpassReward();
+          rewardShown = false;
+        },
+      });
+      // Ogni settimana solo alcune carte, a caso: la scelta cambia ogni volta.
+      while (cards.length > REWARD_CHOICES) cards.splice(Math.floor(Math.random() * cards.length), 1);
       showRewardChoice(document.body, sim.rewardedWeeks, cards);
     }
     if (sim.announcement && sim.announcement !== lastAnnouncement) {
@@ -215,6 +239,7 @@ async function start() {
       dayProgress: sim.dayProgress,
       roads: sim.roadBudget,
       bridges: sim.bridgeBudget,
+      overpasses: sim.overpassBudget,
       stars: sim.starsEarned,
     };
     hud.update(results);
@@ -246,7 +271,11 @@ async function start() {
     const removal = drawing.removal();
     const finger = drawing.finger();
     if (removal && finger) drawRemoval(ctx, graph, removal, sim.refundOf(removal), finger, framed);
-    drawVehicles(ctx, sim.vehicles);
+    // Chi passa sotto un cavalcavia sparisce sotto l'impalcato; chi passa sopra si vede sopra.
+    const elevated = sim.vehicles.filter((v) => currentPiece(sim.lanes, v).elevated);
+    drawVehicles(ctx, sim.vehicles.filter((v) => !elevated.includes(v)));
+    drawOverpasses(ctx, graph);
+    drawVehicles(ctx, elevated);
     drawCongestion(ctx, sim.stations, level.congestion.tolerance, now / 1000);
     drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed, framed.width / level.view[0].width);
     if (choosingStation) drawSelectable(ctx, sim.stations, now / 1000);

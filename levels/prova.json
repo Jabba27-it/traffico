@@ -11,7 +11,8 @@
   "congestione": { "capienza": 6, "tolleranza": 20 },
   "tempo": { "giorno": 20 },
   "strade": { "iniziali": 25, "perGiorno": 7, "lunghezzaTratto": 40 },
-  "premi": { "strade": 20, "capienza": 3 },
+  "premi": { "strade": 20, "capienza": 3, "cavalcavia": 1 },
+  "cavalcavia": { "iniziali": 1 },
   "stelle": {
     "viaggi": 200,
     "giorni": 10,

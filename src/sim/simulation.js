@@ -15,6 +15,7 @@ import { findRoadPiece, removeRoadPiece, removeIsolatedNodes, edgeLength } from 
 import { isInWater } from './water.js';
 import { viewAt, segmentAt, insetRect, rectContains } from './view.js';
 import { starGoals } from './stars.js';
+import { buildOverpass, overpassPairs, removeOverpass } from './overpass.js';
 
 /** @typedef {import('./roadEditing.js').RoadPiece} RoadPiece */
 /** @typedef {import('./graph.js').RoadEdge} RoadEdge */
@@ -100,6 +101,8 @@ export class Simulation {
     this.roadBudget = level.roads.initial;
     /** Ponti ancora disponibili. */
     this.bridgeBudget = level.bridges;
+    /** Cavalcavia ancora disponibili. */
+    this.overpassBudget = level.overpasses;
     this.nextBridgeId = 1;
     /** L'ultimo giorno per cui sono già stati dati i tratti in più. */
     this.rewardedDay = 1;
@@ -289,6 +292,48 @@ export class Simulation {
   /** true se il tempo scorre: né livello fallito né premio in attesa di scelta. */
   get running() {
     return !this.failed && !this.rewardPending;
+  }
+
+  /** Premio di fine settimana: cavalcavia in più. */
+  chooseOverpassReward() {
+    if (!this.rewardPending) return;
+    this.overpassBudget += this.level.rewards.overpasses;
+    this.rewardPending = false;
+  }
+
+  /**
+   * Tocco su un incrocio: lo trasforma in cavalcavia, o un cavalcavia torna
+   * incrocio (e il cavalcavia si riprende).
+   * @param {number} x
+   * @param {number} y
+   * @param {number} radius  quanto lontano dal centro dell'incrocio si può toccare
+   * @returns {'built' | 'removed' | 'none-left' | 'not-a-cross' | null}
+   *   null se il tocco non era su un incrocio
+   */
+  toggleOverpass(x, y, radius) {
+    let best = null;
+    let bestD = radius;
+    for (const n of this.graph.nodes.values()) {
+      const d = Math.hypot(n.x - x, n.y - y);
+      if (d > bestD || n.stationId !== undefined) continue;
+      const degree = [...this.graph.edges.values()].filter((e) => e.a === n.id || e.b === n.id).length;
+      if (!n.overpass && degree < 3) continue;
+      best = n;
+      bestD = d;
+    }
+    if (!best) return null;
+    if (best.overpass) {
+      removeOverpass(this.graph, best);
+      this.overpassBudget++;
+      this.updateRoutes();
+      return 'removed';
+    }
+    if (!overpassPairs(this.graph, best)) return 'not-a-cross';
+    if (this.overpassBudget <= 0) return 'none-left';
+    buildOverpass(this.graph, best);
+    this.overpassBudget--;
+    this.updateRoutes();
+    return 'built';
   }
 
   /** Premio di fine settimana: ponti in più. */
@@ -615,6 +660,17 @@ export class Simulation {
     this.bridgeBudget += piece.bridges;
     const touched = removeRoadPiece(this.graph, piece);
     this.roadBudget += this.refundOf(piece);
+    // Se una delle due strade di un cavalcavia sparisce, il cavalcavia non
+    // serve più: torna nodo normale e si riprende.
+    for (const id of touched) {
+      const n = this.graph.nodes.get(id);
+      if (!n?.overpass) continue;
+      const partner = this.graph.nodes.get(n.overpass.partner);
+      const alive = (/** @type {number} */ nid) => [...this.graph.edges.values()].some((e) => e.a === nid || e.b === nid);
+      if (alive(n.id) && partner && alive(partner.id)) continue;
+      removeOverpass(this.graph, n);
+      this.overpassBudget++;
+    }
     // Subito, e non al prossimo passo: anche in pausa nessun veicolo deve
     // restare su nodi che stanno per sparire.
     this.updateRoutes();

@@ -329,9 +329,10 @@ function crossingNode(graph, hit) {
     const near = graph.findNodeNear(hit.x, hit.y, MERGE_RADIUS);
     return near ? near.id : graph.addNode(hit.x, hit.y).id;
   }
-  const a = /** @type {Point} */ (graph.nodes.get(edge.a));
-  const b = /** @type {Point} */ (graph.nodes.get(edge.b));
-  if (distance(hit, a) <= MERGE_RADIUS) return edge.a;
-  if (distance(hit, b) <= MERGE_RADIUS) return edge.b;
+  const a = /** @type {RoadNode} */ (graph.nodes.get(edge.a));
+  const b = /** @type {RoadNode} */ (graph.nodes.get(edge.b));
+  // Ai cavalcavia non ci si collega: si crea un incrocio poco più in là.
+  if (distance(hit, a) <= MERGE_RADIUS && !a.overpass) return edge.a;
+  if (distance(hit, b) <= MERGE_RADIUS && !b.overpass) return edge.b;
   return graph.splitEdge(edge.id, hit.x, hit.y).id;
 }

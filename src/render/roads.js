@@ -12,6 +12,8 @@ const REMOVAL_COLOR = 'rgba(224, 69, 58, 0.85)';
 const TRAFFIC_TINT = 0.32;
 const LANE_MARK = 'rgba(255, 255, 255, 0.35)';
 const BRIDGE_RAIL = '#44474e';
+const OVERPASS_DECK = '#6c7078';
+const OVERPASS_SHADOW = 'rgba(0, 0, 0, 0.22)';
 const BRIDGE_DECK = '#8b8f97';
 const WATER_COLOR = '#a7d0ea';
 const WATER_BANK = '#86b7d6';
@@ -64,6 +66,38 @@ export function drawRoads(ctx, graph, congestion) {
     ctx.lineTo(b.x, b.y);
     ctx.stroke();
   }
+}
+
+/**
+ * La strada di sopra dei cavalcavia: ombra sulla strada di sotto, parapetti e
+ * impalcato. Va disegnata dopo i veicoli che passano sotto e prima di quelli sopra.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {RoadGraph} graph
+ */
+export function drawOverpasses(ctx, graph) {
+  const upper = [...graph.edges.values()].filter((e) => graph.nodes.get(e.a)?.overpass?.upper || graph.nodes.get(e.b)?.overpass?.upper);
+  if (upper.length === 0) return;
+  ctx.lineCap = 'butt';
+  ctx.save();
+  ctx.translate(2.5, 3.5);
+  strokeEdges(ctx, graph, upper, ROAD_WIDTH + 6, OVERPASS_SHADOW);
+  ctx.restore();
+  strokeEdges(ctx, graph, upper, ROAD_WIDTH + 5, BRIDGE_RAIL);
+  strokeEdges(ctx, graph, upper, ROAD_WIDTH - 1, OVERPASS_DECK);
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = LANE_MARK;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 5]);
+  ctx.beginPath();
+  for (const e of upper) {
+    const a = graph.nodes.get(e.a);
+    const b = graph.nodes.get(e.b);
+    if (!a || !b) continue;
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
 }
 
 /**

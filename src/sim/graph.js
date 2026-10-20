@@ -12,6 +12,9 @@ export const ROAD_WIDTH = 24;
  * @property {number} x
  * @property {number} y
  * @property {number} [stationId]  presente se il nodo è una stazione
+ * @property {{partner: number, upper: boolean}} [overpass]
+ *   presente se il nodo è metà di un cavalcavia: due nodi nello stesso punto,
+ *   uno per la strada di sotto e uno per quella di sopra, che non si toccano
  */
 
 /**
@@ -139,6 +142,8 @@ export class RoadGraph {
     let bestDist = radius * radius;
     for (const n of this.nodes.values()) {
       if (stationsOnly && n.stationId === undefined) continue;
+      // Ai cavalcavia non ci si aggancia: non sono incroci.
+      if (n.overpass) continue;
       const d = (n.x - x) ** 2 + (n.y - y) ** 2;
       if (d <= bestDist) {
         best = n;

@@ -8,6 +8,8 @@ export const REWARD_ICONS = {
     '<svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="24" r="15" fill="#e0533d" stroke="#fff" stroke-width="3"/><circle cx="22" cy="24" r="9" fill="none" stroke="#fff" stroke-width="2"/><path d="M22 4 l6 7 h-12 z" fill="#3d4047"/></svg>',
   bridge:
     '<svg width="44" height="44" viewBox="0 0 44 44"><rect x="0" y="14" width="44" height="16" fill="#a7d0ea"/><rect x="16" y="2" width="12" height="40" fill="#44474e"/><rect x="19" y="2" width="6" height="40" fill="#8b8f97"/></svg>',
+  overpass:
+    '<svg width="44" height="44" viewBox="0 0 44 44"><rect x="0" y="16" width="44" height="12" fill="#5d6169"/><rect x="14" y="2" width="16" height="40" fill="rgba(0,0,0,0.18)"/><rect x="16" y="2" width="12" height="40" fill="#44474e"/><rect x="18" y="2" width="8" height="40" fill="#8b8f97"/></svg>',
 };
 
 /**

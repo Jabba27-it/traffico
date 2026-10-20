@@ -24,6 +24,9 @@ const REQUEST_DISTANCE = 50;
 const SHARPEST_CURVE = 0.3;
 /** Accelerazione laterale massima in curva: v² / raggio. */
 const MAX_LATERAL = 90;
+/** Velocità sul cavalcavia, in frazione della massima: automobili e mezzi pesanti. */
+const RAMP_CAR = 0.85;
+const RAMP_HEAVY = 0.65;
 /** Un veicolo è "fermo nel traffico" sotto questa frazione della sua velocità massima. */
 const SLOW = 0.3;
 /** Quanto in fretta il colore del traffico di una strada segue la realtà. */
@@ -149,6 +152,12 @@ export class Traffic {
     for (const piece of upcomingPieces(this.lanes, v)) {
       if (toStart > LOOKAHEAD) break;
       const ahead = Math.max(0, toStart);
+
+      // Salita e discesa del cavalcavia: le auto rallentano poco, i mezzi pesanti di più.
+      if (piece.elevated) {
+        const ramp = v.type.maxSpeed * (v.type.name === 'auto' ? RAMP_CAR : RAMP_HEAVY);
+        limit = Math.min(limit, Math.sqrt(ramp * ramp + 2 * BRAKE * ahead));
+      }
 
       if (piece.kind === 'turn') {
         // Più la curva gira e più è stretta, più bisogna rallentare.

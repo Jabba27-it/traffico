@@ -31,6 +31,7 @@ const CURVE_SAMPLES = 20;
  * @property {number} node      per le curve: il nodo dove si svolta
  * @property {number} angle     per le curve: quanto si gira, in radianti (0..π)
  * @property {boolean} guarded  per le curve: serve il permesso per entrarci (incroci e stazioni)
+ * @property {boolean} elevated sale o scende dal cavalcavia: lì si va più piano
  */
 
 export class LaneGeometry {
@@ -96,6 +97,7 @@ export class LaneGeometry {
     const start = { x: pa.x + nx + dx * ra, y: pa.y + ny + dy * ra };
     const end = { x: pb.x + nx - dx * rb, y: pb.y + ny - dy * rb };
     const piece = makePiece(key, 'lane', [start, end], -1, 0, false);
+    piece.elevated = Boolean(pa.overpass?.upper || pb.overpass?.upper);
     this.cache.set(key, piece);
     return piece;
   }
@@ -144,6 +146,7 @@ export class LaneGeometry {
       });
     }
     const piece = makePiece(key, 'turn', points, b, angle, this.isJunction(b));
+    piece.elevated = Boolean(node(this.graph, b).overpass?.upper);
     this.cache.set(key, piece);
     return piece;
   }
@@ -206,7 +209,7 @@ function makePiece(key, kind, points, nodeId, angle, guarded) {
   for (let i = 1; i < points.length; i++) {
     lengths.push(lengths[i - 1] + Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y));
   }
-  return { key, kind, points, lengths, length: lengths[lengths.length - 1], node: nodeId, angle, guarded };
+  return { key, kind, points, lengths, length: lengths[lengths.length - 1], node: nodeId, angle, guarded, elevated: false };
 }
 
 /**

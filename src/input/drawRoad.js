@@ -2,7 +2,8 @@
 // - trascina = strada: raccoglie i punti del dito e, al rilascio, li passa
 //   alla simulazione che crea strade e incroci;
 // - pressione lunga = rimuovi: il pezzo di strada sotto il dito si evidenzia
-//   e, al rilascio, viene rimosso. Allontanando il dito si annulla.
+//   e, al rilascio, viene rimosso. Allontanando il dito si annulla;
+// - tocco breve = azione sul punto toccato (es. trasformare un incrocio in cavalcavia).
 
 import { distance } from '../sim/geometry.js';
 import { STATION_RADIUS } from '../sim/stations.js';
@@ -17,6 +18,7 @@ import { STATION_RADIUS } from '../sim/stations.js';
  * @property {(x: number, y: number, radius: number) => RoadPiece | null} findPiece
  * @property {(piece: RoadPiece) => void} remove
  * @property {() => boolean} active  false quando i gesti sulle strade sono sospesi
+ * @property {(x: number, y: number, radius: number) => void} tap  tocco breve con il dito fermo
  */
 
 // Le distanze legate al dito sono in pixel dello schermo, così valgono a
@@ -116,7 +118,11 @@ export function attachRoadDrawing(canvas, graph, toWorld, worldPerPixel, editor)
   canvas.addEventListener('pointerup', (e) => {
     lift(e);
     if (e.pointerId !== activePointer) return;
-    if (removal) {
+    // Tocco breve: il dito non si è mosso e la pressione lunga non è scattata.
+    const isTap = holdTimer !== null && points.length === 1 && pressedAt !== null && distance(toPoint(e), pressedAt) <= HOLD_TOLERANCE_PX * worldPerPixel();
+    if (isTap && pressedAt) {
+      editor.tap(pressedAt.x, pressedAt.y, snapRadius());
+    } else if (removal) {
       editor.remove(removal);
     } else if (!removalCancelled) {
       const p = toPoint(e);
