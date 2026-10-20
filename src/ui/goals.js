@@ -8,8 +8,9 @@ const DURATION = 5000;
 /**
  * @param {HTMLElement} parent
  * @param {StarGoal[]} goals
+ * @param {number | null} [efficiency]  efficienza dei viaggi in percentuale, se già misurata
  */
-export function showGoals(parent, goals) {
+export function showGoals(parent, goals, efficiency = null) {
   parent.querySelector('.goals')?.remove();
   const box = document.createElement('div');
   box.className = 'goals';
@@ -30,6 +31,13 @@ export function showGoals(parent, goals) {
     row.append(star, text);
     box.appendChild(row);
   }
+  const info = document.createElement('div');
+  info.className = 'goals-progress goals-info';
+  info.textContent =
+    efficiency === null
+      ? 'Efficienza dei viaggi: si misura dal primo arrivo'
+      : `Efficienza dei viaggi: ${efficiency}% (100% = linea d'aria alla massima velocità)`;
+  box.appendChild(info);
   const close = () => box.remove();
   box.addEventListener('click', close);
   setTimeout(close, DURATION);

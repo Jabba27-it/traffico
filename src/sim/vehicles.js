@@ -39,6 +39,7 @@ export const VEHICLE_TYPES = [
  * @property {number} s       distanza percorsa sul pezzo in corso
  * @property {number} speed
  * @property {{x: number, y: number, dx: number, dy: number}} pose  posizione all'ultimo passo
+ * @property {number} departedAt  secondo di gioco in cui è partito, per misurare l'efficienza
  */
 
 /**

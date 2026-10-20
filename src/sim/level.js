@@ -63,11 +63,13 @@ import { SHAPES } from './stations.js';
 
 /**
  * @typedef {Object} SpecialGoal  la condizione speciale della terza stella
- * @property {'collegaLuoghi' | 'reteUnica'} kind
+ * @property {'collegaLuoghi' | 'reteUnica' | 'efficienza'} kind
  *   collegaLuoghi = tutti i luoghi con nome nella stessa rete;
- *   reteUnica = tutte le stazioni nella stessa rete, quando sono almeno `min`
+ *   reteUnica = tutte le stazioni nella stessa rete, quando sono almeno `min`;
+ *   efficienza = efficienza dei viaggi almeno `value`%, dopo almeno `min` viaggi
  * @property {string} text  come si presenta al giocatore
  * @property {number} min
+ * @property {number} value
  */
 
 /**
@@ -95,6 +97,7 @@ import { SHAPES } from './stations.js';
  * @property {Stars | null} stars
  * @property {number} overpasses  cavalcavia disponibili all'inizio
  * @property {{min: number, max: number}} spawn  secondi fra un veicolo nuovo e il successivo, per stazione
+ * @property {number} rushHour  quanto più spesso nascono veicoli nelle ore di punta (1 = niente ore di punta)
  * @property {{name: string, x: number, y: number}[]} districts
  *   quartieri: una stazione nata a caso prende il nome del quartiere più vicino
  */
@@ -221,13 +224,15 @@ export function parseLevel(json) {
     let special = null;
     if (st.speciale !== undefined) {
       const kind = st.speciale?.tipo;
-      if (kind !== 'collegaLuoghi' && kind !== 'reteUnica') {
-        throw new Error('"stelle.speciale.tipo" deve essere "collegaLuoghi" o "reteUnica"');
+      if (kind !== 'collegaLuoghi' && kind !== 'reteUnica' && kind !== 'efficienza') {
+        throw new Error('"stelle.speciale.tipo" deve essere "collegaLuoghi", "reteUnica" o "efficienza"');
       }
+      const defaults = { collegaLuoghi: 'Collega tutti i luoghi', reteUnica: 'Tutte le stazioni in una rete', efficienza: 'Viaggi efficienti' };
       special = {
         kind,
-        text: String(st.speciale.testo ?? (kind === 'collegaLuoghi' ? 'Collega tutti i luoghi' : 'Tutte le stazioni in una rete')),
-        min: isNum(st.speciale.minimo) ? st.speciale.minimo : 0,
+        text: String(st.speciale.testo ?? defaults[kind]),
+        min: isNum(st.speciale.minimo) ? st.speciale.minimo : kind === 'efficienza' ? 50 : 0,
+        value: isNum(st.speciale.valore) ? st.speciale.valore : 60,
       };
     }
     stars = { trips: st.viaggi, days: st.giorni, special };
@@ -249,7 +254,10 @@ export function parseLevel(json) {
   const spawnMin = isNum(vh.ogniMin) && vh.ogniMin > 0 ? vh.ogniMin : 6;
   const spawn = { min: spawnMin, max: isNum(vh.ogniMax) && vh.ogniMax >= spawnMin ? vh.ogniMax : spawnMin + 2 };
 
+  const rushHour = isNum(json.orePunta?.intensita) && json.orePunta.intensita >= 1 ? json.orePunta.intensita : 1;
+
   return {
+    rushHour,
     overpasses,
     spawn,
     districts,

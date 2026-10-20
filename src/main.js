@@ -114,7 +114,7 @@ async function start() {
   const hud = createHud(document.body, {
     bridges: hasWater,
     stars: level.stars !== null,
-    onStarsTap: () => showGoals(document.body, sim.starGoals()),
+    onStarsTap: () => showGoals(document.body, sim.starGoals(), sim.efficiency),
   });
   const speed = createSpeedControls(document.body);
   /** true mentre si chiede se uscire: il gioco resta fermo. */
@@ -138,6 +138,8 @@ async function start() {
   let rewardShown = false;
   /** @type {{text: string, at: number} | null} */
   let lastAnnouncement = null;
+  /** @type {{text: string, at: number} | null} */
+  let lastRushNotice = null;
   /** Dopo aver scelto "migliora una stazione", finché non se ne tocca una. */
   let choosingStation = false;
   /** @type {() => void} */
@@ -245,6 +247,10 @@ async function start() {
       lastAnnouncement = sim.announcement;
       showToast(document.body, sim.announcement.text);
     }
+    if (sim.rushNotice && sim.rushNotice !== lastRushNotice) {
+      lastRushNotice = sim.rushNotice;
+      showToast(document.body, sim.rushNotice.text);
+    }
     const results = {
       score: sim.score,
       seconds: sim.seconds,
@@ -255,6 +261,8 @@ async function start() {
       bridges: sim.bridgeBudget,
       overpasses: sim.overpassBudget,
       stars: sim.starsEarned,
+      rush: sim.rushHour !== null,
+      efficiency: sim.efficiency,
     };
     hud.update(results);
     if (sim.failed && !gameOverShown) {

@@ -11,6 +11,8 @@
  * @property {number} bridges      ponti disponibili
  * @property {number} overpasses   cavalcavia disponibili
  * @property {boolean[]} stars     stelle guadagnate
+ * @property {boolean} [rush]      ora di punta in corso: la barra del giorno si colora
+ * @property {number | null} [efficiency]  efficienza dei viaggi in percentuale
  */
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
@@ -52,6 +54,7 @@ export function createHud(parent, options) {
         lastBar = percent;
         barFill.style.width = `${percent}%`;
       }
+      bar.classList.toggle('hud-rush', Boolean(values.rush));
       const text = `${values.day}|${values.score}|${values.trips}|${values.roads}|${values.bridges}|${values.overpasses}|${values.stars}`;
       if (text === last) return; // tocca il DOM solo quando qualcosa cambia
       last = text;

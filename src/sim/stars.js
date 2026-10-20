@@ -13,6 +13,7 @@ import { shortestPaths } from './pathfinding.js';
  * @property {Station[]} stations
  * @property {number} hiddenNamed   luoghi con nome non ancora comparsi
  * @property {RoadGraph} graph
+ * @property {number | null} efficiency  efficienza dei viaggi in percentuale
  */
 
 /**
@@ -48,6 +49,16 @@ export function starGoals(goals, s) {
  * @returns {StarGoal}
  */
 function specialGoal(special, s) {
+  if (special.kind === 'efficienza') {
+    // Conta solo dopo un po' di viaggi, se no basterebbe il primo viaggio fortunato.
+    const enough = s.trips >= special.min;
+    const value = s.efficiency ?? 0;
+    return {
+      label: special.text,
+      progress: enough ? `${value}% (serve ${special.value}%)` : `dopo ${special.min} viaggi`,
+      reached: enough && value >= special.value,
+    };
+  }
   const targets = special.kind === 'collegaLuoghi' ? s.stations.filter((st) => st.landmark) : s.stations;
   const linked = largestNetwork(s.graph, targets);
   if (special.kind === 'collegaLuoghi') {

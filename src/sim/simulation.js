@@ -62,6 +62,11 @@ const GROWTH_RETRY = 1;
  * preferiscono i percorsi con meno incroci a parità di lunghezza.
  */
 const JUNCTION_COST = 25;
+/** Ore di punta, come parte del giorno (0 = inizio, 1 = fine). */
+const RUSH_MORNING = [0.15, 0.4];
+const RUSH_EVENING = [0.6, 0.85];
+/** Fuori dalle ore di punta i veicoli nascono un po' più di rado. */
+const OFF_PEAK = 0.8;
 
 export class Simulation {
   /**
@@ -90,6 +95,9 @@ export class Simulation {
     this.elapsed = 0;
     /** Veicoli arrivati a destinazione. */
     this.trips = 0;
+    /** Per l'efficienza: somma dei tempi minimi e dei tempi reali dei viaggi. */
+    this.idealTime = 0;
+    this.actualTime = 0;
     /** @type {Map<number, number>} secondi al prossimo veicolo in coda, per stazione */
     this.spawnTimers = new Map();
     /** @type {Map<number, number>} secondi alla prossima partenza possibile, per stazione */
@@ -125,6 +133,10 @@ export class Simulation {
     this.viewSegment = segmentAt(level.view, 1);
     /** @type {{text: string, at: number} | null} l'ultimo avviso "la città si allarga" */
     this.announcement = null;
+    /** @type {{text: string, at: number} | null} l'ultimo avviso d'ora di punta */
+    this.rushNotice = null;
+    /** @type {'morning' | 'evening' | null} */
+    this.lastRush = null;
     /** Stelle già guadagnate in questa partita. */
     this.starsEarned = [false, false, false];
     /** @type {{index: number, label: string} | null} l'ultima stella guadagnata */
@@ -144,6 +156,7 @@ export class Simulation {
       stations: this.stations,
       hiddenNamed: this.hiddenStations.filter((d) => d.landmark).length,
       graph: this.graph,
+      efficiency: this.efficiency,
     });
   }
 
@@ -206,6 +219,52 @@ export class Simulation {
     } else {
       this.growthTimer = GROWTH_RETRY;
     }
+  }
+
+  /**
+   * Somma il viaggio alle misure d'efficienza: il tempo che ci ha messo e il
+   * tempo minimo (in linea d'aria, alla sua velocità massima).
+   * @param {Vehicle} v
+   */
+  recordTrip(v) {
+    const from = this.stations.find((s) => s.id === v.fromStationId);
+    const to = this.stations.find((s) => s.id === v.toStationId);
+    if (!from || !to) return;
+    this.idealTime += Math.hypot(to.x - from.x, to.y - from.y) / v.type.maxSpeed;
+    this.actualTime += Math.max(1e-3, this.elapsed - v.departedAt);
+  }
+
+  /**
+   * Efficienza dei viaggi in percentuale: 100 = tutti in linea d'aria alla
+   * velocità massima. null finché nessuno è arrivato.
+   */
+  get efficiency() {
+    return this.actualTime > 0 ? Math.round((100 * this.idealTime) / this.actualTime) : null;
+  }
+
+  /**
+   * L'ora di punta in corso: 'morning', 'evening' o null.
+   * @returns {'morning' | 'evening' | null}
+   */
+  get rushHour() {
+    if (this.level.rushHour === 1) return null;
+    const p = this.dayProgress;
+    if (p >= RUSH_MORNING[0] && p < RUSH_MORNING[1]) return 'morning';
+    if (p >= RUSH_EVENING[0] && p < RUSH_EVENING[1]) return 'evening';
+    return null;
+  }
+
+  /**
+   * Le stazioni del centro: la metà più vicina al centro della città
+   * (il centro della prima inquadratura del livello).
+   * @returns {Set<number>}
+   */
+  centralStations() {
+    const v = this.level.view[0];
+    const cx = v.x + v.width / 2;
+    const cy = v.y + v.height / 2;
+    const sorted = [...this.stations].sort((a, b) => Math.hypot(a.x - cx, a.y - cy) - Math.hypot(b.x - cx, b.y - cy));
+    return new Set(sorted.slice(0, Math.ceil(sorted.length / 2)).map((s) => s.id));
   }
 
   /** Secondi interi trascorsi (la tolleranza assorbe gli arrotondamenti dei passi). */
@@ -500,8 +559,17 @@ export class Simulation {
 
     if (this.graph.version !== this.routedVersion) this.updateRoutes();
 
+    const rush = this.rushHour;
+    if (rush && rush !== this.lastRush) this.rushNotice = { text: rush === 'morning' ? 'Ora di punta: dalla periferia verso il centro' : 'Ora di punta: dal centro verso la periferia', at: this.elapsed };
+    this.lastRush = rush;
+    const central = rush ? this.centralStations() : new Set();
+
     for (const station of this.stations) {
-      const spawn = /** @type {number} */ (this.spawnTimers.get(station.id)) - dt;
+      // Nelle ore di punta la periferia (al mattino) o il centro (alla sera)
+      // generano veicoli più spesso; nel resto del giorno un po' meno.
+      const inRush = rush === 'morning' ? !central.has(station.id) : rush === 'evening' ? central.has(station.id) : false;
+      const pace = this.level.rushHour === 1 ? 1 : inRush ? this.level.rushHour : rush ? 1 : OFF_PEAK;
+      const spawn = /** @type {number} */ (this.spawnTimers.get(station.id)) - dt * pace;
       if (spawn <= 0) this.enqueue(station);
       this.spawnTimers.set(station.id, spawn > 0 ? spawn : spawn + this.nextSpawnDelay());
 
@@ -520,6 +588,7 @@ export class Simulation {
     if (arrived.size > 0) {
       this.trips += arrived.size;
       this.vehicles = this.vehicles.filter((v) => !arrived.has(v));
+      for (const v of arrived) this.recordTrip(v);
     }
 
     this.failedStation = updateCongestion(this.stations, dt, this.level.congestion.tolerance);
@@ -592,6 +661,7 @@ export class Simulation {
         s: 0,
         speed: 0,
         pose: { x: origin.x, y: origin.y, dx: 1, dy: 0 },
+        departedAt: this.elapsed,
       };
       if (!this.traffic.roomToDepart(v)) return false;
       v.pose = pointOnVehicle(this.lanes, v);

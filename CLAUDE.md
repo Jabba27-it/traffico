@@ -19,7 +19,11 @@ Puzzle per telefono, a livelli: ogni livello è una città ispirata a una città
 - Fra i premi di fine settimana: migliorare una stazione per aumentarne la capienza, ottenere più tratti di strada, ottenere un ponte (nei livelli con acqua).
 - Le strade non attraversano l'acqua: una strada che attraversa un fiume diventa un ponte e consuma un ponte (risorsa limitata). Un ponte non può superare 2 volte la larghezza del fiume.
 - La mappa è ampia (mondo 520×1040) per lasciare spazio alla crescita della città.
-- Cavalcavia: un tocco breve su un incrocio a croce lo trasforma in cavalcavia (le due strade si scavalcano, niente precedenze né svolte; sopra si va più piano, i mezzi pesanti di più); un altro tocco lo riporta a incrocio. Risorsa limitata, fra i premi settimanali; ogni settimana si propongono 3 carte a caso fra quelle possibili.
+- Tocco breve su una strada: doppio senso → senso unico → senso unico al contrario → superstrada (più veloce, con la precedenza, costa altrettanti tratti) → doppio senso.
+- Incroci: la strada più dritta è la principale e ha la precedenza; chi arriva dalle laterali si immette quando sulla principale non arriva nessuno. Tocco breve su un incrocio: incrocio → semaforo (verde più lungo alla principale) → cavalcavia (solo sulle croci) → incrocio.
+- Cavalcavia: le due strade si scavalcano, niente precedenze né svolte; sopra si va più piano, i mezzi pesanti di più. Risorsa limitata, fra i premi settimanali; ogni settimana si propongono 3 carte a caso fra quelle possibili.
+- Rotatoria: si disegna un cerchio intorno a un incrocio; anello a senso unico antiorario, chi è dentro ha la precedenza; costa i tratti dell'anello; tocco al centro per tornare incrocio.
+- Ore di punta: al mattino nascono più veicoli in periferia, alla sera in centro. Efficienza dei viaggi (tempo minimo in linea d'aria / tempo reale) negli obiettivi, a fine partita e come possibile condizione di stella.
 - Tre stelle per livello: 1 = viaggi minimi, 2 = giorni sopravvissuti, 3 = condizione speciale della città.
 - Telefono in verticale. Gesti: trascina = strada, pressione lunga = rimuovi, due dita = spostamento e zoom facoltativo.
 
