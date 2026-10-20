@@ -1,8 +1,8 @@
 import { RoadGraph } from './sim/graph.js';
 import { parseLevel } from './sim/level.js';
 import { Simulation } from './sim/simulation.js';
-import { setupCanvas, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
-import { drawRoads, drawPreview, drawRemoval, drawWater } from './render/roads.js';
+import { setupCanvas, fitCamera, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
+import { drawRoads, drawPreview, drawRemoval, drawWater, drawOutsideVeil } from './render/roads.js';
 import { drawStations, drawSelectable } from './render/stations.js';
 import { STATION_RADIUS } from './sim/stations.js';
 import { drawVehicles } from './render/vehicles.js';
@@ -12,6 +12,7 @@ import { createHud } from './ui/hud.js';
 import { showGameOver } from './ui/gameOver.js';
 import { createSpeedControls } from './ui/speed.js';
 import { showRewardChoice, showStationPrompt, REWARD_ICONS } from './ui/reward.js';
+import { showToast } from './ui/toast.js';
 
 // Il livello si sceglie dall'indirizzo, es. ?livello=roma (di base: prova).
 const LEVEL_NAME = new URLSearchParams(location.search).get('livello') ?? 'prova';
@@ -36,7 +37,7 @@ async function start() {
     return;
   }
 
-  const view = setupCanvas(canvas, level.world);
+  const view = setupCanvas(canvas);
   const graph = new RoadGraph();
   const sim = new Simulation(graph, level, Date.now());
   const drawing = attachRoadDrawing(
@@ -58,6 +59,8 @@ async function start() {
   let pending = 0;
   let gameOverShown = false;
   let rewardShown = false;
+  /** @type {{text: string, at: number} | null} */
+  let lastAnnouncement = null;
   /** Dopo aver scelto "migliora una stazione", finché non se ne tocca una. */
   let choosingStation = false;
   /** @type {() => void} */
@@ -122,6 +125,10 @@ async function start() {
       }
       showRewardChoice(document.body, sim.rewardedWeeks, cards);
     }
+    if (sim.announcement && sim.announcement !== lastAnnouncement) {
+      lastAnnouncement = sim.announcement;
+      showToast(document.body, sim.announcement.text);
+    }
     const results = {
       score: sim.score,
       seconds: sim.seconds,
@@ -138,6 +145,8 @@ async function start() {
     }
 
     const { ctx } = view;
+    const visible = sim.view;
+    fitCamera(view, visible);
     useScreenSpace(view);
     ctx.fillStyle = OUTSIDE;
     ctx.fillRect(0, 0, view.width, view.height);
@@ -145,18 +154,19 @@ async function start() {
     ctx.fillStyle = BACKGROUND;
     ctx.fillRect(0, 0, level.world.width, level.world.height);
     drawWater(ctx, level.waters);
+    drawOutsideVeil(ctx, level.world, visible);
     drawRoads(ctx, graph);
     const preview = drawing.preview();
     if (preview.length >= 2) {
       const plan = sim.planRoad(preview);
-      drawPreview(ctx, preview, plan.cut, sim.roadCost(plan), plan.bridges, level.world.width);
+      drawPreview(ctx, preview, plan.cut, sim.roadCost(plan), plan.bridges, visible);
     }
     const removal = drawing.removal();
     const finger = drawing.finger();
-    if (removal && finger) drawRemoval(ctx, graph, removal, sim.refundOf(removal), finger, level.world.width);
+    if (removal && finger) drawRemoval(ctx, graph, removal, sim.refundOf(removal), finger, visible);
     drawVehicles(ctx, graph, sim.vehicles);
     drawCongestion(ctx, sim.stations, level.congestion.tolerance, now / 1000);
-    drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed);
+    drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed, visible.width / level.view[0].width);
     if (choosingStation) drawSelectable(ctx, sim.stations, now / 1000);
     requestAnimationFrame(frame);
   }

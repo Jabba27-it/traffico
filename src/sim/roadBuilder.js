@@ -5,7 +5,7 @@
 import { closestPointOnSegment, distance, segmentIntersection } from './geometry.js';
 import { STATION_RADIUS } from './stations.js';
 import { ROAD_WIDTH } from './graph.js';
-import { isInWater, lengthInWater, widestWaterAlong } from './water.js';
+import { isInWater, lengthInWater, touchesSea, widestWaterAlong } from './water.js';
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('./graph.js').RoadNode} RoadNode */
@@ -21,8 +21,9 @@ const STATION_SNAP = STATION_RADIUS + 8;
 /**
  * Perché il tratto disegnato è stato troncato:
  * 'roads' tratti finiti, 'bridges' ponti finiti, 'long' ponte troppo lungo,
- * 'water' il tratto finisce in acqua.
- * @typedef {'roads' | 'bridges' | 'long' | 'water'} CutReason
+ * 'water' il tratto finisce in acqua, 'sea' il tratto entra nel mare,
+ * 'outside' il tratto esce dalla parte visibile della città.
+ * @typedef {'roads' | 'bridges' | 'long' | 'water' | 'sea' | 'outside'} CutReason
  */
 
 /**
@@ -40,6 +41,7 @@ const STATION_SNAP = STATION_RADIUS + 8;
  * @property {number} maxLength  strada nuova costruibile con i tratti disponibili
  * @property {number} bridges    ponti disponibili
  * @property {Water[]} waters
+ * @property {{x: number, y: number, width: number, height: number}} bounds  dove si può costruire
  */
 
 /** @typedef {import('./water.js').Water} Water */
@@ -60,27 +62,42 @@ export function planRoad(graph, points, limits) {
   );
   const wet = points.map((p) => isInWater(limits.waters, p));
 
+  // Il tratto si ferma al primo punto fuori dalla parte visibile della città.
+  const b = limits.bounds;
+  const outsideAt = points.findIndex((p) => p.x < b.x || p.y < b.y || p.x > b.x + b.width || p.y > b.y + b.height);
+  const usable = outsideAt === -1 ? points.length : outsideAt;
+  /** @type {{index: number, x: number, y: number, reason: CutReason} | null} */
+  let waterCut = null;
+  if (outsideAt !== -1) {
+    const last = points[Math.max(0, outsideAt - 1)];
+    waterCut = { index: Math.max(1, outsideAt), x: last.x, y: last.y, reason: 'outside' };
+  }
+
   // Attraversamenti dell'acqua, nell'ordine del tratto.
   /** @type {{start: number, end: number}[]} indici del primo e dell'ultimo punto in acqua */
   const crossings = [];
-  /** @type {{index: number, x: number, y: number, reason: CutReason} | null} */
-  let waterCut = null;
-  for (let i = 0; i < points.length && !waterCut; i++) {
+  for (let i = 0; i < usable; i++) {
     if (!wet[i]) continue;
     let end = i;
-    while (end + 1 < points.length && wet[end + 1]) end++;
+    while (end + 1 < usable && wet[end + 1]) end++;
     const bank = i > 0 ? points[i - 1] : points[0];
-    const stop = (/** @type {CutReason} */ reason) => (waterCut = { index: Math.max(1, i), x: bank.x, y: bank.y, reason });
+    let stopped = false;
+    const stop = (/** @type {CutReason} */ reason) => {
+      waterCut = { index: Math.max(1, i), x: bank.x, y: bank.y, reason };
+      stopped = true;
+    };
     if (onRoad.slice(i, end + 1).every(Boolean)) {
       // Si ripassa sopra un ponte che c'è già: gratis.
-    } else if (i === 0 || end === points.length - 1) {
-      stop('water');
+    } else if (i === 0 || end === usable - 1) {
+      stop(touchesSea(limits.waters, points.slice(i, end + 1)) ? 'sea' : 'water');
     } else {
       const span = points.slice(i - 1, end + 2);
-      if (lengthInWater(limits.waters, span) > 2 * widestWaterAlong(limits.waters, span)) stop('long');
+      if (touchesSea(limits.waters, span)) stop('sea');
+      else if (lengthInWater(limits.waters, span) > 2 * widestWaterAlong(limits.waters, span)) stop('long');
       else if (crossings.length >= limits.bridges) stop('bridges');
       else crossings.push({ start: i, end });
     }
+    if (stopped) break;
     i = end;
   }
 

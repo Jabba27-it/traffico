@@ -20,9 +20,14 @@ const CUT_LABELS = {
   bridges: 'Servono ponti',
   long: 'Ponte troppo lungo',
   water: 'Non si finisce in acqua',
+  sea: 'Non si costruisce sul mare',
+  outside: 'Fuori città',
 };
 /** Il numero del costo sta sopra il dito, per non restare coperto. */
 const LABEL_OFFSET = 34;
+/** Larghezza di vista a cui le scritte hanno la loro grandezza normale. */
+const BASE_VIEW_WIDTH = 520;
+const OUTSIDE_VEIL = 'rgba(242, 239, 232, 0.6)';
 
 /**
  * @param {CanvasRenderingContext2D} ctx
@@ -49,14 +54,26 @@ export function drawRoads(ctx, graph) {
 export function drawWater(ctx, waters) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
+  // Prima le rive di tutto (fiumi e mare), poi l'acqua sopra: dove il fiume
+  // sfocia nel mare non resta una riva in mezzo.
   for (const [extra, color] of /** @type {[number, string][]} */ ([[6, WATER_BANK], [0, WATER_COLOR]])) {
     for (const w of waters) {
-      ctx.lineWidth = w.width + extra;
-      ctx.strokeStyle = color;
       ctx.beginPath();
       ctx.moveTo(w.points[0].x, w.points[0].y);
       for (const p of w.points.slice(1)) ctx.lineTo(p.x, p.y);
-      ctx.stroke();
+      ctx.strokeStyle = color;
+      if (w.kind === 'river') {
+        ctx.lineWidth = w.width + extra;
+        ctx.stroke();
+      } else {
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+        if (extra) {
+          ctx.lineWidth = extra;
+          ctx.stroke();
+        }
+      }
     }
   }
 }
@@ -91,9 +108,9 @@ function strokeEdges(ctx, graph, edges, width, color) {
  * @param {import('../sim/roadBuilder.js').RoadPlan['cut']} cut
  * @param {number} cost  tratti di strada che verranno consumati
  * @param {number} bridges  ponti che verranno consumati
- * @param {number} worldWidth  per tenere la scritta dentro lo schermo
+ * @param {import('../sim/view.js').Rect} bounds  la vista attuale, per la scritta
  */
-export function drawPreview(ctx, points, cut, cost, bridges, worldWidth) {
+export function drawPreview(ctx, points, cut, cost, bridges, bounds) {
   if (points.length < 2) return;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
@@ -108,17 +125,46 @@ export function drawPreview(ctx, points, cut, cost, bridges, worldWidth) {
     .filter(Boolean)
     .join(' · ');
   const label = cut ? CUT_LABELS[cut.reason] : spent;
-  if (!label) return;
-  ctx.font = 'bold 15px system-ui, sans-serif';
+  if (label) drawFingerLabel(ctx, label, tip, bounds, cut ? BLOCKED_TEXT : LABEL_COLOR);
+}
+
+/**
+ * Scritta sopra il dito, sempre della stessa grandezza sullo schermo anche
+ * quando la vista si allarga, e tenuta dentro la vista.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {string} text
+ * @param {{x: number, y: number}} finger
+ * @param {import('../sim/view.js').Rect} bounds  la vista attuale
+ * @param {string} color
+ */
+function drawFingerLabel(ctx, text, finger, bounds, color) {
+  const k = bounds.width / BASE_VIEW_WIDTH;
+  ctx.font = `bold ${15 * k}px system-ui, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 4 * k;
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-  const half = ctx.measureText(label).width / 2 + 6;
-  const x = Math.max(half, Math.min(worldWidth - half, tip.x));
-  ctx.strokeText(label, x, tip.y - LABEL_OFFSET);
-  ctx.fillStyle = cut ? BLOCKED_TEXT : LABEL_COLOR;
-  ctx.fillText(label, x, tip.y - LABEL_OFFSET);
+  const half = ctx.measureText(text).width / 2 + 6 * k;
+  const x = Math.max(bounds.x + half, Math.min(bounds.x + bounds.width - half, finger.x));
+  const y = finger.y - LABEL_OFFSET * k;
+  ctx.strokeText(text, x, y);
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+}
+
+/**
+ * Schiarisce tutto ciò che sta fuori dalla parte visibile della città.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {{width: number, height: number}} world
+ * @param {import('../sim/view.js').Rect} visible
+ */
+export function drawOutsideVeil(ctx, world, visible) {
+  const pad = Math.max(world.width, world.height);
+  ctx.fillStyle = OUTSIDE_VEIL;
+  ctx.beginPath();
+  ctx.rect(-pad, -pad, world.width + 2 * pad, world.height + 2 * pad);
+  ctx.rect(visible.x, visible.y, visible.width, visible.height);
+  ctx.fill('evenodd');
 }
 
 /**
@@ -129,9 +175,9 @@ export function drawPreview(ctx, points, cut, cost, bridges, worldWidth) {
  * @param {import('../sim/roadEditing.js').RoadPiece} piece
  * @param {number} refund
  * @param {{x: number, y: number}} finger
- * @param {number} worldWidth
+ * @param {import('../sim/view.js').Rect} bounds  la vista attuale, per la scritta
  */
-export function drawRemoval(ctx, graph, piece, refund, finger, worldWidth) {
+export function drawRemoval(ctx, graph, piece, refund, finger, bounds) {
   ctx.lineCap = 'round';
   ctx.lineWidth = ROAD_WIDTH;
   ctx.strokeStyle = REMOVAL_COLOR;
@@ -146,17 +192,7 @@ export function drawRemoval(ctx, graph, piece, refund, finger, worldWidth) {
   }
   ctx.stroke();
 
-  const label = `Rimuovi +${refund}`;
-  ctx.font = 'bold 15px system-ui, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'bottom';
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-  const half = ctx.measureText(label).width / 2 + 6;
-  const x = Math.max(half, Math.min(worldWidth - half, finger.x));
-  ctx.strokeText(label, x, finger.y - LABEL_OFFSET);
-  ctx.fillStyle = BLOCKED_TEXT;
-  ctx.fillText(label, x, finger.y - LABEL_OFFSET);
+  drawFingerLabel(ctx, `Rimuovi +${refund}`, finger, bounds, BLOCKED_TEXT);
 }
 
 /**

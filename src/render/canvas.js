@@ -1,5 +1,5 @@
 // Canvas a schermo intero, nitido sugli schermi ad alta densità.
-// Il mondo di gioco ha dimensioni fisse e viene adattato allo schermo.
+// La telecamera inquadra la parte visibile della città e la segue mentre si allarga.
 
 /**
  * @typedef {Object} View
@@ -7,21 +7,22 @@
  * @property {number} width    larghezza dello schermo in pixel CSS
  * @property {number} height   altezza dello schermo in pixel CSS
  * @property {number} dpr      pixel fisici per pixel CSS
- * @property {{width: number, height: number}} world
  * @property {number} scale    pixel CSS per unità di mondo
- * @property {number} offsetX  posizione dell'angolo del mondo sullo schermo
+ * @property {number} offsetX  dove finisce sullo schermo l'origine del mondo
  * @property {number} offsetY
  */
 
+/** Spazio intorno alla parte visibile, per intravedere cosa arriverà. */
+const CAMERA_MARGIN = 0.03;
+
 /**
  * @param {HTMLCanvasElement} canvas
- * @param {{width: number, height: number}} world
  * @returns {View} si aggiorna da solo quando la finestra cambia dimensione
  */
-export function setupCanvas(canvas, world) {
+export function setupCanvas(canvas) {
   const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
   /** @type {View} */
-  const view = { ctx, width: 0, height: 0, dpr: 1, world, scale: 1, offsetX: 0, offsetY: 0 };
+  const view = { ctx, width: 0, height: 0, dpr: 1, scale: 1, offsetX: 0, offsetY: 0 };
 
   const resize = () => {
     view.dpr = window.devicePixelRatio || 1;
@@ -29,14 +30,24 @@ export function setupCanvas(canvas, world) {
     view.height = canvas.clientHeight;
     canvas.width = Math.round(view.width * view.dpr);
     canvas.height = Math.round(view.height * view.dpr);
-    view.scale = Math.min(view.width / world.width, view.height / world.height);
-    view.offsetX = (view.width - world.width * view.scale) / 2;
-    view.offsetY = (view.height - world.height * view.scale) / 2;
   };
 
   window.addEventListener('resize', resize);
   resize();
   return view;
+}
+
+/**
+ * Punta la telecamera sul rettangolo di mondo `rect`, centrato e intero sullo schermo.
+ * @param {View} view
+ * @param {import('../sim/view.js').Rect} rect
+ */
+export function fitCamera(view, rect) {
+  const w = rect.width * (1 + 2 * CAMERA_MARGIN);
+  const h = rect.height * (1 + 2 * CAMERA_MARGIN);
+  view.scale = Math.min(view.width / w, view.height / h);
+  view.offsetX = view.width / 2 - (rect.x + rect.width / 2) * view.scale;
+  view.offsetY = view.height / 2 - (rect.y + rect.height / 2) * view.scale;
 }
 
 /**

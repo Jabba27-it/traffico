@@ -10,10 +10,20 @@ import { pickNewStation } from './growth.js';
 import { updateCongestion } from './congestion.js';
 import { planRoad, buildPlannedRoad } from './roadBuilder.js';
 import { findRoadPiece, removeRoadPiece, removeIsolatedNodes, edgeLength } from './roadEditing.js';
+import { isInWater } from './water.js';
+import { viewAt, segmentAt, insetRect, rectContains } from './view.js';
 
 /** @typedef {import('./roadEditing.js').RoadPiece} RoadPiece */
 /** @typedef {import('./graph.js').RoadEdge} RoadEdge */
-import { isInWater } from './water.js';
+/** @typedef {import('./view.js').Rect} Rect */
+
+/**
+ * Margini della vista (in frazioni) dove non nascono stazioni: in alto c'è il
+ * pannello, in basso i pulsanti di velocità.
+ */
+const SPAWN_INSET = { left: 0.06, top: 0.09, right: 0.06, bottom: 0.11 };
+/** Una stazione fissa compare quando è dentro la vista almeno di tanto. */
+const FIXED_STATION_MARGIN = STATION_RADIUS + 12;
 
 /**
  * @param {RoadGraph} graph
@@ -83,10 +93,34 @@ export class Simulation {
     /** true a fine settimana, finché il giocatore non ha scelto il premio. */
     this.rewardPending = false;
 
-    // Le stazioni iniziali ci sono già: niente animazione di comparsa.
-    for (const def of level.stations) this.addStation(def, -Infinity);
+    /** Le stazioni fisse che la vista non ha ancora raggiunto. */
+    this.hiddenStations = [...level.stations];
+    // Quelle già visibili all'inizio ci sono già: niente animazione di comparsa.
+    this.revealStations(-Infinity);
     /** Versione del grafo su cui sono calcolati i percorsi dei veicoli in viaggio. */
     this.routedVersion = graph.version;
+    /** Tappa della vista da cui si sta partendo, per gli avvisi. */
+    this.viewSegment = segmentAt(level.view, 1);
+    /** @type {{text: string, at: number} | null} l'ultimo avviso "la città si allarga" */
+    this.announcement = null;
+  }
+
+  /** La parte visibile della città in questo momento. */
+  get view() {
+    return viewAt(this.level.view, this.elapsed / this.level.dayLength + 1);
+  }
+
+  /**
+   * Aggiunge le stazioni fisse entrate nella vista.
+   * @param {number} bornAt
+   */
+  revealStations(bornAt) {
+    const view = this.view;
+    this.hiddenStations = this.hiddenStations.filter((def) => {
+      if (!rectContains(view, def, FIXED_STATION_MARGIN)) return true;
+      this.addStation(def, bornAt);
+      return false;
+    });
   }
 
   /**
@@ -104,7 +138,9 @@ export class Simulation {
   grow() {
     const growth = this.level.growth;
     if (!growth || this.stations.length >= growth.max) return;
-    const def = pickNewStation(this.random, this.level, this.stations);
+    const i = SPAWN_INSET;
+    const area = insetRect(this.view, i.left, i.top, i.right, i.bottom);
+    const def = pickNewStation(this.random, this.level, this.stations, area);
     if (def) {
       this.addStation(def, this.elapsed);
       this.growthTimer = growth.interval;
@@ -143,6 +179,7 @@ export class Simulation {
       maxLength: this.roadBudget * this.level.roads.segmentLength,
       bridges: this.bridgeBudget,
       waters: this.level.waters,
+      bounds: this.view,
     });
   }
 
@@ -245,6 +282,16 @@ export class Simulation {
       this.rewardPending = true;
       return;
     }
+
+    // La vista si allarga: avviso quando si parte verso una nuova zona,
+    // e le stazioni fisse raggiunte compaiono.
+    const segment = segmentAt(this.level.view, this.elapsed / this.level.dayLength + 1);
+    if (segment !== this.viewSegment) {
+      this.viewSegment = segment;
+      const next = this.level.view[segment + 1];
+      if (next?.name) this.announcement = { text: `La città si allarga: ${next.name}`, at: this.elapsed };
+    }
+    this.revealStations(this.elapsed);
 
     this.growthTimer -= dt;
     if (this.growthTimer <= 0) this.grow();

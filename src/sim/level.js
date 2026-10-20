@@ -9,6 +9,18 @@ import { SHAPES } from './stations.js';
  * @property {Shape} shape
  * @property {number} x
  * @property {number} y
+ * @property {string} [name]  nome del luogo, scritto sotto la stazione
+ */
+
+/**
+ * @typedef {Object} ViewKey  dove deve arrivare la vista in un certo giorno;
+ *   fra due tappe la vista si sposta e si allarga in modo continuo
+ * @property {number} day
+ * @property {number} x
+ * @property {number} y
+ * @property {number} width
+ * @property {number} height  sempre il doppio della larghezza
+ * @property {string} [name]  la zona che si scopre andando verso questa tappa
  */
 
 /**
@@ -51,9 +63,10 @@ import { SHAPES } from './stations.js';
  * @property {string} name
  * @property {{width: number, height: number}} world
  * @property {Shape[]} shapes        forme ammesse per le stazioni nuove
- * @property {StationDef[]} stations stazioni presenti dall'inizio
+ * @property {StationDef[]} stations stazioni fisse: compaiono quando entrano nella vista
  * @property {Growth | null} growth  null se la città non cresce
- * @property {Zone[]} zones
+ * @property {Zone[]} zones          vuoto = le stazioni nuove possono nascere in tutta la vista
+ * @property {ViewKey[]} view        tappe della vista, in ordine di giorno
  * @property {Congestion} congestion
  * @property {number} dayLength  secondi di gioco in un giorno
  * @property {Roads} roads
@@ -78,8 +91,28 @@ export function parseLevel(json) {
   const stations = json.stazioni.map((/** @type {any} */ s, /** @type {number} */ i) => {
     checkShape(s?.forma, `Stazione ${i + 1}`);
     if (!isNum(s.x) || !isNum(s.y)) throw new Error(`Stazione ${i + 1}: mancano "x" o "y"`);
-    return { shape: s.forma, x: s.x, y: s.y };
+    return { shape: s.forma, x: s.x, y: s.y, ...(typeof s.nome === 'string' ? { name: s.nome } : {}) };
   });
+
+  /** @type {ViewKey[]} */
+  let view = [{ day: 1, x: 0, y: 0, width: world.larghezza, height: world.altezza }];
+  if (json.vista !== undefined) {
+    if (!Array.isArray(json.vista) || json.vista.length === 0) throw new Error('"vista" deve essere una lista di tappe');
+    view = json.vista.map((/** @type {any} */ v, /** @type {number} */ i) => {
+      if (!isNum(v?.giorno) || !isNum(v.x) || !isNum(v.y) || !isNum(v.larghezza)) {
+        throw new Error(`Vista ${i + 1}: servono "giorno", "x", "y", "larghezza"`);
+      }
+      return {
+        day: v.giorno,
+        x: v.x,
+        y: v.y,
+        width: v.larghezza,
+        height: v.larghezza * 2,
+        ...(typeof v.nome === 'string' ? { name: v.nome } : {}),
+      };
+    });
+    view.sort((a, b) => a.day - b.day);
+  }
 
   /** @type {Shape[]} */
   let shapes = stations.map((/** @type {StationDef} */ s) => s.shape);
@@ -101,10 +134,7 @@ export function parseLevel(json) {
       max: isNum(c.massimo) ? c.massimo : Infinity,
       minDistance: isNum(c.distanzaMinima) ? c.distanzaMinima : 80,
     };
-    if (!Array.isArray(json.zone) || json.zone.length === 0) {
-      throw new Error('Con "crescita" serve almeno una zona in "zone"');
-    }
-    zones = json.zone.map((/** @type {any} */ z, /** @type {number} */ i) => {
+    zones = (Array.isArray(json.zone) ? json.zone : []).map((/** @type {any} */ z, /** @type {number} */ i) => {
       if (!isNum(z?.x) || !isNum(z.y) || !isNum(z.larghezza) || !isNum(z.altezza)) {
         throw new Error(`Zona ${i + 1}: servono "x", "y", "larghezza", "altezza"`);
       }
@@ -141,17 +171,23 @@ export function parseLevel(json) {
   if (json.acqua !== undefined) {
     if (!Array.isArray(json.acqua)) throw new Error('"acqua" deve essere una lista');
     json.acqua.forEach((/** @type {any} */ a, /** @type {number} */ i) => {
-      if (a?.tipo !== 'fiume') throw new Error(`Acqua ${i + 1}: "tipo" deve essere "fiume"`);
+      const pointsOk = Array.isArray(a?.punti) && a.punti.every((/** @type {any} */ q) => Array.isArray(q) && isNum(q[0]) && isNum(q[1]));
+      if (a?.tipo === 'mare') {
+        if (!pointsOk || a.punti.length < 3) throw new Error(`Acqua ${i + 1}: il mare ha bisogno di almeno tre "punti" [x, y]`);
+        waters.push({ kind: 'sea', points: a.punti.map((/** @type {number[]} */ q) => ({ x: q[0], y: q[1] })) });
+        return;
+      }
+      if (a?.tipo !== 'fiume') throw new Error(`Acqua ${i + 1}: "tipo" deve essere "fiume" o "mare"`);
       // Più stretto di così un tratto disegnato potrebbe "saltare" il fiume fra due punti.
       if (!isNum(a.larghezza) || a.larghezza < 30) throw new Error(`Acqua ${i + 1}: "larghezza" deve essere almeno 30`);
-      const ok = Array.isArray(a.punti) && a.punti.length >= 2 && a.punti.every((/** @type {any} */ q) => Array.isArray(q) && isNum(q[0]) && isNum(q[1]));
-      if (!ok) throw new Error(`Acqua ${i + 1}: "punti" deve essere una lista di almeno due [x, y]`);
+      if (!pointsOk || a.punti.length < 2) throw new Error(`Acqua ${i + 1}: "punti" deve essere una lista di almeno due [x, y]`);
       waters.push({ kind: 'river', width: a.larghezza, points: a.punti.map((/** @type {number[]} */ q) => ({ x: q[0], y: q[1] })) });
     });
   }
   const bridges = isNum(json.ponti?.iniziali) ? json.ponti.iniziali : waters.length > 0 ? 2 : 0;
 
   return {
+    view,
     waters,
     bridges,
     congestion,

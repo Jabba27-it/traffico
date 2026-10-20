@@ -20,6 +20,7 @@ const OUTLINE = '#ffffff';
 const APPEAR_TIME = 0.5;
 
 const QUEUE_COLOR = '#8d9097';
+const NAME_COLOR = '#6b6e75';
 const QUEUE_ITEM_RADIUS = 5;
 const QUEUE_SPACING = 13;
 const QUEUE_PER_ROW = 6;
@@ -30,8 +31,9 @@ const QUEUE_MAX_ROWS = 2;
  * @param {Station[]} stations
  * @param {Map<number, Shape[]>} transit  veicoli nascosti sotto ogni stazione che attraversano
  * @param {number} time  secondi di gioco, per l'animazione di comparsa
+ * @param {number} [labelScale]  ingrandimento dei nomi, per tenerli leggibili quando la vista si allarga
  */
-export function drawStations(ctx, stations, transit, time) {
+export function drawStations(ctx, stations, transit, time, labelScale = 1) {
   ctx.lineJoin = 'round';
   ctx.lineWidth = 3;
   ctx.strokeStyle = OUTLINE;
@@ -54,6 +56,20 @@ export function drawStations(ctx, stations, transit, time) {
     }
   }
   for (const s of stations) drawQueue(ctx, s, [...s.queue, ...(transit.get(s.id) ?? [])]);
+
+  // Nomi dei luoghi, sotto la stazione e sotto l'anello della congestione.
+  ctx.font = `600 ${11 * labelScale}px system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.lineWidth = 3 * labelScale;
+  ctx.strokeStyle = 'rgba(242, 239, 232, 0.9)';
+  ctx.fillStyle = NAME_COLOR;
+  for (const s of stations) {
+    if (!s.name) continue;
+    const y = s.y + STATION_RADIUS + 12;
+    ctx.strokeText(s.name, s.x, y);
+    ctx.fillText(s.name, s.x, y);
+  }
 }
 
 /**

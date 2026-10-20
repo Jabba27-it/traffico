@@ -1,4 +1,4 @@
-// Acqua della mappa: per ora fiumi, cioè linee con una larghezza.
+// Acqua della mappa: fiumi (linee con una larghezza) e mare (aree chiuse).
 
 import { closestPointOnSegment, distance } from './geometry.js';
 
@@ -11,7 +11,13 @@ import { closestPointOnSegment, distance } from './geometry.js';
  * @property {Point[]} points  la linea centrale del fiume
  */
 
-/** @typedef {River} Water */
+/**
+ * @typedef {Object} Sea
+ * @property {'sea'} kind
+ * @property {Point[]} points  il contorno dell'area, chiuso da solo
+ */
+
+/** @typedef {River | Sea} Water */
 
 /**
  * Distanza di p dalla riva più vicina: negativa se p è in acqua.
@@ -20,12 +26,7 @@ import { closestPointOnSegment, distance } from './geometry.js';
  */
 export function distanceToWater(waters, p) {
   let best = Infinity;
-  for (const w of waters) {
-    for (let i = 1; i < w.points.length; i++) {
-      const c = closestPointOnSegment(p, w.points[i - 1], w.points[i]);
-      best = Math.min(best, distance(c, p) - w.width / 2);
-    }
-  }
+  for (const w of waters) best = Math.min(best, w.kind === 'river' ? riverDistance(w, p) : seaDistance(w, p));
   return best;
 }
 
@@ -65,7 +66,47 @@ export function lengthInWater(waters, points) {
 export function widestWaterAlong(waters, points) {
   let widest = 0;
   for (const w of waters) {
-    if (points.some((p) => distanceToWater([w], p) < 0)) widest = Math.max(widest, w.width);
+    if (w.kind === 'river' && points.some((p) => riverDistance(w, p) < 0)) widest = Math.max(widest, w.width);
   }
   return widest;
+}
+
+/**
+ * true se la spezzata entra nel mare: lì non si costruiscono ponti.
+ * @param {Water[]} waters
+ * @param {Point[]} points
+ */
+export function touchesSea(waters, points) {
+  return waters.some((w) => w.kind === 'sea' && points.some((p) => seaDistance(w, p) < 0));
+}
+
+/**
+ * @param {River} w
+ * @param {Point} p
+ */
+function riverDistance(w, p) {
+  let best = Infinity;
+  for (let i = 1; i < w.points.length; i++) {
+    const c = closestPointOnSegment(p, w.points[i - 1], w.points[i]);
+    best = Math.min(best, distance(c, p) - w.width / 2);
+  }
+  return best;
+}
+
+/**
+ * Distanza dal contorno del mare, negativa se p è dentro.
+ * @param {Sea} w
+ * @param {Point} p
+ */
+function seaDistance(w, p) {
+  let edge = Infinity;
+  let inside = false;
+  const pts = w.points;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const a = pts[i];
+    const b = pts[j];
+    edge = Math.min(edge, distance(closestPointOnSegment(p, a, b), p));
+    if (a.y > p.y !== b.y > p.y && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) inside = !inside;
+  }
+  return inside ? -edge : edge;
 }

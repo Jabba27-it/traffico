@@ -98,6 +98,23 @@
       white-space: nowrap;
       pointer-events: none;
     }
+    .toast {
+      position: fixed;
+      top: calc(env(safe-area-inset-top) + 64px);
+      left: 50%;
+      transform: translate(-50%, -8px);
+      padding: 8px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+      color: #3d4047;
+      font: 600 14px system-ui, sans-serif;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    .toast.visible { opacity: 1; transform: translate(-50%, 0); }
     .speed button {
       width: 48px;
       height: 40px;

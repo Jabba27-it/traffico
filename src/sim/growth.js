@@ -1,5 +1,6 @@
 // Generatore di stazioni: sceglie forma e posizione della prossima stazione.
-// Casuale, ma solo dentro le zone del livello e lontano dalle altre stazioni.
+// Casuale, ma solo nella parte visibile della città (e dentro le zone del
+// livello, se ce ne sono), fuori dall'acqua e lontano dalle altre stazioni.
 
 import { distance } from './geometry.js';
 import { STATION_RADIUS } from './stations.js';
@@ -19,20 +20,20 @@ const WATER_MARGIN = 16;
  * @param {() => number} random
  * @param {Level} level
  * @param {Station[]} stations  le stazioni già presenti
+ * @param {import('./view.js').Rect} area  dove può nascere (la vista attuale, già ristretta dai bordi)
  * @returns {StationDef | null}  null se non c'è un punto libero adatto
  */
-export function pickNewStation(random, level, stations) {
-  if (!level.growth || level.zones.length === 0 || level.shapes.length === 0) return null;
+export function pickNewStation(random, level, stations, area) {
+  if (!level.growth || level.shapes.length === 0) return null;
   const minDistance = level.growth.minDistance;
-  const margin = STATION_RADIUS + 4;
 
   for (let i = 0; i < ATTEMPTS; i++) {
-    const zone = pickZone(random, level.zones);
-    const x = clamp(zone.x + random() * zone.width, margin, level.world.width - margin);
-    const y = clamp(zone.y + random() * zone.height, margin, level.world.height - margin);
+    const x = area.x + random() * area.width;
+    const y = area.y + random() * area.height;
     const p = { x, y };
+    const inZone = level.zones.length === 0 || level.zones.some((z) => x >= z.x && y >= z.y && x <= z.x + z.width && y <= z.y + z.height);
     const dry = distanceToWater(level.waters, p) >= STATION_RADIUS + WATER_MARGIN;
-    if (dry && stations.every((s) => distance(s, p) >= minDistance)) {
+    if (inZone && dry && stations.every((s) => distance(s, p) >= minDistance)) {
       return { shape: pickShape(random, level.shapes, stations), x, y };
     }
   }
@@ -53,15 +54,6 @@ function pickShape(random, shapes, stations) {
 }
 
 /**
- * Una zona a caso, con probabilità proporzionale alla sua area.
- * @param {() => number} random
- * @param {import('./level.js').Zone[]} zones
- */
-function pickZone(random, zones) {
-  return weightedPick(random, zones, zones.map((z) => z.width * z.height));
-}
-
-/**
  * @template T
  * @param {() => number} random
  * @param {T[]} items
@@ -76,13 +68,4 @@ function weightedPick(random, items, weights) {
     if (r < 0) return items[i];
   }
   return items[items.length - 1];
-}
-
-/**
- * @param {number} v
- * @param {number} min
- * @param {number} max
- */
-function clamp(v, min, max) {
-  return Math.max(min, Math.min(max, v));
 }
