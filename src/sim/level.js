@@ -36,6 +36,7 @@ import { SHAPES } from './stations.js';
  * @property {number} interval     secondi fra una stazione nuova e la successiva
  * @property {number} max          numero massimo di stazioni nel livello
  * @property {number} minDistance  distanza minima fra due stazioni
+ * @property {number} difficulty   0 = posizioni a caso, 1 = sempre il punto più difficile da collegare
  */
 
 /**
@@ -133,6 +134,7 @@ export function parseLevel(json) {
       interval: c.ogni,
       max: isNum(c.massimo) ? c.massimo : Infinity,
       minDistance: isNum(c.distanzaMinima) ? c.distanzaMinima : 80,
+      difficulty: isNum(c.difficolta) ? Math.max(0, Math.min(1, c.difficolta)) : 0.7,
     };
     zones = (Array.isArray(json.zone) ? json.zone : []).map((/** @type {any} */ z, /** @type {number} */ i) => {
       if (!isNum(z?.x) || !isNum(z.y) || !isNum(z.larghezza) || !isNum(z.altezza)) {

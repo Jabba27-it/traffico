@@ -7,7 +7,7 @@
     { "forma": "quadrato",  "x": 390, "y": 546 },
     { "forma": "triangolo", "x": 156, "y": 780 }
   ],
-  "crescita": { "ogni": 25, "massimo": 18, "distanzaMinima": 90 },
+  "crescita": { "ogni": 40, "massimo": 12, "distanzaMinima": 110, "difficolta": 0.8 },
   "congestione": { "capienza": 6, "tolleranza": 20 },
   "tempo": { "giorno": 20 },
   "strade": { "iniziali": 25, "perGiorno": 3, "lunghezzaTratto": 40 },

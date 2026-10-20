@@ -47,8 +47,8 @@ function edgeMidpoint(graph, e) {
 /** @typedef {import('./vehicles.js').Vehicle} Vehicle */
 
 /** Intervallo fra due nuovi veicoli nella stessa stazione, in secondi. */
-const SPAWN_MIN = 4;
-const SPAWN_MAX = 6;
+const SPAWN_MIN = 6;
+const SPAWN_MAX = 8;
 /** Una stazione fa partire al massimo un veicolo ogni tanti secondi. */
 const DEPART_INTERVAL = 1;
 /** Se non c'è posto per una stazione nuova, si riprova dopo tanti secondi. */
@@ -140,7 +140,7 @@ export class Simulation {
     if (!growth || this.stations.length >= growth.max) return;
     const i = SPAWN_INSET;
     const area = insetRect(this.view, i.left, i.top, i.right, i.bottom);
-    const def = pickNewStation(this.random, this.level, this.stations, area);
+    const def = pickNewStation(this.random, this.level, this.stations, area, this.graph);
     if (def) {
       this.addStation(def, this.elapsed);
       this.growthTimer = growth.interval;
