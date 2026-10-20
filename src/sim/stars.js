@@ -48,7 +48,7 @@ export function starGoals(goals, s) {
  * @returns {StarGoal}
  */
 function specialGoal(special, s) {
-  const targets = special.kind === 'collegaLuoghi' ? s.stations.filter((st) => st.name) : s.stations;
+  const targets = special.kind === 'collegaLuoghi' ? s.stations.filter((st) => st.landmark) : s.stations;
   const linked = largestNetwork(s.graph, targets);
   if (special.kind === 'collegaLuoghi') {
     const total = targets.length + s.hiddenNamed;

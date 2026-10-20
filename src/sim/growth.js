@@ -64,7 +64,32 @@ export function pickNewStation(random, level, stations, area, graph, allowed = (
       best = p;
     }
   });
-  return { shape, x: best.x, y: best.y };
+  const name = districtName(level, stations, best);
+  return { shape, x: best.x, y: best.y, ...(name ? { name } : {}) };
+}
+
+/** Un quartiere più lontano di così non dà il nome: meglio il più vicino libero. */
+const DISTRICT_REACH = 160;
+
+/**
+ * Il nome del quartiere dove nasce la stazione: il più vicino non ancora usato,
+ * se è abbastanza vicino; altrimenti il più vicino in assoluto, numerato
+ * (es. "Prati 2"). null se il livello non ha quartieri.
+ * @param {Level} level
+ * @param {Station[]} stations
+ * @param {Point} p
+ * @returns {string | null}
+ */
+function districtName(level, stations, p) {
+  if (level.districts.length === 0) return null;
+  const used = new Set(stations.map((s) => s.name));
+  const byDistance = [...level.districts].sort((a, b) => distance(a, p) - distance(b, p));
+  const free = byDistance.find((d) => !used.has(d.name));
+  if (free && distance(free, p) <= DISTRICT_REACH) return free.name;
+  const nearest = byDistance[0].name;
+  let n = 2;
+  while (used.has(`${nearest} ${n}`)) n++;
+  return used.has(nearest) ? `${nearest} ${n}` : nearest;
 }
 
 /**

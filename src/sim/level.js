@@ -10,6 +10,7 @@ import { SHAPES } from './stations.js';
  * @property {number} x
  * @property {number} y
  * @property {string} [name]  nome del luogo, scritto sotto la stazione
+ * @property {boolean} [landmark]  true per i luoghi fissi del livello (non per i quartieri)
  */
 
 /**
@@ -91,6 +92,9 @@ import { SHAPES } from './stations.js';
  * @property {import('./water.js').Water[]} waters
  * @property {number} bridges  ponti disponibili all'inizio
  * @property {Stars | null} stars
+ * @property {{min: number, max: number}} spawn  secondi fra un veicolo nuovo e il successivo, per stazione
+ * @property {{name: string, x: number, y: number}[]} districts
+ *   quartieri: una stazione nata a caso prende il nome del quartiere più vicino
  */
 
 /**
@@ -109,7 +113,7 @@ export function parseLevel(json) {
   const stations = json.stazioni.map((/** @type {any} */ s, /** @type {number} */ i) => {
     checkShape(s?.forma, `Stazione ${i + 1}`);
     if (!isNum(s.x) || !isNum(s.y)) throw new Error(`Stazione ${i + 1}: mancano "x" o "y"`);
-    return { shape: s.forma, x: s.x, y: s.y, ...(typeof s.nome === 'string' ? { name: s.nome } : {}) };
+    return { shape: s.forma, x: s.x, y: s.y, ...(typeof s.nome === 'string' ? { name: s.nome, landmark: true } : {}) };
   });
 
   /** @type {ViewKey[]} */
@@ -225,7 +229,25 @@ export function parseLevel(json) {
     stars = { trips: st.viaggi, days: st.giorni, special };
   }
 
+  /** @type {{name: string, x: number, y: number}[]} */
+  const districts = [];
+  if (json.quartieri !== undefined) {
+    if (!Array.isArray(json.quartieri)) throw new Error('"quartieri" deve essere una lista');
+    json.quartieri.forEach((/** @type {any} */ q, /** @type {number} */ i) => {
+      if (typeof q?.nome !== 'string' || !isNum(q.x) || !isNum(q.y)) {
+        throw new Error(`Quartiere ${i + 1}: servono "nome", "x" e "y"`);
+      }
+      districts.push({ name: q.nome, x: q.x, y: q.y });
+    });
+  }
+
+  const vh = json.veicoli ?? {};
+  const spawnMin = isNum(vh.ogniMin) && vh.ogniMin > 0 ? vh.ogniMin : 6;
+  const spawn = { min: spawnMin, max: isNum(vh.ogniMax) && vh.ogniMax >= spawnMin ? vh.ogniMax : spawnMin + 2 };
+
   return {
+    spawn,
+    districts,
     stars,
     view,
     waters,

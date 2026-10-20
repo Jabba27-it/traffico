@@ -8,7 +8,8 @@ Puzzle per telefono, a livelli: ogni livello è una città ispirata a una città
 
 ## Regole decise
 
-- Ogni stazione ha una forma e genera veicoli di una forma diversa dalla propria. Ogni veicolo deve raggiungere una stazione della sua forma, sul percorso più rapido; può attraversare stazioni di altre forme.
+- Ogni stazione ha una forma e genera veicoli di una forma diversa dalla propria. Ogni veicolo deve raggiungere una stazione della sua forma, sul percorso più rapido. Le stazioni non si attraversano: le usano solo i veicoli che ne partono o che ci arrivano (possono avere più strade in entrata e in uscita).
+- Le stazioni nate a caso prendono il nome del quartiere in cui compaiono (lista "quartieri" nel livello); i luoghi fissi hanno il loro nome.
 - I veicoli in attesa restano in coda nella stazione d'origine; la coda si vede come una fila di forme grigie sopra la stazione.
 - I veicoli sono fisici (auto, furgoni, autobus visti dall'alto, col colore e la forma della destinazione): ognuno nella sua corsia, mantiene la distanza, rallenta in curva e agli incroci svolta seguendo una curva. Agli incroci e nelle stazioni attraversate passa chi arriva prima, purché la sua curva non incroci quella di chi è dentro e ci sia spazio per uscire. Le strade lente si velano di un rosso tenue.
 - Strade e incroci si disegnano col dito, nessun menu: la forma disegnata decide il tipo di incrocio (a raso, rotatoria, cavalcavia, semaforo).

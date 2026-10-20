@@ -26,7 +26,8 @@ export const STATION_RADIUS = 18;
  * @property {number} capacity veicoli in coda che regge senza sovraccarico
  * @property {number} overload secondi di sovraccarico accumulati
  * @property {number} upgrades quante volte è stata migliorata col premio settimanale
- * @property {string} [name]   nome del luogo, per le stazioni fisse
+ * @property {string} [name]   nome del luogo o del quartiere
+ * @property {boolean} [landmark]  true per i luoghi fissi del livello
  */
 
 /**
@@ -65,5 +66,6 @@ export function createStation(graph, def, id, bornAt, capacity) {
     overload: 0,
     upgrades: 0,
     ...(def.name ? { name: def.name } : {}),
+    ...(def.landmark ? { landmark: true } : {}),
   };
 }

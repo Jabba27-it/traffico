@@ -10,7 +10,7 @@ import { pointOnPiece } from './lanes.js';
 
 /**
  * @typedef {Object} VehicleType
- * @property {'auto' | 'furgone' | 'autobus'} name
+ * @property {'auto' | 'camion' | 'autobus'} name
  * @property {number} length    in unità di mondo
  * @property {number} width
  * @property {number} maxSpeed  unità di mondo al secondo
@@ -18,11 +18,12 @@ import { pointOnPiece } from './lanes.js';
  * @property {number} weight    quanto spesso nasce rispetto agli altri tipi
  */
 
+/** I mezzi pesanti sono più lenti e ripartono più piano delle automobili. */
 /** @type {VehicleType[]} */
 export const VEHICLE_TYPES = [
-  { name: 'auto', length: 10, width: 6, maxSpeed: 60, accel: 50, weight: 0.7 },
-  { name: 'furgone', length: 13, width: 6.5, maxSpeed: 54, accel: 38, weight: 0.2 },
-  { name: 'autobus', length: 20, width: 7, maxSpeed: 42, accel: 26, weight: 0.1 },
+  { name: 'auto', length: 10, width: 6, maxSpeed: 45, accel: 40, weight: 0.7 },
+  { name: 'camion', length: 15, width: 6.8, maxSpeed: 32, accel: 22, weight: 0.2 },
+  { name: 'autobus', length: 20, width: 7, maxSpeed: 30, accel: 20, weight: 0.1 },
 ];
 
 /**

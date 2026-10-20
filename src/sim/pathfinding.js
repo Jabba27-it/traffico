@@ -16,9 +16,11 @@ import { distance } from './geometry.js';
  * @param {RoadGraph} graph
  * @param {number} sourceId
  * @param {(nodeId: number) => number} [nodeCost]  costo in più per passare da un nodo
+ * @param {(nodeId: number) => boolean} [stopsAt]  nodi dove si può arrivare ma da cui
+ *   non si prosegue (es. le stazioni, che non si attraversano)
  * @returns {ShortestPaths}
  */
-export function shortestPaths(graph, sourceId, nodeCost) {
+export function shortestPaths(graph, sourceId, nodeCost, stopsAt) {
   /** @type {Map<number, {to: number, cost: number}[]>} */
   const adj = new Map();
   for (const e of graph.edges.values()) {
@@ -49,6 +51,7 @@ export function shortestPaths(graph, sourceId, nodeCost) {
     }
     open.delete(current);
     done.add(current);
+    if (current !== sourceId && stopsAt?.(current)) continue;
     for (const { to, cost } of adj.get(current) ?? []) {
       if (done.has(to)) continue;
       const d = best + cost + (nodeCost ? nodeCost(to) : 0);

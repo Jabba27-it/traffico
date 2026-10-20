@@ -1,4 +1,4 @@
-// Disegno dei veicoli visti dall'alto: automobili, furgoni e autobus orientati
+// Disegno dei veicoli visti dall'alto: automobili, camion e autobus orientati
 // nel senso di marcia, col colore della forma di destinazione e la forma sul tetto.
 
 import { SHAPE_COLORS, traceShape } from './stations.js';
@@ -50,13 +50,15 @@ function drawBody(ctx, v) {
       ctx.fillRect(wx, -W / 2 + 0.6, 2.6, 0.9);
       ctx.fillRect(wx, W / 2 - 1.5, 2.6, 0.9);
     }
-  } else if (name === 'furgone') {
-    // Cabina davanti, cassone dietro.
-    ctx.fillRect(half - 3.6, -W / 2 + 1, 1.6, W - 2);
+  } else if (name === 'camion') {
+    // Cabina davanti, separata dal cassone.
+    ctx.fillRect(half - 2.6, -W / 2 + 1, 1.4, W - 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.fillRect(-half + 0.8, -W / 2 + 0.8, L - 5.6, W - 1.6);
     ctx.strokeStyle = OUTLINE;
     ctx.beginPath();
-    ctx.moveTo(half - 4.8, -W / 2);
-    ctx.lineTo(half - 4.8, W / 2);
+    ctx.moveTo(half - 4.2, -W / 2);
+    ctx.lineTo(half - 4.2, W / 2);
     ctx.stroke();
   } else {
     // Parabrezza e lunotto.
@@ -65,7 +67,7 @@ function drawBody(ctx, v) {
   }
 
   // La forma di destinazione sul tetto.
-  const roofX = name === 'furgone' ? -1.5 : name === 'autobus' ? -1 : -0.6;
+  const roofX = name === 'camion' ? -2.5 : name === 'autobus' ? -1 : -0.6;
   ctx.fillStyle = ROOF_MARK;
   ctx.beginPath();
   traceShape(ctx, v.shape, roofX, 0, W * 0.32);

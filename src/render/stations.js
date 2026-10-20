@@ -20,7 +20,8 @@ const OUTLINE = '#ffffff';
 const APPEAR_TIME = 0.5;
 
 const QUEUE_COLOR = '#8d9097';
-const NAME_COLOR = '#6b6e75';
+const NAME_COLOR = '#5b5e65';
+const DISTRICT_COLOR = '#8a8d93';
 const QUEUE_ITEM_RADIUS = 5;
 const QUEUE_SPACING = 13;
 const QUEUE_PER_ROW = 6;
@@ -57,15 +58,16 @@ export function drawStations(ctx, stations, transit, time, labelScale = 1) {
   }
   for (const s of stations) drawQueue(ctx, s, [...s.queue, ...(transit.get(s.id) ?? [])]);
 
-  // Nomi dei luoghi, sotto la stazione e sotto l'anello della congestione.
-  ctx.font = `600 ${11 * labelScale}px system-ui, sans-serif`;
+  // Nomi sotto la stazione e sotto l'anello della congestione: i luoghi fissi
+  // in evidenza, i quartieri più leggeri.
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
   ctx.lineWidth = 3 * labelScale;
   ctx.strokeStyle = 'rgba(242, 239, 232, 0.9)';
-  ctx.fillStyle = NAME_COLOR;
   for (const s of stations) {
     if (!s.name) continue;
+    ctx.font = `${s.landmark ? 600 : 400} ${11 * labelScale}px system-ui, sans-serif`;
+    ctx.fillStyle = s.landmark ? NAME_COLOR : DISTRICT_COLOR;
     const y = s.y + STATION_RADIUS + 12;
     ctx.strokeText(s.name, s.x, y);
     ctx.fillText(s.name, s.x, y);

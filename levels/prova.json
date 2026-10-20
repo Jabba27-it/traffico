@@ -10,8 +10,8 @@
   "crescita": { "ogni": 40, "massimo": 12, "distanzaMinima": 110, "difficolta": 0.8 },
   "congestione": { "capienza": 6, "tolleranza": 20 },
   "tempo": { "giorno": 20 },
-  "strade": { "iniziali": 25, "perGiorno": 3, "lunghezzaTratto": 40 },
-  "premi": { "strade": 15, "capienza": 3 },
+  "strade": { "iniziali": 25, "perGiorno": 7, "lunghezzaTratto": 40 },
+  "premi": { "strade": 20, "capienza": 3 },
   "stelle": {
     "viaggi": 200,
     "giorni": 10,

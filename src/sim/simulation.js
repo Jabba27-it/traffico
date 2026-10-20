@@ -51,9 +51,6 @@ function edgeMidpoint(graph, e) {
 /** @typedef {import('./stations.js').Shape} Shape */
 /** @typedef {import('./vehicles.js').Vehicle} Vehicle */
 
-/** Intervallo fra due nuovi veicoli nella stessa stazione, in secondi. */
-const SPAWN_MIN = 6;
-const SPAWN_MAX = 8;
 /** Una stazione fa partire al massimo un veicolo ogni tanti secondi. */
 const DEPART_INTERVAL = 1;
 /** Se non c'è posto per una stazione nuova, si riprova dopo tanti secondi. */
@@ -138,7 +135,7 @@ export class Simulation {
       trips: this.trips,
       daysSurvived: Math.floor(this.elapsed / this.level.dayLength + 1e-6),
       stations: this.stations,
-      hiddenNamed: this.hiddenStations.filter((d) => d.name).length,
+      hiddenNamed: this.hiddenStations.filter((d) => d.landmark).length,
       graph: this.graph,
     });
   }
@@ -458,11 +455,17 @@ export class Simulation {
 
   /**
    * Percorsi più rapidi da un nodo: la lunghezza delle strade più un piccolo
-   * ritardo per ogni incrocio o stazione attraversati.
+   * ritardo per ogni incrocio attraversato. Le stazioni non si attraversano:
+   * ci si entra solo per arrivare.
    * @param {number} from
    */
   paths(from) {
-    return shortestPaths(this.graph, from, (id) => (this.lanes.isJunction(id) ? JUNCTION_COST : 0));
+    return shortestPaths(
+      this.graph,
+      from,
+      (id) => (this.lanes.isJunction(id) ? JUNCTION_COST : 0),
+      (id) => this.graph.nodes.get(id)?.stationId !== undefined,
+    );
   }
 
   /**
@@ -478,6 +481,13 @@ export class Simulation {
     if (v.phase === 'turn') {
       const [a, b, c] = v.path.slice(v.leg, v.leg + 3);
       if (!this.graph.hasEdge(a, b) || !this.graph.hasEdge(b, c)) return false;
+      const ending = this.endsAtStation(v, c);
+      if (ending !== null) {
+        if (!ending) return false;
+        v.path = [a, b, c];
+        v.leg = 0;
+        return true;
+      }
       const paths = this.paths(c);
       const target = this.nearestStation(paths, v.shape);
       if (!target) return false;
@@ -525,6 +535,14 @@ export class Simulation {
       if (!found) return false;
     }
 
+    const ending = this.endsAtStation(v, next);
+    if (ending !== null) {
+      if (!ending) return false;
+      v.path = [here, next];
+      v.leg = 0;
+      v.s = projectOnLane(this.lanes.lane(here, next), v.pose);
+      return true;
+    }
     const paths = this.paths(next);
     const target = this.nearestStation(paths, v.shape);
     if (!target) return false;
@@ -533,6 +551,23 @@ export class Simulation {
     v.toStationId = target.id;
     // Le corsie possono essersi accorciate o spostate: si riparte dal punto più vicino.
     v.s = projectOnLane(this.lanes.lane(here, next), v.pose);
+    return true;
+  }
+
+  /**
+   * Se il nodo davanti al veicolo è una stazione, il viaggio finisce lì per forza:
+   * true se è una stazione della sua forma (ci arriva), false se no (non può
+   * attraversarla), null se il nodo non è una stazione.
+   * @param {Vehicle} v
+   * @param {number} nodeId
+   * @returns {boolean | null}
+   */
+  endsAtStation(v, nodeId) {
+    const stationId = this.graph.nodes.get(nodeId)?.stationId;
+    if (stationId === undefined) return null;
+    const station = this.stations.find((s) => s.id === stationId);
+    if (!station || station.shape !== v.shape) return false;
+    v.toStationId = station.id;
     return true;
   }
 
@@ -607,6 +642,7 @@ export class Simulation {
   }
 
   nextSpawnDelay() {
-    return SPAWN_MIN + this.random() * (SPAWN_MAX - SPAWN_MIN);
+    const { min, max } = this.level.spawn;
+    return min + this.random() * (max - min);
   }
 }
