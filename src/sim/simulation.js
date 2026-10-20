@@ -4,8 +4,10 @@
 import { createRandom } from './random.js';
 import { shortestPaths, pathTo } from './pathfinding.js';
 import { advanceVehicle } from './vehicles.js';
+import { closestPointOnSegment, distance } from './geometry.js';
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
+/** @typedef {import('./graph.js').RoadNode} RoadNode */
 /** @typedef {import('./stations.js').Station} Station */
 /** @typedef {import('./stations.js').Shape} Shape */
 /** @typedef {import('./vehicles.js').Vehicle} Vehicle */
@@ -39,6 +41,8 @@ export class Simulation {
     this.spawnTimers = new Map(stations.map((s) => [s.id, this.nextSpawnDelay()]));
     /** @type {Map<number, number>} secondi alla prossima partenza possibile, per stazione */
     this.departTimers = new Map(stations.map((s) => [s.id, 0]));
+    /** Versione del grafo su cui sono calcolati i percorsi dei veicoli in viaggio. */
+    this.routedVersion = graph.version;
   }
 
   /** Secondi interi trascorsi (la tolleranza assorbe gli arrotondamenti dei passi). */
@@ -54,6 +58,11 @@ export class Simulation {
   /** @param {number} dt  secondi */
   step(dt) {
     this.elapsed += dt;
+
+    if (this.graph.version !== this.routedVersion) {
+      for (const v of this.vehicles) this.reroute(v);
+      this.routedVersion = this.graph.version;
+    }
 
     for (const station of this.stations) {
       const spawn = /** @type {number} */ (this.spawnTimers.get(station.id)) - dt;
@@ -98,16 +107,7 @@ export class Simulation {
     const paths = shortestPaths(this.graph, origin.nodeId);
     for (let i = 0; i < origin.queue.length; i++) {
       const shape = origin.queue[i];
-      let target = null;
-      let best = Infinity;
-      for (const s of this.stations) {
-        if (s === origin || s.shape !== shape) continue;
-        const d = paths.dist.get(s.nodeId);
-        if (d !== undefined && d < best) {
-          best = d;
-          target = s;
-        }
-      }
+      const target = this.nearestStation(paths, shape);
       if (!target) continue;
       origin.queue.splice(i, 1);
       this.vehicles.push({
@@ -122,6 +122,62 @@ export class Simulation {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Ricalcola il percorso di un veicolo in viaggio sulla rete attuale. Il veicolo
+   * finisce il tratto in corso (niente inversioni a metà strada) e da lì prende
+   * il percorso più rapido, anche verso un'altra stazione della sua forma.
+   * @param {Vehicle} v
+   */
+  reroute(v) {
+    const here = v.path[v.leg];
+    let next = v.path[v.leg + 1];
+    if (next === undefined) return;
+
+    // Se il tratto in corso è stato spezzato da un nuovo incrocio, il prossimo
+    // nodo è il primo incrocio davanti al veicolo: lì potrà già svoltare.
+    if (!this.graph.hasEdge(here, next)) {
+      const a = /** @type {RoadNode} */ (this.graph.nodes.get(here));
+      const b = /** @type {RoadNode} */ (this.graph.nodes.get(next));
+      const length = distance(a, b);
+      let bestT = Infinity;
+      for (const n of this.graph.nodes.values()) {
+        if (n.id === here || n.id === next) continue;
+        const c = closestPointOnSegment(n, a, b);
+        if (distance(c, n) < 0.5 && c.t * length > v.along && c.t < bestT) {
+          bestT = c.t;
+          next = n.id;
+        }
+      }
+    }
+
+    const paths = shortestPaths(this.graph, next);
+    const target = this.nearestStation(paths, v.shape);
+    if (!target) return;
+    v.path = [here, .../** @type {number[]} */ (pathTo(paths, target.nodeId))];
+    v.leg = 0;
+    v.toStationId = target.id;
+  }
+
+  /**
+   * La stazione della forma data più vicina lungo le strade, oppure null.
+   * @param {import('./pathfinding.js').ShortestPaths} paths
+   * @param {Shape} shape
+   * @returns {Station | null}
+   */
+  nearestStation(paths, shape) {
+    let target = null;
+    let best = Infinity;
+    for (const s of this.stations) {
+      if (s.shape !== shape) continue;
+      const d = paths.dist.get(s.nodeId);
+      if (d !== undefined && d < best) {
+        best = d;
+        target = s;
+      }
+    }
+    return target;
   }
 
   nextSpawnDelay() {

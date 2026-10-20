@@ -28,6 +28,8 @@ export class RoadGraph {
     /** @type {Map<number, RoadEdge>} */
     this.edges = new Map();
     this.nextId = 1;
+    /** Cresce a ogni modifica delle strade: chi usa il grafo capisce se è cambiato. */
+    this.version = 0;
   }
 
   /**
@@ -51,6 +53,7 @@ export class RoadGraph {
     if (a === b || this.hasEdge(a, b)) return null;
     const edge = { id: this.nextId++, a, b };
     this.edges.set(edge.id, edge);
+    this.version++;
     return edge;
   }
 
