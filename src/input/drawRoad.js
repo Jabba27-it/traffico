@@ -3,6 +3,7 @@
 
 import { buildRoad } from '../sim/roadBuilder.js';
 import { distance } from '../sim/geometry.js';
+import { STATION_RADIUS } from '../sim/stations.js';
 
 /** @typedef {import('../sim/graph.js').RoadGraph} RoadGraph */
 /** @typedef {{x: number, y: number}} Point */
@@ -15,9 +16,10 @@ const SNAP_RADIUS = 22;
 /**
  * @param {HTMLCanvasElement} canvas
  * @param {RoadGraph} graph
+ * @param {(x: number, y: number) => Point} toWorld  da pixel del canvas a coordinate di mondo
  * @returns {{ preview: () => Point[] }} i punti del tratto in corso, per l'anteprima
  */
-export function attachRoadDrawing(canvas, graph) {
+export function attachRoadDrawing(canvas, graph, toWorld) {
   /** @type {number | null} */
   let activePointer = null;
   /** @type {Point[]} */
@@ -28,7 +30,7 @@ export function attachRoadDrawing(canvas, graph) {
   /** @param {PointerEvent} e */
   const toPoint = (e) => {
     const r = canvas.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
+    return toWorld(e.clientX - r.left, e.clientY - r.top);
   };
 
   canvas.addEventListener('pointerdown', (e) => {
@@ -37,7 +39,10 @@ export function attachRoadDrawing(canvas, graph) {
     activePointer = e.pointerId;
     canvas.setPointerCapture(e.pointerId);
     const p = toPoint(e);
-    const snap = graph.findNodeNear(p.x, p.y, SNAP_RADIUS) ?? graph.findEdgeNear(p.x, p.y, SNAP_RADIUS);
+    const snap =
+      graph.findNodeNear(p.x, p.y, STATION_RADIUS + 8, true) ??
+      graph.findNodeNear(p.x, p.y, SNAP_RADIUS) ??
+      graph.findEdgeNear(p.x, p.y, SNAP_RADIUS);
     points = [snap ? { x: snap.x, y: snap.y } : p];
     cursor = p;
   });

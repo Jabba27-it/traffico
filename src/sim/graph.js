@@ -8,6 +8,7 @@ import { closestPointOnSegment } from './geometry.js';
  * @property {number} id
  * @property {number} x
  * @property {number} y
+ * @property {number} [stationId]  presente se il nodo è una stazione
  */
 
 /**
@@ -108,12 +109,14 @@ export class RoadGraph {
    * @param {number} x
    * @param {number} y
    * @param {number} radius
+   * @param {boolean} [stationsOnly]  considera solo i nodi delle stazioni
    * @returns {RoadNode | null}
    */
-  findNodeNear(x, y, radius) {
+  findNodeNear(x, y, radius, stationsOnly = false) {
     let best = null;
     let bestDist = radius * radius;
     for (const n of this.nodes.values()) {
+      if (stationsOnly && n.stationId === undefined) continue;
       const d = (n.x - x) ** 2 + (n.y - y) ** 2;
       if (d <= bestDist) {
         best = n;

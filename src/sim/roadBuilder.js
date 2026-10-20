@@ -1,15 +1,20 @@
 // Trasforma un tratto disegnato (lista di punti) in nodi e archi del grafo,
-// creando gli incroci dove il tratto tocca o attraversa strade esistenti.
+// creando gli incroci dove il tratto tocca o attraversa strade esistenti
+// e facendolo entrare nelle stazioni su cui passa.
 
 import { closestPointOnSegment, distance, segmentIntersection } from './geometry.js';
+import { STATION_RADIUS } from './stations.js';
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
+/** @typedef {import('./graph.js').RoadNode} RoadNode */
 /** @typedef {{x: number, y: number}} Point */
 
 /** Un incrocio che cade così vicino a un nodo esistente riusa quel nodo. */
 const MERGE_RADIUS = 10;
 /** Un tratto che passa così vicino all'estremità di una strada vi si collega. */
 const DEAD_END_RADIUS = 16;
+/** Un estremo del tratto che cade così vicino a una stazione vi si aggancia. */
+const STATION_SNAP = STATION_RADIUS + 8;
 
 /**
  * @param {RoadGraph} graph
@@ -22,21 +27,26 @@ export function buildRoad(graph, points, snapRadius) {
   const last = points[points.length - 1];
 
   const startId = attach(graph, first, snapRadius);
-  const startNode = /** @type {Point} */ (graph.nodes.get(startId));
-  const endPos =
-    graph.findNodeNear(last.x, last.y, snapRadius) ?? graph.findEdgeNear(last.x, last.y, snapRadius) ?? last;
+  const startNode = /** @type {RoadNode} */ (graph.nodes.get(startId));
+  const endNode = graph.findNodeNear(last.x, last.y, STATION_SNAP, true) ?? graph.findNodeNear(last.x, last.y, snapRadius);
+  /** @type {Point} */
+  const endPos = endNode ?? graph.findEdgeNear(last.x, last.y, snapRadius) ?? last;
 
   // Scarta i punti intermedi che cadono dentro il raggio di aggancio degli estremi.
   let from = 1;
   let to = points.length - 2;
-  while (from <= to && distance(points[from], startNode) <= snapRadius) from++;
-  while (to >= from && distance(points[to], endPos) <= snapRadius) to--;
+  const startReach = reach(startNode, snapRadius);
+  const endReach = endNode ? reach(endNode, snapRadius) : snapRadius;
+  while (from <= to && distance(points[from], startNode) <= startReach) from++;
+  while (to >= from && distance(points[to], endPos) <= endReach) to--;
 
   let prevId = startId;
   for (let i = from; i <= to; i++) {
     prevId = crossTo(graph, prevId, points[i]);
-    const prev = /** @type {Point} */ (graph.nodes.get(prevId));
-    if (distance(prev, points[i]) > MERGE_RADIUS) {
+    const prev = /** @type {RoadNode} */ (graph.nodes.get(prevId));
+    // Un punto dentro una stazione appena attraversata non diventa un nodo.
+    const limit = prev.stationId !== undefined ? STATION_RADIUS : MERGE_RADIUS;
+    if (distance(prev, points[i]) > limit) {
       const id = graph.addNode(points[i].x, points[i].y).id;
       graph.addEdge(prevId, id);
       prevId = id;
@@ -48,15 +58,15 @@ export function buildRoad(graph, points, snapRadius) {
 }
 
 /**
- * Il nodo su cui poggia p: un nodo vicino, un nuovo nodo a metà di una strada
- * vicina, oppure un nodo nuovo isolato.
+ * Il nodo su cui poggia p: una stazione vicina, un nodo vicino, un nuovo nodo
+ * a metà di una strada vicina, oppure un nodo nuovo isolato.
  * @param {RoadGraph} graph
  * @param {Point} p
  * @param {number} snapRadius
  * @returns {number}
  */
 function attach(graph, p, snapRadius) {
-  const node = graph.findNodeNear(p.x, p.y, snapRadius);
+  const node = graph.findNodeNear(p.x, p.y, STATION_SNAP, true) ?? graph.findNodeNear(p.x, p.y, snapRadius);
   if (node) return node.id;
   const hit = graph.findEdgeNear(p.x, p.y, snapRadius);
   if (hit) return graph.splitEdge(hit.edge.id, hit.x, hit.y).id;
@@ -64,9 +74,17 @@ function attach(graph, p, snapRadius) {
 }
 
 /**
+ * @param {RoadNode} node
+ * @param {number} snapRadius
+ */
+function reach(node, snapRadius) {
+  return node.stationId !== undefined ? STATION_SNAP : snapRadius;
+}
+
+/**
  * Prolunga la strada dal nodo `fromId` verso p, creando un incrocio su ogni
- * strada attraversata e collegando le estremità di strada che sfiora.
- * Restituisce l'ultimo nodo raggiunto (p escluso).
+ * strada attraversata, collegando le estremità di strada che sfiora ed entrando
+ * nelle stazioni su cui passa. Restituisce l'ultimo nodo raggiunto (p escluso).
  * @param {RoadGraph} graph
  * @param {number} fromId
  * @param {Point} p
@@ -90,13 +108,18 @@ function crossTo(graph, fromId, p) {
     const eb = graph.nodes.get(e.b);
     if (!ea || !eb) continue;
     const hit = segmentIntersection(a, p, ea, eb);
-    if (hit) hits.push({ edgeId: e.id, x: hit.x, y: hit.y, t: hit.t });
+    if (!hit) continue;
+    // Dentro una stazione non si creano incroci: ci pensa l'ingresso nella stazione.
+    if (insideStation(ea, hit) || insideStation(eb, hit)) continue;
+    hits.push({ edgeId: e.id, x: hit.x, y: hit.y, t: hit.t });
   }
-  for (const [id, d] of degree) {
-    if (d !== 1 || id === fromId || neighbors.has(id)) continue;
-    const n = /** @type {Point} */ (graph.nodes.get(id));
+  for (const n of graph.nodes.values()) {
+    if (n.id === fromId || neighbors.has(n.id)) continue;
+    const isStation = n.stationId !== undefined;
+    if (!isStation && degree.get(n.id) !== 1) continue;
     const c = closestPointOnSegment(n, a, p);
-    if (c.t > 0 && distance(c, n) <= DEAD_END_RADIUS) hits.push({ nodeId: id, t: c.t });
+    const radius = isStation ? STATION_RADIUS : DEAD_END_RADIUS;
+    if (c.t > 0 && distance(c, n) <= radius) hits.push({ nodeId: n.id, t: c.t });
   }
   hits.sort((h1, h2) => h1.t - h2.t);
 
@@ -107,6 +130,14 @@ function crossTo(graph, fromId, p) {
     prevId = id;
   }
   return prevId;
+}
+
+/**
+ * @param {RoadNode} node
+ * @param {Point} p
+ */
+function insideStation(node, p) {
+  return node.stationId !== undefined && distance(node, p) <= STATION_RADIUS;
 }
 
 /**
