@@ -17,11 +17,13 @@ import { viewAt, segmentAt, insetRect, rectContains } from './view.js';
 /** @typedef {import('./graph.js').RoadEdge} RoadEdge */
 /** @typedef {import('./view.js').Rect} Rect */
 
+/** Margini della vista (in frazioni) dove non nascono stazioni. */
+const SPAWN_INSET = { left: 0.05, top: 0.04, right: 0.05, bottom: 0.04 };
 /**
- * Margini della vista (in frazioni) dove non nascono stazioni: in alto c'è il
- * pannello, in basso i pulsanti di velocità.
+ * Distanza minima di una stazione da una zona riservata: tiene libera anche
+ * la fila della coda, che si disegna sopra la stazione.
  */
-const SPAWN_INSET = { left: 0.06, top: 0.09, right: 0.06, bottom: 0.11 };
+const RESERVED_MARGIN = STATION_RADIUS + 40;
 /** Una stazione fissa compare quando è dentro la vista almeno di tanto. */
 const FIXED_STATION_MARGIN = STATION_RADIUS + 12;
 
@@ -64,6 +66,12 @@ export class Simulation {
     this.graph = graph;
     this.level = level;
     this.random = createRandom(seed);
+    /**
+     * Zone della mappa coperte dall'interfaccia (pannello, pulsanti), in
+     * coordinate di mondo: lì non nascono stazioni. Le aggiorna chi disegna.
+     * @type {Rect[]}
+     */
+    this.reserved = [];
     /** @type {Station[]} */
     this.stations = [];
     /** @type {Vehicle[]} */
@@ -105,6 +113,14 @@ export class Simulation {
     this.announcement = null;
   }
 
+  /**
+   * true se p è sotto (o troppo vicino a) una zona coperta dall'interfaccia.
+   * @param {Point} p
+   */
+  isReserved(p) {
+    return this.reserved.some((r) => rectContains({ x: r.x - RESERVED_MARGIN, y: r.y - RESERVED_MARGIN, width: r.width + 2 * RESERVED_MARGIN, height: r.height + 2 * RESERVED_MARGIN }, p));
+  }
+
   /** La parte visibile della città in questo momento. */
   get view() {
     return viewAt(this.level.view, this.elapsed / this.level.dayLength + 1);
@@ -117,7 +133,7 @@ export class Simulation {
   revealStations(bornAt) {
     const view = this.view;
     this.hiddenStations = this.hiddenStations.filter((def) => {
-      if (!rectContains(view, def, FIXED_STATION_MARGIN)) return true;
+      if (!rectContains(view, def, FIXED_STATION_MARGIN) || this.isReserved(def)) return true;
       this.addStation(def, bornAt);
       return false;
     });
@@ -140,7 +156,7 @@ export class Simulation {
     if (!growth || this.stations.length >= growth.max) return;
     const i = SPAWN_INSET;
     const area = insetRect(this.view, i.left, i.top, i.right, i.bottom);
-    const def = pickNewStation(this.random, this.level, this.stations, area, this.graph);
+    const def = pickNewStation(this.random, this.level, this.stations, area, this.graph, (p) => !this.isReserved(p));
     if (def) {
       this.addStation(def, this.elapsed);
       this.growthTimer = growth.interval;

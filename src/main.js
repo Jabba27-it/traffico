@@ -89,8 +89,27 @@ async function start() {
     hidePrompt();
   });
 
+  const overlays = /** @type {HTMLElement[]} */ ([...document.querySelectorAll('.hud, .speed')]);
+
+  /**
+   * Le zone di mappa coperte da pannello e pulsanti, viste con la città intera
+   * inquadrata (zoom 1): lì la simulazione non fa nascere stazioni.
+   */
+  function updateReserved() {
+    const base = { ...view };
+    fitCamera(base, sim.view);
+    const c = canvas.getBoundingClientRect();
+    sim.reserved = overlays.map((el) => {
+      const r = el.getBoundingClientRect();
+      const a = screenToWorld(base, r.left - c.left, r.top - c.top);
+      const b = screenToWorld(base, r.right - c.left, r.bottom - c.top);
+      return { x: a.x, y: a.y, width: b.x - a.x, height: b.y - a.y };
+    });
+  }
+
   /** @param {number} now */
   function frame(now) {
+    updateReserved();
     // A velocità doppia scorre il doppio del tempo di gioco, sempre a passi fissi.
     pending += Math.min((now - lastTime) / 1000, MAX_FRAME_TIME) * speed.speed();
     lastTime = now;

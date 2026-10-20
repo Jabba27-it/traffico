@@ -29,9 +29,10 @@ const ROAD_WEIGHT = 0.5;
  * @param {Station[]} stations  le stazioni già presenti
  * @param {import('./view.js').Rect} area  dove può nascere (la vista attuale, già ristretta dai bordi)
  * @param {RoadGraph} graph  per stare lontano dalle strade già costruite
+ * @param {(p: Point) => boolean} [allowed]  scarta altri punti, es. quelli coperti dall'interfaccia
  * @returns {StationDef | null}  null se non c'è un punto libero adatto
  */
-export function pickNewStation(random, level, stations, area, graph) {
+export function pickNewStation(random, level, stations, area, graph, allowed = () => true) {
   if (!level.growth || level.shapes.length === 0) return null;
   const { minDistance, difficulty } = level.growth;
   const shape = pickShape(random, level.shapes, stations);
@@ -42,7 +43,7 @@ export function pickNewStation(random, level, stations, area, graph) {
     const p = { x: area.x + random() * area.width, y: area.y + random() * area.height };
     const inZone = level.zones.length === 0 || level.zones.some((z) => p.x >= z.x && p.y >= z.y && p.x <= z.x + z.width && p.y <= z.y + z.height);
     const dry = distanceToWater(level.waters, p) >= STATION_RADIUS + WATER_MARGIN;
-    if (inZone && dry && stations.every((s) => distance(s, p) >= minDistance)) candidates.push(p);
+    if (inZone && dry && allowed(p) && stations.every((s) => distance(s, p) >= minDistance)) candidates.push(p);
   }
   if (candidates.length === 0) return null;
 
