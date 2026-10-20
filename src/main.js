@@ -7,6 +7,7 @@ import { attachPinch } from './input/pinch.js';
 import { drawRoads, drawLaneMarks, drawOverpasses, drawPreview, drawRemoval, drawWater, drawOutsideVeil } from './render/roads.js';
 import { currentPiece } from './sim/vehicles.js';
 import { drawJunctionMarks, drawRoundaboutIslands } from './render/junctions.js';
+import { STYLE } from './render/style.js';
 import { drawStations, drawSelectable } from './render/stations.js';
 import { STATION_RADIUS } from './sim/stations.js';
 import { drawVehicles } from './render/vehicles.js';
@@ -48,8 +49,8 @@ const TAP_MESSAGES = {
 };
 /** Quante carte premio si propongono a fine settimana (scelte a caso fra quelle possibili). */
 const REWARD_CHOICES = 3;
-const OUTSIDE = '#e3dfd5';
-const BACKGROUND = '#f2efe8';
+const OUTSIDE = STYLE.outside;
+const BACKGROUND = STYLE.land;
 /** Passo fisso della simulazione, in secondi. */
 const STEP = 1 / 60;
 /** Oltre questo ritardo (es. scheda in background) il tempo perso non si recupera. */
