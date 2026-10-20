@@ -6,7 +6,7 @@ import { STATION_RADIUS } from '../sim/stations.js';
 /** @typedef {import('../sim/stations.js').Shape} Shape */
 
 /** @type {Record<Shape, string>} */
-const COLORS = {
+export const SHAPE_COLORS = {
   cerchio: '#e0533d',
   quadrato: '#2f7fc1',
   triangolo: '#e9a23b',
@@ -27,8 +27,8 @@ export function drawStations(ctx, stations) {
   ctx.strokeStyle = OUTLINE;
   for (const s of stations) {
     ctx.beginPath();
-    tracePath(ctx, s.shape, s.x, s.y, STATION_RADIUS);
-    ctx.fillStyle = COLORS[s.shape];
+    traceShape(ctx, s.shape, s.x, s.y, STATION_RADIUS);
+    ctx.fillStyle = SHAPE_COLORS[s.shape];
     ctx.fill();
     ctx.stroke();
   }
@@ -43,7 +43,7 @@ export function drawStations(ctx, stations) {
  * @param {number} y
  * @param {number} r
  */
-function tracePath(ctx, shape, x, y, r) {
+export function traceShape(ctx, shape, x, y, r) {
   switch (shape) {
     case 'cerchio':
       ctx.arc(x, y, r * 0.88, 0, Math.PI * 2);
