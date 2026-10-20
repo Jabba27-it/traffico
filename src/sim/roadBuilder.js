@@ -1,13 +1,15 @@
 // Trasforma un tratto disegnato (lista di punti) in nodi e archi del grafo,
 // creando gli incroci dove il tratto tocca o attraversa strade esistenti.
 
-import { distance, segmentIntersection } from './geometry.js';
+import { closestPointOnSegment, distance, segmentIntersection } from './geometry.js';
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
 /** @typedef {{x: number, y: number}} Point */
 
 /** Un incrocio che cade così vicino a un nodo esistente riusa quel nodo. */
 const MERGE_RADIUS = 10;
+/** Un tratto che passa così vicino all'estremità di una strada vi si collega. */
+const DEAD_END_RADIUS = 16;
 
 /**
  * @param {RoadGraph} graph
@@ -63,7 +65,8 @@ function attach(graph, p, snapRadius) {
 
 /**
  * Prolunga la strada dal nodo `fromId` verso p, creando un incrocio su ogni
- * strada attraversata. Restituisce l'ultimo nodo raggiunto (p escluso).
+ * strada attraversata e collegando le estremità di strada che sfiora.
+ * Restituisce l'ultimo nodo raggiunto (p escluso).
  * @param {RoadGraph} graph
  * @param {number} fromId
  * @param {Point} p
@@ -71,9 +74,17 @@ function attach(graph, p, snapRadius) {
  */
 function crossTo(graph, fromId, p) {
   const a = /** @type {Point} */ (graph.nodes.get(fromId));
-  /** @type {{edgeId: number, x: number, y: number, t: number}[]} */
+  /** @type {Map<number, number>} */
+  const degree = new Map();
+  /** @type {Set<number>} */
+  const neighbors = new Set();
+  /** @type {({edgeId: number, x: number, y: number, t: number} | {nodeId: number, t: number})[]} */
   const hits = [];
   for (const e of graph.edges.values()) {
+    degree.set(e.a, (degree.get(e.a) ?? 0) + 1);
+    degree.set(e.b, (degree.get(e.b) ?? 0) + 1);
+    if (e.a === fromId) neighbors.add(e.b);
+    if (e.b === fromId) neighbors.add(e.a);
     if (e.a === fromId || e.b === fromId) continue;
     const ea = graph.nodes.get(e.a);
     const eb = graph.nodes.get(e.b);
@@ -81,11 +92,17 @@ function crossTo(graph, fromId, p) {
     const hit = segmentIntersection(a, p, ea, eb);
     if (hit) hits.push({ edgeId: e.id, x: hit.x, y: hit.y, t: hit.t });
   }
+  for (const [id, d] of degree) {
+    if (d !== 1 || id === fromId || neighbors.has(id)) continue;
+    const n = /** @type {Point} */ (graph.nodes.get(id));
+    const c = closestPointOnSegment(n, a, p);
+    if (c.t > 0 && distance(c, n) <= DEAD_END_RADIUS) hits.push({ nodeId: id, t: c.t });
+  }
   hits.sort((h1, h2) => h1.t - h2.t);
 
   let prevId = fromId;
   for (const h of hits) {
-    const id = crossingNode(graph, h);
+    const id = 'nodeId' in h ? h.nodeId : crossingNode(graph, h);
     graph.addEdge(prevId, id);
     prevId = id;
   }
