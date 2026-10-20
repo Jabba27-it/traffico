@@ -25,6 +25,7 @@ export const STATION_RADIUS = 24;
  * @property {number} bornAt   secondo di gioco in cui è comparsa
  * @property {number} capacity veicoli in coda che regge senza sovraccarico
  * @property {number} overload secondi di sovraccarico accumulati
+ * @property {number} upgrades quante volte è stata migliorata col premio settimanale
  */
 
 /**
@@ -51,5 +52,5 @@ export function createStation(graph, def, id, bornAt, capacity) {
     // Il costo pagato passa ai due nuovi archi, metà ciascuno.
     if (e.cost && first && second) first.cost = second.cost = e.cost / 2;
   }
-  return { id, shape: def.shape, x: def.x, y: def.y, nodeId: node.id, queue: [], bornAt, capacity, overload: 0 };
+  return { id, shape: def.shape, x: def.x, y: def.y, nodeId: node.id, queue: [], bornAt, capacity, overload: 0, upgrades: 0 };
 }

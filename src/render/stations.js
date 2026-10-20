@@ -44,8 +44,33 @@ export function drawStations(ctx, stations, transit, time) {
     ctx.fillStyle = SHAPE_COLORS[s.shape];
     ctx.fill();
     ctx.stroke();
+    // Stazione migliorata: un bordo in più all'interno.
+    if (s.upgrades > 0) {
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      traceShape(ctx, s.shape, s.x, s.y, STATION_RADIUS * scale * 0.6);
+      ctx.stroke();
+      ctx.lineWidth = 3;
+    }
   }
   for (const s of stations) drawQueue(ctx, s, [...s.queue, ...(transit.get(s.id) ?? [])]);
+}
+
+/**
+ * Mentre si sceglie la stazione da migliorare: un alone che pulsa intorno a tutte.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Station[]} stations
+ * @param {number} time  secondi, per la pulsazione
+ */
+export function drawSelectable(ctx, stations, time) {
+  const pulse = 0.5 + 0.5 * Math.sin(time * 5);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = `rgba(61, 64, 71, ${0.35 + 0.45 * pulse})`;
+  for (const s of stations) {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, STATION_RADIUS + 12 + pulse * 3, 0, Math.PI * 2);
+    ctx.stroke();
+  }
 }
 
 /**

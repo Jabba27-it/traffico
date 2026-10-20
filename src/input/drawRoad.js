@@ -16,6 +16,7 @@ import { STATION_RADIUS } from '../sim/stations.js';
  * @property {(points: Point[], snapRadius: number) => void} build
  * @property {(x: number, y: number) => RoadPiece | null} findPiece
  * @property {(piece: RoadPiece) => void} remove
+ * @property {() => boolean} active  false quando i gesti sulle strade sono sospesi
  */
 
 /** Distanza minima fra due punti campionati del tratto. */
@@ -60,7 +61,7 @@ export function attachRoadDrawing(canvas, graph, toWorld, editor) {
 
   canvas.addEventListener('pointerdown', (e) => {
     // Un dito solo: i gesti a più dita arriveranno più avanti.
-    if (activePointer !== null) return;
+    if (activePointer !== null || !editor.active()) return;
     activePointer = e.pointerId;
     canvas.setPointerCapture(e.pointerId);
     const p = toPoint(e);

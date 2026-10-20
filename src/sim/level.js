@@ -40,6 +40,12 @@ import { SHAPES } from './stations.js';
  */
 
 /**
+ * @typedef {Object} Rewards  premi di fine settimana
+ * @property {number} roads     tratti di strada in più
+ * @property {number} capacity  capienza in più per la stazione migliorata
+ */
+
+/**
  * @typedef {Object} Level
  * @property {string} name
  * @property {{width: number, height: number}} world
@@ -50,6 +56,7 @@ import { SHAPES } from './stations.js';
  * @property {Congestion} congestion
  * @property {number} dayLength  secondi di gioco in un giorno
  * @property {Roads} roads
+ * @property {Rewards} rewards
  */
 
 /**
@@ -119,10 +126,17 @@ export function parseLevel(json) {
     segmentLength: isNum(r?.lunghezzaTratto) && r.lunghezzaTratto > 0 ? r.lunghezzaTratto : 40,
   };
 
+  const p = json.premi ?? {};
+  const rewards = {
+    roads: isNum(p.strade) ? p.strade : 15,
+    capacity: isNum(p.capienza) ? p.capienza : 3,
+  };
+
   return {
     congestion,
     dayLength,
     roads,
+    rewards,
     name: String(json.nome ?? 'Senza nome'),
     world: { width: world.larghezza, height: world.altezza },
     shapes,

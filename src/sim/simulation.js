@@ -63,6 +63,10 @@ export class Simulation {
     this.roadBudget = level.roads.initial;
     /** L'ultimo giorno per cui sono già stati dati i tratti in più. */
     this.rewardedDay = 1;
+    /** Settimane concluse per cui il premio è già stato proposto. */
+    this.rewardedWeeks = 0;
+    /** true a fine settimana, finché il giocatore non ha scelto il premio. */
+    this.rewardPending = false;
 
     // Le stazioni iniziali ci sono già: niente animazione di comparsa.
     for (const def of level.stations) this.addStation(def, -Infinity);
@@ -157,15 +161,46 @@ export class Simulation {
     return this.failedStation !== null;
   }
 
+  /** true se il tempo scorre: né livello fallito né premio in attesa di scelta. */
+  get running() {
+    return !this.failed && !this.rewardPending;
+  }
+
+  /** Premio di fine settimana: tratti di strada in più. */
+  chooseRoadsReward() {
+    if (!this.rewardPending) return;
+    this.roadBudget += this.level.rewards.roads;
+    this.rewardPending = false;
+  }
+
+  /**
+   * Premio di fine settimana: una stazione regge più veicoli in coda.
+   * @param {number} stationId
+   */
+  chooseUpgradeReward(stationId) {
+    const station = this.stations.find((s) => s.id === stationId);
+    if (!this.rewardPending || !station) return;
+    station.capacity += this.level.rewards.capacity;
+    station.upgrades++;
+    this.rewardPending = false;
+  }
+
   /** @param {number} dt  secondi */
   step(dt) {
-    if (this.failed) return;
+    if (!this.running) return;
     this.elapsed += dt;
 
     const day = this.day;
     if (day > this.rewardedDay) {
       this.roadBudget += (day - this.rewardedDay) * this.level.roads.perDay;
       this.rewardedDay = day;
+    }
+    // Alla fine di ogni settimana (7 giorni) il gioco si ferma per il premio.
+    const weeks = Math.floor((day - 1) / 7);
+    if (weeks > this.rewardedWeeks) {
+      this.rewardedWeeks = weeks;
+      this.rewardPending = true;
+      return;
     }
 
     this.growthTimer -= dt;

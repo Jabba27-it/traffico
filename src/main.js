@@ -3,13 +3,15 @@ import { parseLevel } from './sim/level.js';
 import { Simulation } from './sim/simulation.js';
 import { setupCanvas, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
 import { drawRoads, drawPreview, drawRemoval } from './render/roads.js';
-import { drawStations } from './render/stations.js';
+import { drawStations, drawSelectable } from './render/stations.js';
+import { STATION_RADIUS } from './sim/stations.js';
 import { drawVehicles } from './render/vehicles.js';
 import { drawCongestion } from './render/congestion.js';
 import { attachRoadDrawing } from './input/drawRoad.js';
 import { createHud } from './ui/hud.js';
 import { showGameOver } from './ui/gameOver.js';
 import { createSpeedControls } from './ui/speed.js';
+import { showRewardChoice, showStationPrompt } from './ui/reward.js';
 
 const LEVEL_URL = 'levels/prova.json';
 const OUTSIDE = '#e3dfd5';
@@ -43,6 +45,7 @@ async function start() {
       build: (points, snapRadius) => sim.buildRoad(points, snapRadius),
       findPiece: (x, y) => sim.findRoadPiece(x, y),
       remove: (piece) => sim.removeRoad(piece),
+      active: () => !choosingStation,
     },
   );
   const hud = createHud(document.body);
@@ -51,15 +54,48 @@ async function start() {
   let lastTime = performance.now();
   let pending = 0;
   let gameOverShown = false;
+  let rewardShown = false;
+  /** Dopo aver scelto "migliora una stazione", finché non se ne tocca una. */
+  let choosingStation = false;
+  /** @type {() => void} */
+  let hidePrompt = () => {};
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!choosingStation) return;
+    const r = canvas.getBoundingClientRect();
+    const p = screenToWorld(view, e.clientX - r.left, e.clientY - r.top);
+    const station = sim.stations.find((s) => Math.hypot(s.x - p.x, s.y - p.y) <= STATION_RADIUS + 12);
+    if (!station) return;
+    sim.chooseUpgradeReward(station.id);
+    choosingStation = false;
+    rewardShown = false;
+    hidePrompt();
+  });
 
   /** @param {number} now */
   function frame(now) {
     // A velocità doppia scorre il doppio del tempo di gioco, sempre a passi fissi.
     pending += Math.min((now - lastTime) / 1000, MAX_FRAME_TIME) * speed.speed();
     lastTime = now;
-    while (pending >= STEP && !sim.failed) {
+    while (pending >= STEP && sim.running) {
       sim.step(STEP);
       pending -= STEP;
+    }
+    // A gioco fermo il tempo non si accumula, così alla ripresa non c'è un balzo in avanti.
+    if (!sim.running) pending = 0;
+
+    if (sim.rewardPending && !rewardShown) {
+      rewardShown = true;
+      showRewardChoice(document.body, sim.rewardedWeeks, level.rewards, {
+        onRoads: () => {
+          sim.chooseRoadsReward();
+          rewardShown = false;
+        },
+        onUpgrade: () => {
+          choosingStation = true;
+          hidePrompt = showStationPrompt(document.body);
+        },
+      });
     }
     const results = {
       score: sim.score,
@@ -94,6 +130,7 @@ async function start() {
     drawVehicles(ctx, graph, sim.vehicles);
     drawCongestion(ctx, sim.stations, level.congestion.tolerance, now / 1000);
     drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed);
+    if (choosingStation) drawSelectable(ctx, sim.stations, now / 1000);
     requestAnimationFrame(frame);
   }
 
