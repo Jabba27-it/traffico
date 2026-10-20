@@ -1,4 +1,4 @@
-// Pannello in alto con giorno, punteggio, viaggi completati e strade disponibili.
+// Pannello in alto con giorno, punti, viaggi, strade e ponti disponibili e stelle.
 
 /**
  * @typedef {Object} HudValues
@@ -9,16 +9,18 @@
  * @property {number} dayProgress  quanto del giorno è passato, da 0 a 1
  * @property {number} roads        tratti di strada disponibili
  * @property {number} bridges      ponti disponibili
+ * @property {boolean[]} stars     stelle guadagnate
  */
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
 /**
  * @param {HTMLElement} parent
- * @param {boolean} showBridges  solo nei livelli con acqua
+ * @param {{ bridges: boolean, stars: boolean, onStarsTap: () => void }} options
+ *   quali voci mostrare (i ponti solo nei livelli con acqua) e cosa fare toccando le stelle
  * @returns {{ update: (values: HudValues) => void }}
  */
-export function createHud(parent, showBridges) {
+export function createHud(parent, options) {
   const root = document.createElement('div');
   root.className = 'hud';
   const day = addItem(root, 'Giorno');
@@ -27,10 +29,16 @@ export function createHud(parent, showBridges) {
   const barFill = document.createElement('div');
   bar.appendChild(barFill);
   /** @type {HTMLElement} */ (day.parentElement).insertBefore(bar, day.nextSibling);
-  const score = addItem(root, 'Punteggio');
+  const score = addItem(root, 'Punti');
   const trips = addItem(root, 'Viaggi');
   const roads = addItem(root, 'Strade');
-  const bridges = showBridges ? addItem(root, 'Ponti') : null;
+  const bridges = options.bridges ? addItem(root, 'Ponti') : null;
+  const stars = options.stars ? addItem(root, 'Stelle') : null;
+  if (stars) {
+    const item = /** @type {HTMLElement} */ (stars.parentElement);
+    item.classList.add('hud-tappable');
+    item.addEventListener('click', options.onStarsTap);
+  }
   parent.appendChild(root);
 
   let last = '';
@@ -42,7 +50,7 @@ export function createHud(parent, showBridges) {
         lastBar = percent;
         barFill.style.width = `${percent}%`;
       }
-      const text = `${values.day}|${values.score}|${values.trips}|${values.roads}|${values.bridges}`;
+      const text = `${values.day}|${values.score}|${values.trips}|${values.roads}|${values.bridges}|${values.stars}`;
       if (text === last) return; // tocca il DOM solo quando qualcosa cambia
       last = text;
       day.textContent = `${WEEKDAYS[(values.day - 1) % 7]} ${values.day}`;
@@ -54,8 +62,17 @@ export function createHud(parent, showBridges) {
         bridges.textContent = String(values.bridges);
         bridges.classList.toggle('hud-empty', values.bridges === 0);
       }
+      if (stars) stars.innerHTML = starsHtml(values.stars);
     },
   };
+}
+
+/**
+ * Tre stelle, piene quelle guadagnate.
+ * @param {boolean[]} earned
+ */
+export function starsHtml(earned) {
+  return earned.map((on) => `<span class="${on ? 'star-on' : 'star-off'}">${on ? '★' : '☆'}</span>`).join('');
 }
 
 /**

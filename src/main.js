@@ -15,10 +15,19 @@ import { showGameOver } from './ui/gameOver.js';
 import { createSpeedControls } from './ui/speed.js';
 import { showRewardChoice, showStationPrompt, REWARD_ICONS } from './ui/reward.js';
 import { showToast } from './ui/toast.js';
+import { showGoals } from './ui/goals.js';
+import { showMenu, parseIndex } from './ui/menu.js';
+import { saveRecord } from './ui/records.js';
+import { askConfirm } from './ui/confirm.js';
 
-// Il livello si sceglie dall'indirizzo, es. ?livello=roma (di base: prova).
-const LEVEL_NAME = new URLSearchParams(location.search).get('livello') ?? 'prova';
-const LEVEL_URL = /^[a-z0-9_-]+$/.test(LEVEL_NAME) ? `levels/${LEVEL_NAME}.json` : 'levels/prova.json';
+// Il livello si sceglie dall'indirizzo, es. ?livello=roma; senza livello si apre il menu.
+const LEVEL_PARAM = new URLSearchParams(location.search).get('livello');
+const LEVEL_NAME = LEVEL_PARAM && /^[a-z0-9_-]+$/.test(LEVEL_PARAM) ? LEVEL_PARAM : null;
+const LEVEL_URL = `levels/${LEVEL_NAME}.json`;
+const INDEX_URL = 'levels/indice.json';
+const MENU_ICON =
+  '<svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><rect x="2" y="3" width="14" height="2.2" rx="1"/><rect x="2" y="8" width="14" height="2.2" rx="1"/><rect x="2" y="13" width="14" height="2.2" rx="1"/></svg>';
+const STAR_NAMES = ['Prima', 'Seconda', 'Terza'];
 const OUTSIDE = '#e3dfd5';
 const BACKGROUND = '#f2efe8';
 /** Passo fisso della simulazione, in secondi. */
@@ -28,6 +37,19 @@ const MAX_FRAME_TIME = 0.25;
 
 async function start() {
   const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById('game'));
+
+  if (!LEVEL_NAME) {
+    try {
+      const res = await fetch(INDEX_URL);
+      if (!res.ok) throw new Error(`Impossibile caricare ${INDEX_URL} (${res.status})`);
+      showMenu(document.body, parseIndex(await res.json()), (file) => {
+        location.search = `?livello=${file}`;
+      });
+    } catch (err) {
+      showError(err instanceof Error ? err.message : String(err));
+    }
+    return;
+  }
 
   let level;
   try {
@@ -62,8 +84,26 @@ async function start() {
       zoomAround(camera, sim.view, zoom, anchor, screen, (r) => scaleFor(view, r), view),
   });
   const hasWater = level.waters.length > 0;
-  const hud = createHud(document.body, hasWater);
+  const hud = createHud(document.body, {
+    bridges: hasWater,
+    stars: level.stars !== null,
+    onStarsTap: () => showGoals(document.body, sim.starGoals()),
+  });
   const speed = createSpeedControls(document.body);
+  /** true mentre si chiede se uscire: il gioco resta fermo. */
+  let askingToLeave = false;
+  const menuButton = document.createElement('button');
+  menuButton.className = 'menu-button';
+  menuButton.setAttribute('aria-label', 'Menu');
+  menuButton.innerHTML = MENU_ICON;
+  menuButton.addEventListener('click', async () => {
+    if (askingToLeave || sim.failed) return;
+    askingToLeave = true;
+    const leave = await askConfirm(document.body, 'Uscire dalla partita? I progressi di questa partita andranno persi.', 'Esci', 'Continua');
+    askingToLeave = false;
+    if (leave) goToMenu();
+  });
+  document.body.appendChild(menuButton);
 
   let lastTime = performance.now();
   let pending = 0;
@@ -89,7 +129,9 @@ async function start() {
     hidePrompt();
   });
 
-  const overlays = /** @type {HTMLElement[]} */ ([...document.querySelectorAll('.hud, .speed')]);
+  const overlays = /** @type {HTMLElement[]} */ ([...document.querySelectorAll('.hud, .speed, .menu-button')]);
+  /** @type {{index: number, label: string} | null} */
+  let lastStar = null;
 
   /**
    * Le zone di mappa coperte da pannello e pulsanti, viste con la città intera
@@ -113,12 +155,18 @@ async function start() {
     // A velocità doppia scorre il doppio del tempo di gioco, sempre a passi fissi.
     pending += Math.min((now - lastTime) / 1000, MAX_FRAME_TIME) * speed.speed();
     lastTime = now;
-    while (pending >= STEP && sim.running) {
+    const running = sim.running && !askingToLeave;
+    while (pending >= STEP && running && sim.running) {
       sim.step(STEP);
       pending -= STEP;
     }
     // A gioco fermo il tempo non si accumula, così alla ripresa non c'è un balzo in avanti.
-    if (!sim.running) pending = 0;
+    if (!running || !sim.running) pending = 0;
+
+    if (sim.lastStar && sim.lastStar !== lastStar) {
+      lastStar = sim.lastStar;
+      showToast(document.body, `★ ${STAR_NAMES[lastStar.index]} stella: ${lastStar.label}`);
+    }
 
     if (sim.rewardPending && !rewardShown) {
       rewardShown = true;
@@ -167,11 +215,13 @@ async function start() {
       dayProgress: sim.dayProgress,
       roads: sim.roadBudget,
       bridges: sim.bridgeBudget,
+      stars: sim.starsEarned,
     };
     hud.update(results);
     if (sim.failed && !gameOverShown) {
       gameOverShown = true;
-      showGameOver(document.body, results, () => location.reload());
+      const best = level.stars ? saveRecord(/** @type {string} */ (LEVEL_NAME), sim.score, sim.starsEarned) : null;
+      showGameOver(document.body, results, best, { onRetry: () => location.reload(), onMenu: goToMenu });
     }
 
     const { ctx } = view;
@@ -206,6 +256,10 @@ async function start() {
     lastTime = now;
     frame(now);
   });
+}
+
+function goToMenu() {
+  location.href = location.pathname;
 }
 
 /** @param {string} message */

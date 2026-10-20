@@ -1,0 +1,6 @@
+{
+  "livelli": [
+    { "file": "prova", "nome": "Allenamento", "descrizione": "Una città tranquilla per fare pratica" },
+    { "file": "roma", "nome": "Roma", "descrizione": "Il Tevere, i ponti e la strada fino a Ostia" }
+  ]
+}

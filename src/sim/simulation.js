@@ -12,6 +12,7 @@ import { planRoad, buildPlannedRoad } from './roadBuilder.js';
 import { findRoadPiece, removeRoadPiece, removeIsolatedNodes, edgeLength } from './roadEditing.js';
 import { isInWater } from './water.js';
 import { viewAt, segmentAt, insetRect, rectContains } from './view.js';
+import { starGoals } from './stars.js';
 
 /** @typedef {import('./roadEditing.js').RoadPiece} RoadPiece */
 /** @typedef {import('./graph.js').RoadEdge} RoadEdge */
@@ -111,6 +112,35 @@ export class Simulation {
     this.viewSegment = segmentAt(level.view, 1);
     /** @type {{text: string, at: number} | null} l'ultimo avviso "la città si allarga" */
     this.announcement = null;
+    /** Stelle già guadagnate in questa partita. */
+    this.starsEarned = [false, false, false];
+    /** @type {{index: number, label: string} | null} l'ultima stella guadagnata */
+    this.lastStar = null;
+    this.starTimer = 0;
+  }
+
+  /**
+   * A che punto sono gli obiettivi delle stelle (vuoto se il livello non ne ha).
+   * @returns {import('./stars.js').StarGoal[]}
+   */
+  starGoals() {
+    if (!this.level.stars) return [];
+    return starGoals(this.level.stars, {
+      trips: this.trips,
+      daysSurvived: Math.floor(this.elapsed / this.level.dayLength + 1e-6),
+      stations: this.stations,
+      hiddenNamed: this.hiddenStations.filter((d) => d.name).length,
+      graph: this.graph,
+    });
+  }
+
+  /** Controlla se è stata raggiunta una stella nuova. Una stella presa resta presa. */
+  updateStars() {
+    this.starGoals().forEach((goal, i) => {
+      if (!goal.reached || this.starsEarned[i]) return;
+      this.starsEarned[i] = true;
+      this.lastStar = { index: i, label: goal.label };
+    });
   }
 
   /**
@@ -337,6 +367,13 @@ export class Simulation {
     });
 
     this.failedStation = updateCongestion(this.stations, dt, this.level.congestion.tolerance);
+
+    // Le reti si controllano una volta al secondo: basta e costa poco.
+    this.starTimer -= dt;
+    if (this.starTimer <= 0) {
+      this.starTimer = 1;
+      this.updateStars();
+    }
   }
 
   /**

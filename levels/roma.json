@@ -38,5 +38,10 @@
   "congestione": { "capienza": 6, "tolleranza": 20 },
   "tempo": { "giorno": 20 },
   "strade": { "iniziali": 25, "perGiorno": 3, "lunghezzaTratto": 40 },
-  "premi": { "strade": 15, "capienza": 3, "ponti": 1 }
+  "premi": { "strade": 15, "capienza": 3, "ponti": 1 },
+  "stelle": {
+    "viaggi": 130,
+    "giorni": 9,
+    "speciale": { "tipo": "collegaLuoghi", "testo": "Tutte le strade portano a Roma" }
+  }
 }

@@ -1,13 +1,18 @@
-// Schermata di fine partita: "Livello fallito", risultati e pulsante Riprova.
+// Schermata di fine partita: "Livello fallito", stelle, risultati, record,
+// e i pulsanti Riprova e Menu.
+
+import { starsHtml } from './hud.js';
 
 /** @typedef {import('./hud.js').HudValues} HudValues */
+/** @typedef {import('./records.js').LevelRecord} LevelRecord */
 
 /**
  * @param {HTMLElement} parent
  * @param {HudValues} values
- * @param {() => void} onRetry
+ * @param {{ record: LevelRecord, newBest: boolean } | null} best  null se il livello non ha stelle
+ * @param {{ onRetry: () => void, onMenu: () => void }} actions
  */
-export function showGameOver(parent, values, onRetry) {
+export function showGameOver(parent, values, best, actions) {
   const overlay = document.createElement('div');
   overlay.className = 'game-over';
 
@@ -18,13 +23,20 @@ export function showGameOver(parent, values, onRetry) {
   title.textContent = 'Livello fallito';
   const reason = document.createElement('p');
   reason.textContent = 'Una stazione è rimasta sovraccarica troppo a lungo.';
+  box.append(title, reason);
+
+  if (best) {
+    const stars = document.createElement('div');
+    stars.className = 'game-over-stars';
+    stars.innerHTML = starsHtml(values.stars);
+    box.appendChild(stars);
+  }
 
   const stats = document.createElement('div');
   stats.className = 'game-over-stats';
-  const s = Math.floor(values.seconds);
   for (const [label, value] of [
-    ['Punteggio', String(values.score)],
-    ['Tempo', `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`],
+    ['Punti', String(values.score)],
+    ['Giorni', String(values.day - 1)],
     ['Viaggi', String(values.trips)],
   ]) {
     const item = document.createElement('div');
@@ -37,12 +49,24 @@ export function showGameOver(parent, values, onRetry) {
     item.append(v, l);
     stats.appendChild(item);
   }
+  box.appendChild(stats);
+
+  if (best) {
+    const record = document.createElement('p');
+    record.className = 'game-over-record';
+    record.textContent = best.newBest ? 'Nuovo record!' : `Record: ${best.record.score}`;
+    box.appendChild(record);
+  }
 
   const retry = document.createElement('button');
   retry.textContent = 'Riprova';
-  retry.addEventListener('click', onRetry);
+  retry.addEventListener('click', actions.onRetry);
+  const menu = document.createElement('button');
+  menu.textContent = 'Menu';
+  menu.className = 'secondary';
+  menu.addEventListener('click', actions.onMenu);
 
-  box.append(title, reason, stats, retry);
+  box.append(retry, menu);
   overlay.appendChild(box);
   parent.appendChild(overlay);
 }

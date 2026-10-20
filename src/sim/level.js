@@ -60,6 +60,22 @@ import { SHAPES } from './stations.js';
  */
 
 /**
+ * @typedef {Object} SpecialGoal  la condizione speciale della terza stella
+ * @property {'collegaLuoghi' | 'reteUnica'} kind
+ *   collegaLuoghi = tutti i luoghi con nome nella stessa rete;
+ *   reteUnica = tutte le stazioni nella stessa rete, quando sono almeno `min`
+ * @property {string} text  come si presenta al giocatore
+ * @property {number} min
+ */
+
+/**
+ * @typedef {Object} Stars  obiettivi delle tre stelle
+ * @property {number} trips  prima stella: viaggi completati
+ * @property {number} days   seconda stella: giorni sopravvissuti
+ * @property {SpecialGoal | null} special  terza stella
+ */
+
+/**
  * @typedef {Object} Level
  * @property {string} name
  * @property {{width: number, height: number}} world
@@ -74,6 +90,7 @@ import { SHAPES } from './stations.js';
  * @property {Rewards} rewards
  * @property {import('./water.js').Water[]} waters
  * @property {number} bridges  ponti disponibili all'inizio
+ * @property {Stars | null} stars
  */
 
 /**
@@ -188,7 +205,28 @@ export function parseLevel(json) {
   }
   const bridges = isNum(json.ponti?.iniziali) ? json.ponti.iniziali : waters.length > 0 ? 2 : 0;
 
+  /** @type {Stars | null} */
+  let stars = null;
+  if (json.stelle !== undefined) {
+    const st = json.stelle;
+    if (!isNum(st?.viaggi) || !isNum(st.giorni)) throw new Error('"stelle" deve avere "viaggi" e "giorni"');
+    let special = null;
+    if (st.speciale !== undefined) {
+      const kind = st.speciale?.tipo;
+      if (kind !== 'collegaLuoghi' && kind !== 'reteUnica') {
+        throw new Error('"stelle.speciale.tipo" deve essere "collegaLuoghi" o "reteUnica"');
+      }
+      special = {
+        kind,
+        text: String(st.speciale.testo ?? (kind === 'collegaLuoghi' ? 'Collega tutti i luoghi' : 'Tutte le stazioni in una rete')),
+        min: isNum(st.speciale.minimo) ? st.speciale.minimo : 0,
+      };
+    }
+    stars = { trips: st.viaggi, days: st.giorni, special };
+  }
+
   return {
+    stars,
     view,
     waters,
     bridges,
