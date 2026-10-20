@@ -26,8 +26,9 @@ const QUEUE_MAX_ROWS = 2;
 /**
  * @param {CanvasRenderingContext2D} ctx
  * @param {Station[]} stations
+ * @param {Map<number, Shape[]>} transit  veicoli nascosti sotto ogni stazione che attraversano
  */
-export function drawStations(ctx, stations) {
+export function drawStations(ctx, stations, transit) {
   ctx.lineJoin = 'round';
   ctx.lineWidth = 3;
   ctx.strokeStyle = OUTLINE;
@@ -38,17 +39,19 @@ export function drawStations(ctx, stations) {
     ctx.fill();
     ctx.stroke();
   }
-  for (const s of stations) drawQueue(ctx, s);
+  for (const s of stations) drawQueue(ctx, s, [...s.queue, ...(transit.get(s.id) ?? [])]);
 }
 
 /**
- * La coda della stazione: forme grigie in righe sopra la stazione, la prima
- * riga più vicina. Se non stanno tutte, l'ultima posizione mostra "+N".
+ * La fila sopra la stazione: prima i veicoli in coda, poi quelli in transito.
+ * Forme grigie in righe, la prima più vicina alla stazione. Se non stanno
+ * tutte, l'ultima posizione mostra "+N".
  * @param {CanvasRenderingContext2D} ctx
  * @param {Station} s
+ * @param {Shape[]} shapes
  */
-function drawQueue(ctx, s) {
-  const count = s.queue.length;
+function drawQueue(ctx, s, shapes) {
+  const count = shapes.length;
   if (count === 0) return;
   const capacity = QUEUE_PER_ROW * QUEUE_MAX_ROWS;
   const shown = count > capacity ? capacity - 1 : count;
@@ -68,7 +71,7 @@ function drawQueue(ctx, s) {
   for (let i = 0; i < shown; i++) {
     const p = slot(i);
     ctx.beginPath();
-    traceShape(ctx, s.queue[i], p.x, p.y, QUEUE_ITEM_RADIUS);
+    traceShape(ctx, shapes[i], p.x, p.y, QUEUE_ITEM_RADIUS);
     ctx.fill();
   }
   if (count > capacity) {

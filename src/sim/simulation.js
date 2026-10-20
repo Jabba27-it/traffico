@@ -3,8 +3,9 @@
 
 import { createRandom } from './random.js';
 import { shortestPaths, pathTo } from './pathfinding.js';
-import { advanceVehicle } from './vehicles.js';
+import { advanceVehicle, vehiclePose } from './vehicles.js';
 import { closestPointOnSegment, distance } from './geometry.js';
+import { STATION_RADIUS } from './stations.js';
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('./graph.js').RoadNode} RoadNode */
@@ -85,6 +86,28 @@ export class Simulation {
       this.trips++;
       return false;
     });
+  }
+
+  /**
+   * I veicoli che in questo momento stanno attraversando una stazione (né quella
+   * di partenza né quella d'arrivo) e quindi sono nascosti sotto di essa.
+   * @returns {Map<number, Shape[]>} per ogni id di stazione, le forme in transito
+   */
+  transitShapes() {
+    /** @type {Map<number, Shape[]>} */
+    const result = new Map();
+    for (const v of this.vehicles) {
+      const p = vehiclePose(this.graph, v);
+      for (const s of this.stations) {
+        if (distance(p, s) > STATION_RADIUS) continue;
+        const isDestination = s.id === v.toStationId;
+        const isLeavingOrigin = s.id === v.fromStationId && v.leg === 0 && v.path[0] === s.nodeId;
+        if (isDestination || isLeavingOrigin) continue;
+        if (!result.has(s.id)) result.set(s.id, []);
+        /** @type {Shape[]} */ (result.get(s.id)).push(v.shape);
+      }
+    }
+    return result;
   }
 
   /**

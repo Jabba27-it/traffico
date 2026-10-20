@@ -60,7 +60,7 @@ async function start() {
     drawRoads(ctx, graph);
     drawPreview(ctx, drawing.preview());
     drawVehicles(ctx, graph, sim.vehicles);
-    drawStations(ctx, stations);
+    drawStations(ctx, stations, sim.transitShapes());
     requestAnimationFrame(frame);
   }
 
