@@ -16,6 +16,8 @@ export const SHAPE_COLORS = {
 };
 
 const OUTLINE = '#ffffff';
+/** Durata dell'animazione di comparsa di una stazione, in secondi. */
+const APPEAR_TIME = 0.5;
 
 const QUEUE_COLOR = '#8d9097';
 const QUEUE_ITEM_RADIUS = 5;
@@ -27,14 +29,18 @@ const QUEUE_MAX_ROWS = 2;
  * @param {CanvasRenderingContext2D} ctx
  * @param {Station[]} stations
  * @param {Map<number, Shape[]>} transit  veicoli nascosti sotto ogni stazione che attraversano
+ * @param {number} time  secondi di gioco, per l'animazione di comparsa
  */
-export function drawStations(ctx, stations, transit) {
+export function drawStations(ctx, stations, transit, time) {
   ctx.lineJoin = 'round';
   ctx.lineWidth = 3;
   ctx.strokeStyle = OUTLINE;
   for (const s of stations) {
+    const grow = Math.min(1, (time - s.bornAt) / APPEAR_TIME);
+    // Leggero rimbalzo: supera la misura finale e poi torna indietro.
+    const scale = grow < 1 ? 1 - (1 - grow) ** 3 + Math.sin(grow * Math.PI) * 0.15 : 1;
     ctx.beginPath();
-    traceShape(ctx, s.shape, s.x, s.y, STATION_RADIUS);
+    traceShape(ctx, s.shape, s.x, s.y, STATION_RADIUS * scale);
     ctx.fillStyle = SHAPE_COLORS[s.shape];
     ctx.fill();
     ctx.stroke();

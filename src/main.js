@@ -1,6 +1,5 @@
 import { RoadGraph } from './sim/graph.js';
 import { parseLevel } from './sim/level.js';
-import { createStations } from './sim/stations.js';
 import { Simulation } from './sim/simulation.js';
 import { setupCanvas, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
 import { drawRoads, drawPreview } from './render/roads.js';
@@ -32,9 +31,8 @@ async function start() {
 
   const view = setupCanvas(canvas, level.world);
   const graph = new RoadGraph();
-  const stations = createStations(graph, level.stations);
   const drawing = attachRoadDrawing(canvas, graph, (x, y) => screenToWorld(view, x, y));
-  const sim = new Simulation(graph, stations, Date.now());
+  const sim = new Simulation(graph, level, Date.now());
   const hud = createHud(document.body);
 
   let lastTime = performance.now();
@@ -60,7 +58,7 @@ async function start() {
     drawRoads(ctx, graph);
     drawPreview(ctx, drawing.preview());
     drawVehicles(ctx, graph, sim.vehicles);
-    drawStations(ctx, stations, sim.transitShapes());
+    drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed);
     requestAnimationFrame(frame);
   }
 

@@ -1,18 +1,14 @@
 {
   "nome": "Prova",
   "mondo": { "larghezza": 400, "altezza": 800 },
+  "forme": ["cerchio", "quadrato", "triangolo", "pentagono", "esagono", "stella"],
   "stazioni": [
-    { "forma": "cerchio",   "x": 70,  "y": 90 },
-    { "forma": "quadrato",  "x": 320, "y": 140 },
-    { "forma": "triangolo", "x": 190, "y": 230 },
-    { "forma": "pentagono", "x": 60,  "y": 360 },
-    { "forma": "esagono",   "x": 330, "y": 330 },
-    { "forma": "stella",    "x": 200, "y": 430 },
-    { "forma": "quadrato",  "x": 80,  "y": 560 },
-    { "forma": "cerchio",   "x": 320, "y": 520 },
-    { "forma": "esagono",   "x": 190, "y": 640 },
-    { "forma": "triangolo", "x": 60,  "y": 730 },
-    { "forma": "stella",    "x": 340, "y": 700 },
-    { "forma": "pentagono", "x": 280, "y": 760 }
+    { "forma": "cerchio",   "x": 90,  "y": 220 },
+    { "forma": "quadrato",  "x": 300, "y": 420 },
+    { "forma": "triangolo", "x": 120, "y": 600 }
+  ],
+  "crescita": { "ogni": 25, "massimo": 14, "distanzaMinima": 80 },
+  "zone": [
+    { "x": 30, "y": 90, "larghezza": 340, "altezza": 680 }
   ]
 }

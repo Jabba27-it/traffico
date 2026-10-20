@@ -1,5 +1,7 @@
-// Stazioni: punti fissi della città, ognuno con una forma.
+// Stazioni: punti della città, ognuno con una forma.
 // Ogni stazione ha un nodo nel grafo stradale a cui si collegano le strade.
+
+import { closestPointOnSegment, distance } from './geometry.js';
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('./level.js').StationDef} StationDef */
@@ -20,19 +22,29 @@ export const STATION_RADIUS = 24;
  * @property {number} y
  * @property {number} nodeId  nodo del grafo stradale che rappresenta la stazione
  * @property {Shape[]} queue   forme dei veicoli in attesa di partire, dal primo arrivato
+ * @property {number} bornAt   secondo di gioco in cui è comparsa
  */
 
 /**
- * Crea le stazioni del livello e i rispettivi nodi nel grafo.
+ * Crea una stazione e il suo nodo nel grafo. Le strade che passano già sopra
+ * quel punto vengono deviate dentro la stazione, perché nessuna la scavalchi.
  * @param {RoadGraph} graph
- * @param {StationDef[]} defs
- * @returns {Station[]}
+ * @param {StationDef} def
+ * @param {number} id
+ * @param {number} bornAt
+ * @returns {Station}
  */
-export function createStations(graph, defs) {
-  return defs.map((def, i) => {
-    const node = graph.addNode(def.x, def.y);
-    const id = i + 1;
-    node.stationId = id;
-    return { id, shape: def.shape, x: def.x, y: def.y, nodeId: node.id, queue: [] };
-  });
+export function createStation(graph, def, id, bornAt) {
+  const node = graph.addNode(def.x, def.y);
+  node.stationId = id;
+  for (const e of [...graph.edges.values()]) {
+    const a = graph.nodes.get(e.a);
+    const b = graph.nodes.get(e.b);
+    if (!a || !b) continue;
+    if (distance(closestPointOnSegment(node, a, b), node) > STATION_RADIUS) continue;
+    graph.removeEdge(e.id);
+    graph.addEdge(e.a, node.id);
+    graph.addEdge(node.id, e.b);
+  }
+  return { id, shape: def.shape, x: def.x, y: def.y, nodeId: node.id, queue: [], bornAt };
 }

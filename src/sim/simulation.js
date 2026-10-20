@@ -5,9 +5,12 @@ import { createRandom } from './random.js';
 import { shortestPaths, pathTo } from './pathfinding.js';
 import { advanceVehicle, vehiclePose } from './vehicles.js';
 import { closestPointOnSegment, distance } from './geometry.js';
-import { STATION_RADIUS } from './stations.js';
+import { STATION_RADIUS, createStation } from './stations.js';
+import { pickNewStation } from './growth.js';
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
+/** @typedef {import('./level.js').Level} Level */
+/** @typedef {import('./level.js').StationDef} StationDef */
 /** @typedef {import('./graph.js').RoadNode} RoadNode */
 /** @typedef {import('./stations.js').Station} Station */
 /** @typedef {import('./stations.js').Shape} Shape */
@@ -18,19 +21,21 @@ const SPAWN_MIN = 4;
 const SPAWN_MAX = 6;
 /** Una stazione fa partire al massimo un veicolo ogni tanti secondi. */
 const DEPART_INTERVAL = 1;
+/** Se non c'è posto per una stazione nuova, si riprova dopo tanti secondi. */
+const GROWTH_RETRY = 1;
 
 export class Simulation {
   /**
    * @param {RoadGraph} graph
-   * @param {Station[]} stations
+   * @param {Level} level
    * @param {number} seed
    */
-  constructor(graph, stations, seed) {
+  constructor(graph, level, seed) {
     this.graph = graph;
-    this.stations = stations;
+    this.level = level;
     this.random = createRandom(seed);
-    /** Forme presenti nel livello: i veicoli nascono solo con queste. */
-    this.shapes = [...new Set(stations.map((s) => s.shape))];
+    /** @type {Station[]} */
+    this.stations = [];
     /** @type {Vehicle[]} */
     this.vehicles = [];
     this.nextVehicleId = 1;
@@ -39,11 +44,40 @@ export class Simulation {
     /** Veicoli arrivati a destinazione. */
     this.trips = 0;
     /** @type {Map<number, number>} secondi al prossimo veicolo in coda, per stazione */
-    this.spawnTimers = new Map(stations.map((s) => [s.id, this.nextSpawnDelay()]));
+    this.spawnTimers = new Map();
     /** @type {Map<number, number>} secondi alla prossima partenza possibile, per stazione */
-    this.departTimers = new Map(stations.map((s) => [s.id, 0]));
+    this.departTimers = new Map();
+    /** Secondi alla prossima stazione nuova. */
+    this.growthTimer = level.growth ? level.growth.interval : Infinity;
+
+    // Le stazioni iniziali ci sono già: niente animazione di comparsa.
+    for (const def of level.stations) this.addStation(def, -Infinity);
     /** Versione del grafo su cui sono calcolati i percorsi dei veicoli in viaggio. */
     this.routedVersion = graph.version;
+  }
+
+  /**
+   * @param {StationDef} def
+   * @param {number} bornAt
+   */
+  addStation(def, bornAt) {
+    const station = createStation(this.graph, def, this.stations.length + 1, bornAt);
+    this.stations.push(station);
+    this.spawnTimers.set(station.id, this.nextSpawnDelay());
+    this.departTimers.set(station.id, 0);
+  }
+
+  /** Fa comparire una stazione nuova quando è il momento, se c'è posto. */
+  grow() {
+    const growth = this.level.growth;
+    if (!growth || this.stations.length >= growth.max) return;
+    const def = pickNewStation(this.random, this.level, this.stations);
+    if (def) {
+      this.addStation(def, this.elapsed);
+      this.growthTimer = growth.interval;
+    } else {
+      this.growthTimer = GROWTH_RETRY;
+    }
   }
 
   /** Secondi interi trascorsi (la tolleranza assorbe gli arrotondamenti dei passi). */
@@ -59,6 +93,9 @@ export class Simulation {
   /** @param {number} dt  secondi */
   step(dt) {
     this.elapsed += dt;
+
+    this.growthTimer -= dt;
+    if (this.growthTimer <= 0) this.grow();
 
     if (this.graph.version !== this.routedVersion) {
       for (const v of this.vehicles) this.reroute(v);
@@ -115,7 +152,9 @@ export class Simulation {
    * @param {Station} station
    */
   enqueue(station) {
-    const options = this.shapes.filter((s) => s !== station.shape);
+    // Solo forme di stazioni già comparse, così ogni veicolo ha una destinazione.
+    const present = new Set(this.stations.map((s) => s.shape));
+    const options = [...present].filter((s) => s !== station.shape);
     if (options.length === 0) return;
     station.queue.push(options[Math.floor(this.random() * options.length)]);
   }

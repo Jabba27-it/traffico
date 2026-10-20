@@ -69,6 +69,11 @@ export class RoadGraph {
     return false;
   }
 
+  /** @param {number} edgeId */
+  removeEdge(edgeId) {
+    if (this.edges.delete(edgeId)) this.version++;
+  }
+
   /**
    * Spezza un arco in due inserendo un nuovo nodo in (x, y).
    * @param {number} edgeId
