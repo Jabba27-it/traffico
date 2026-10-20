@@ -2,6 +2,9 @@
 // sulle strade laterali, così si vede chi deve aspettare.
 
 import { ROAD_WIDTH } from '../sim/graph.js';
+import { RING_RADIUS } from '../sim/roundabout.js';
+
+const ISLAND = '#a9cf9c';
 
 /** @typedef {import('../sim/graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('../sim/lanes.js').LaneGeometry} LaneGeometry */
@@ -13,6 +16,23 @@ const YIELD = 'rgba(255, 255, 255, 0.85)';
 const YIELD_EDGE = 'rgba(214, 84, 70, 0.9)';
 /** Distanza dal centro dell'incrocio dove si mettono luci e triangoli. */
 const MARK_DISTANCE = 19;
+
+/**
+ * L'isola verde al centro delle rotatorie.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Iterable<{x: number, y: number}>} roundabouts
+ */
+export function drawRoundaboutIslands(ctx, roundabouts) {
+  for (const r of roundabouts) {
+    ctx.beginPath();
+    ctx.arc(r.x, r.y, RING_RADIUS - ROAD_WIDTH / 2 + 1, 0, Math.PI * 2);
+    ctx.fillStyle = ISLAND;
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.stroke();
+  }
+}
 
 /**
  * @param {CanvasRenderingContext2D} ctx

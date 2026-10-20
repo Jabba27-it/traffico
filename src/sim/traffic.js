@@ -20,6 +20,8 @@ const BRAKE = 110;
 const LOOKAHEAD = 100;
 /** A questa distanza dalla curva di un incrocio si chiede il permesso. */
 const REQUEST_DISTANCE = 50;
+/** Chi si immette aspetta se sulla principale qualcuno è a meno di così dall'incrocio. */
+const ARRIVAL_GAP = 18;
 /** Velocità in curva, in frazione della massima, per la curva più stretta. */
 const SHARPEST_CURVE = 0.3;
 /** Accelerazione laterale massima in curva: v² / raggio. */
@@ -61,6 +63,8 @@ export class Traffic {
     this.junctions = new Map();
     /** @type {Map<string, {v: Vehicle, s: number}[]>} veicoli su ogni pezzo */
     this.occupancy = new Map();
+    /** @type {Map<string, {v: Vehicle, key: string, remain: number}[]>} veicoli in curva, per nodo e corsia d'arrivo */
+    this.merging = new Map();
     /** @type {Map<string, boolean>} */
     this.conflictCache = new Map();
     /** @type {Map<string, number>} traffico lento su ogni strada, 0..1, per coppia di nodi */
@@ -147,11 +151,19 @@ export class Traffic {
   /** @param {Vehicle[]} vehicles */
   indexVehicles(vehicles) {
     this.occupancy.clear();
+    this.merging.clear();
     for (const v of vehicles) {
-      const key = currentPiece(this.lanes, v).key;
-      const list = this.occupancy.get(key);
+      const piece = currentPiece(this.lanes, v);
+      const list = this.occupancy.get(piece.key);
       if (list) list.push({ v, s: v.s });
-      else this.occupancy.set(key, [{ v, s: v.s }]);
+      else this.occupancy.set(piece.key, [{ v, s: v.s }]);
+      // Chi è in una curva verso una corsia, per chi arriva da un'altra curva verso la stessa.
+      if (piece.kind === 'turn') {
+        const k = `${piece.node}>${piece.to}`;
+        const m = this.merging.get(k) ?? [];
+        m.push({ v, key: piece.key, remain: piece.length - v.s });
+        this.merging.set(k, m);
+      }
     }
   }
 
@@ -204,6 +216,19 @@ export class Traffic {
             leader = o.v;
           }
         }
+        // Immissione: chi in un'altra curva è più vicino al punto in cui le due
+        // corsie si uniscono, conta come veicolo davanti.
+        if (piece.kind === 'turn') {
+          const mine = toStart + piece.length; // distanza dalla fine della curva
+          for (const o of this.merging.get(`${piece.node}>${piece.to}`) ?? []) {
+            if (o.v === v || o.key === piece.key || o.remain >= mine) continue;
+            const d = mine - o.remain;
+            if (d < best) {
+              best = d;
+              leader = o.v;
+            }
+          }
+        }
         if (leader) {
           leaderFound = true;
           const gap = best - (v.type.length + leader.type.length) / 2 - MIN_GAP;
@@ -253,10 +278,13 @@ export class Traffic {
       const ordered = signal ? j.queue : [...j.queue.filter(fromMain), ...j.queue.filter((r) => !fromMain(r))];
       /** @type {Request[]} */
       const waiting = [];
+      // Chi arriva da una laterale aspetta anche se sulla principale sta arrivando qualcuno.
+      const mainBusy = !signal && j.queue.some((r) => !fromMain(r)) && this.priorityApproaching(node, main);
       j.queue = ordered.filter((r) => {
         const red = signal !== undefined && (signal.allRed || (signal.phase === 0) !== fromMain(r));
         const blocked =
           red ||
+          (!signal && !fromMain(r) && mainBusy) ||
           [...j.inside.values()].some((t) => this.conflicts(t, r.turn)) ||
           waiting.some((w) => this.conflicts(w.turn, r.turn)) ||
           !this.exitIsFree(r.v, r.turn);
@@ -268,6 +296,31 @@ export class Traffic {
         return false;
       });
     }
+  }
+
+  /**
+   * true se sulla strada principale un veicolo sta per arrivare all'incrocio
+   * (o lo sta attraversando senza bisogno di permesso, come sull'anello di una rotatoria).
+   * @param {number} node
+   * @param {Set<number>} main
+   */
+  priorityApproaching(node, main) {
+    for (const m of main) {
+      if (!this.lanes.graph.canTravel(m, node)) continue;
+      const lane = this.lanes.lane(m, node);
+      for (const o of this.occupancy.get(lane.key) ?? []) {
+        if (lane.length - o.s < ARRIVAL_GAP + o.v.speed * 0.5) return true;
+      }
+    }
+    // Chi è già nella curva dell'incrocio arrivando dalla principale.
+    for (const [key, list] of this.occupancy) {
+      if (!key.startsWith('T') || list.length === 0) continue;
+      const turn = currentPiece(this.lanes, list[0].v);
+      if (turn.node === node && main.has(turn.from)) return true;
+      // Oppure nella curva subito prima, che porta sulla principale verso l'incrocio.
+      if (turn.to === node && main.has(turn.node)) return true;
+    }
+    return false;
   }
 
   /**

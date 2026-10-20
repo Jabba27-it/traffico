@@ -16,6 +16,7 @@ import { isInWater } from './water.js';
 import { viewAt, segmentAt, insetRect, rectContains } from './view.js';
 import { starGoals } from './stars.js';
 import { buildOverpass, overpassPairs, removeOverpass } from './overpass.js';
+import { circledJunction, buildRoundabout, removeRoundabout, ringCost, RING_RADIUS } from './roundabout.js';
 
 /** @typedef {import('./roadEditing.js').RoadPiece} RoadPiece */
 /** @typedef {import('./graph.js').RoadEdge} RoadEdge */
@@ -103,6 +104,9 @@ export class Simulation {
     this.bridgeBudget = level.bridges;
     /** Cavalcavia ancora disponibili. */
     this.overpassBudget = level.overpasses;
+    /** @type {Map<number, import('./roundabout.js').Roundabout>} */
+    this.roundabouts = new Map();
+    this.nextRoundaboutId = 1;
     this.nextBridgeId = 1;
     /** L'ultimo giorno per cui sono già stati dati i tratti in più. */
     this.rewardedDay = 1;
@@ -248,12 +252,18 @@ export class Simulation {
 
   /**
    * Costruisce il tratto disegnato, fin dove bastano i tratti disponibili.
+   * Se il tratto è un cerchio intorno a un incrocio, ne fa una rotatoria.
    * @param {Point[]} points
    * @param {number} snapRadius
+   * @returns {string | null}  esito da mostrare, se ce n'è uno
    */
   buildRoad(points, snapRadius) {
+    // Un cerchio disegnato intorno a un incrocio lo trasforma in rotatoria.
+    const circled = circledJunction(this.graph, points);
+    if (circled) return this.makeRoundabout(circled);
+
     const plan = this.planRoad(points);
-    if (plan.runs.length === 0) return;
+    if (plan.runs.length === 0) return null;
     const before = new Set(this.graph.edges.keys());
     buildPlannedRoad(this.graph, plan, snapRadius);
     const cost = this.roadCost(plan);
@@ -282,6 +292,39 @@ export class Simulation {
         }
       }
     }
+    return null;
+  }
+
+  /**
+   * @param {RoadNode} center  l'incrocio da trasformare
+   * @returns {string}  esito, per l'avviso
+   */
+  makeRoundabout(center) {
+    const cost = ringCost(this.level.roads.segmentLength);
+    if (this.roadBudget < cost) return 'roundabout-too-expensive';
+    this.roadBudget -= cost;
+    const r = buildRoundabout(this.graph, center, this.nextRoundaboutId++, cost);
+    this.roundabouts.set(r.id, r);
+    this.updateRoutes();
+    return 'roundabout';
+  }
+
+  /**
+   * Tocco al centro di una rotatoria: torna incrocio e restituisce i tratti dell'anello.
+   * @param {number} x
+   * @param {number} y
+   * @returns {string | null}
+   */
+  tapRoundabout(x, y) {
+    for (const r of this.roundabouts.values()) {
+      if (Math.hypot(r.x - x, r.y - y) > RING_RADIUS * 0.7) continue;
+      removeRoundabout(this.graph, r);
+      this.roundabouts.delete(r.id);
+      this.roadBudget += r.cost;
+      this.updateRoutes();
+      return 'roundabout-removed';
+    }
+    return null;
   }
 
   /** true quando il livello è fallito: da lì la simulazione è ferma. */
@@ -310,6 +353,8 @@ export class Simulation {
    * @returns {string | null}  cosa è successo (per l'avviso), null se niente
    */
   tap(x, y, radius) {
+    const roundabout = this.tapRoundabout(x, y);
+    if (roundabout) return roundabout;
     const junction = this.toggleOverpass(x, y, radius);
     if (junction) return junction;
     const piece = this.findRoadPiece(x, y, radius);
@@ -717,6 +762,11 @@ export class Simulation {
    * @param {RoadPiece} piece
    */
   removeRoad(piece) {
+    // Togliere un pezzo d'anello rompe la rotatoria: resta una strada a senso unico.
+    for (const id of piece.edgeIds) {
+      const ring = this.graph.edges.get(id)?.ring;
+      if (ring !== undefined) this.roundabouts.delete(ring);
+    }
     this.bridgeBudget += piece.bridges;
     const touched = removeRoadPiece(this.graph, piece);
     this.roadBudget += this.refundOf(piece);

@@ -6,7 +6,7 @@ import { createCamera, cameraRect, zoomAround } from './render/camera.js';
 import { attachPinch } from './input/pinch.js';
 import { drawRoads, drawLaneMarks, drawOverpasses, drawPreview, drawRemoval, drawWater, drawOutsideVeil } from './render/roads.js';
 import { currentPiece } from './sim/vehicles.js';
-import { drawJunctionMarks } from './render/junctions.js';
+import { drawJunctionMarks, drawRoundaboutIslands } from './render/junctions.js';
 import { drawStations, drawSelectable } from './render/stations.js';
 import { STATION_RADIUS } from './sim/stations.js';
 import { drawVehicles } from './render/vehicles.js';
@@ -42,6 +42,9 @@ const TAP_MESSAGES = {
   backward: 'Senso unico (al contrario)',
   super: 'Superstrada',
   'super-too-expensive': 'Doppio senso: per la superstrada servono più tratti',
+  roundabout: 'Rotatoria',
+  'roundabout-removed': 'Rotatoria tolta: torna incrocio',
+  'roundabout-too-expensive': 'Per la rotatoria servono più tratti',
 };
 /** Quante carte premio si propongono a fine settimana (scelte a caso fra quelle possibili). */
 const REWARD_CHOICES = 3;
@@ -89,7 +92,10 @@ async function start() {
     return screenToWorld(view, x, y);
   };
   const drawing = attachRoadDrawing(canvas, graph, toWorld, () => 1 / view.scale, {
-    build: (points, snapRadius) => sim.buildRoad(points, snapRadius),
+    build: (points, snapRadius) => {
+      const result = sim.buildRoad(points, snapRadius);
+      if (result && TAP_MESSAGES[result]) showToast(document.body, TAP_MESSAGES[result]);
+    },
     findPiece: (x, y, radius) => sim.findRoadPiece(x, y, radius),
     remove: (piece) => sim.removeRoad(piece),
     active: () => !choosingStation,
@@ -271,6 +277,7 @@ async function start() {
     drawOutsideVeil(ctx, level.world, visible);
     drawRoads(ctx, graph, sim.traffic.congestion);
     drawLaneMarks(ctx, graph);
+    drawRoundaboutIslands(ctx, sim.roundabouts.values());
     drawJunctionMarks(ctx, graph, sim.lanes, sim.traffic.signals);
     const preview = drawing.preview();
     if (preview.length >= 2) {

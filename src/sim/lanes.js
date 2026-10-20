@@ -154,7 +154,10 @@ export class LaneGeometry {
         y: u * u * p0.y + 2 * u * t * p1.y + t * t * p2.y,
       });
     }
-    const piece = makePiece(key, 'turn', points, b, angle, this.isJunction(b));
+    // Chi è già sull'anello di una rotatoria non chiede permessi: ha la precedenza,
+    // sia per proseguire sia per uscire. Lo chiede solo chi entra.
+    const onRing = this.graph.getEdge(a, b)?.ring !== undefined;
+    const piece = makePiece(key, 'turn', points, b, angle, this.isJunction(b) && !onRing);
     piece.elevated = Boolean(node(this.graph, b).overpass?.upper);
     // Una curva fra due tratti di superstrada fa parte della superstrada.
     piece.fast = inLane.fast && outLane.fast;
