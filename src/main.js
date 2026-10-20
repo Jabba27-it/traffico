@@ -1,7 +1,9 @@
 import { RoadGraph } from './sim/graph.js';
 import { parseLevel } from './sim/level.js';
 import { Simulation } from './sim/simulation.js';
-import { setupCanvas, fitCamera, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
+import { setupCanvas, fitCamera, scaleFor, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
+import { createCamera, cameraRect, zoomAround } from './render/camera.js';
+import { attachPinch } from './input/pinch.js';
 import { drawRoads, drawPreview, drawRemoval, drawWater, drawOutsideVeil } from './render/roads.js';
 import { drawStations, drawSelectable } from './render/stations.js';
 import { STATION_RADIUS } from './sim/stations.js';
@@ -40,17 +42,25 @@ async function start() {
   const view = setupCanvas(canvas);
   const graph = new RoadGraph();
   const sim = new Simulation(graph, level, Date.now());
-  const drawing = attachRoadDrawing(
-    canvas,
-    graph,
-    (x, y) => screenToWorld(view, x, y),
-    {
-      build: (points, snapRadius) => sim.buildRoad(points, snapRadius),
-      findPiece: (x, y) => sim.findRoadPiece(x, y),
-      remove: (piece) => sim.removeRoad(piece),
-      active: () => !choosingStation,
-    },
-  );
+  const camera = createCamera();
+  // La telecamera si riallinea anche al tocco, non solo quando si disegna:
+  // così il dito cade sempre dove si vede, anche se un fotogramma è in ritardo.
+  const toWorld = (/** @type {number} */ x, /** @type {number} */ y) => {
+    fitCamera(view, cameraRect(camera, sim.view));
+    return screenToWorld(view, x, y);
+  };
+  const drawing = attachRoadDrawing(canvas, graph, toWorld, () => 1 / view.scale, {
+    build: (points, snapRadius) => sim.buildRoad(points, snapRadius),
+    findPiece: (x, y, radius) => sim.findRoadPiece(x, y, radius),
+    remove: (piece) => sim.removeRoad(piece),
+    active: () => !choosingStation,
+  });
+  attachPinch(canvas, {
+    toWorld,
+    zoom: () => camera.zoom,
+    zoomAround: (zoom, anchor, screen) =>
+      zoomAround(camera, sim.view, zoom, anchor, screen, (r) => scaleFor(view, r), view),
+  });
   const hasWater = level.waters.length > 0;
   const hud = createHud(document.body, hasWater);
   const speed = createSpeedControls(document.body);
@@ -70,7 +80,8 @@ async function start() {
     if (!choosingStation) return;
     const r = canvas.getBoundingClientRect();
     const p = screenToWorld(view, e.clientX - r.left, e.clientY - r.top);
-    const station = sim.stations.find((s) => Math.hypot(s.x - p.x, s.y - p.y) <= STATION_RADIUS + 12);
+    const reach = Math.max(STATION_RADIUS + 12, 26 / view.scale);
+    const station = sim.stations.find((s) => Math.hypot(s.x - p.x, s.y - p.y) <= reach);
     if (!station) return;
     sim.chooseUpgradeReward(station.id);
     choosingStation = false;
@@ -146,7 +157,8 @@ async function start() {
 
     const { ctx } = view;
     const visible = sim.view;
-    fitCamera(view, visible);
+    const framed = cameraRect(camera, visible);
+    fitCamera(view, framed);
     useScreenSpace(view);
     ctx.fillStyle = OUTSIDE;
     ctx.fillRect(0, 0, view.width, view.height);
@@ -159,14 +171,14 @@ async function start() {
     const preview = drawing.preview();
     if (preview.length >= 2) {
       const plan = sim.planRoad(preview);
-      drawPreview(ctx, preview, plan.cut, sim.roadCost(plan), plan.bridges, visible);
+      drawPreview(ctx, preview, plan.cut, sim.roadCost(plan), plan.bridges, framed);
     }
     const removal = drawing.removal();
     const finger = drawing.finger();
-    if (removal && finger) drawRemoval(ctx, graph, removal, sim.refundOf(removal), finger, visible);
+    if (removal && finger) drawRemoval(ctx, graph, removal, sim.refundOf(removal), finger, framed);
     drawVehicles(ctx, graph, sim.vehicles);
     drawCongestion(ctx, sim.stations, level.congestion.tolerance, now / 1000);
-    drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed, visible.width / level.view[0].width);
+    drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed, framed.width / level.view[0].width);
     if (choosingStation) drawSelectable(ctx, sim.stations, now / 1000);
     requestAnimationFrame(frame);
   }

@@ -197,7 +197,7 @@ export function buildRoad(graph, points, snapRadius) {
 
   const startId = attach(graph, first, snapRadius);
   const startNode = /** @type {RoadNode} */ (graph.nodes.get(startId));
-  const endNode = graph.findNodeNear(last.x, last.y, STATION_SNAP, true) ?? graph.findNodeNear(last.x, last.y, snapRadius);
+  const endNode = graph.findNodeNear(last.x, last.y, stationSnap(snapRadius), true) ?? graph.findNodeNear(last.x, last.y, snapRadius);
   /** @type {Point} */
   const endPos = endNode ?? graph.findEdgeNear(last.x, last.y, snapRadius) ?? last;
 
@@ -235,7 +235,7 @@ export function buildRoad(graph, points, snapRadius) {
  * @returns {number}
  */
 function attach(graph, p, snapRadius) {
-  const node = graph.findNodeNear(p.x, p.y, STATION_SNAP, true) ?? graph.findNodeNear(p.x, p.y, snapRadius);
+  const node = graph.findNodeNear(p.x, p.y, stationSnap(snapRadius), true) ?? graph.findNodeNear(p.x, p.y, snapRadius);
   if (node) return node.id;
   const hit = graph.findEdgeNear(p.x, p.y, snapRadius);
   if (hit) return graph.splitEdge(hit.edge.id, hit.x, hit.y).id;
@@ -247,7 +247,15 @@ function attach(graph, p, snapRadius) {
  * @param {number} snapRadius
  */
 function reach(node, snapRadius) {
-  return node.stationId !== undefined ? STATION_SNAP : snapRadius;
+  return node.stationId !== undefined ? stationSnap(snapRadius) : snapRadius;
+}
+
+/**
+ * Aggancio alle stazioni: un po' più generoso di quello alle strade.
+ * @param {number} snapRadius
+ */
+function stationSnap(snapRadius) {
+  return Math.max(STATION_SNAP, snapRadius);
 }
 
 /**

@@ -19,10 +19,11 @@ import { ROAD_WIDTH } from './graph.js';
  * @param {RoadGraph} graph
  * @param {number} x
  * @param {number} y
+ * @param {number} [radius]  quanto lontano dal centro della strada si può premere
  * @returns {RoadPiece | null}
  */
-export function findRoadPiece(graph, x, y) {
-  const hit = graph.findEdgeNear(x, y, ROAD_WIDTH);
+export function findRoadPiece(graph, x, y, radius = ROAD_WIDTH) {
+  const hit = graph.findEdgeNear(x, y, Math.max(ROAD_WIDTH, radius));
   if (!hit) return null;
 
   /** @type {Map<number, number[]>} archi che toccano ogni nodo */

@@ -43,11 +43,20 @@ export function setupCanvas(canvas) {
  * @param {import('../sim/view.js').Rect} rect
  */
 export function fitCamera(view, rect) {
-  const w = rect.width * (1 + 2 * CAMERA_MARGIN);
-  const h = rect.height * (1 + 2 * CAMERA_MARGIN);
-  view.scale = Math.min(view.width / w, view.height / h);
+  view.scale = scaleFor(view, rect);
   view.offsetX = view.width / 2 - (rect.x + rect.width / 2) * view.scale;
   view.offsetY = view.height / 2 - (rect.y + rect.height / 2) * view.scale;
+}
+
+/**
+ * Pixel CSS per unità di mondo inquadrando `rect`.
+ * @param {View} view
+ * @param {import('../sim/view.js').Rect} rect
+ */
+export function scaleFor(view, rect) {
+  const w = rect.width * (1 + 2 * CAMERA_MARGIN);
+  const h = rect.height * (1 + 2 * CAMERA_MARGIN);
+  return Math.min(view.width / w, view.height / h);
 }
 
 /**

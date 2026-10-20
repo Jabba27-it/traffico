@@ -455,10 +455,11 @@ export class Simulation {
    * Il pezzo di strada sotto il punto (x, y), se c'è.
    * @param {number} x
    * @param {number} y
+   * @param {number} [radius]
    * @returns {RoadPiece | null}
    */
-  findRoadPiece(x, y) {
-    return findRoadPiece(this.graph, x, y);
+  findRoadPiece(x, y, radius) {
+    return findRoadPiece(this.graph, x, y, radius);
   }
 
   /**
