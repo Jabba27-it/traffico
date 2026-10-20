@@ -8,6 +8,9 @@ const ROAD_COLOR = '#5d6169';
 const PREVIEW_COLOR = 'rgba(93, 97, 105, 0.4)';
 const BLOCKED_COLOR = 'rgba(224, 69, 58, 0.45)';
 const REMOVAL_COLOR = 'rgba(224, 69, 58, 0.85)';
+/** Opacità massima della velatura rossa del traffico: tenue, come richiesto. */
+const TRAFFIC_TINT = 0.32;
+const LANE_MARK = 'rgba(255, 255, 255, 0.35)';
 const BRIDGE_RAIL = '#44474e';
 const BRIDGE_DECK = '#8b8f97';
 const WATER_COLOR = '#a7d0ea';
@@ -32,8 +35,9 @@ const OUTSIDE_VEIL = 'rgba(242, 239, 232, 0.6)';
 /**
  * @param {CanvasRenderingContext2D} ctx
  * @param {RoadGraph} graph
+ * @param {Map<string, number>} [congestion]  traffico lento per coppia di nodi "a_b", 0..1
  */
-export function drawRoads(ctx, graph) {
+export function drawRoads(ctx, graph, congestion) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   const edges = [...graph.edges.values()];
@@ -44,6 +48,44 @@ export function drawRoads(ctx, graph) {
   strokeEdges(ctx, graph, bridges, ROAD_WIDTH + 6, BRIDGE_RAIL);
   strokeEdges(ctx, graph, bridges, ROAD_WIDTH - 2, BRIDGE_DECK);
   ctx.lineCap = 'round';
+
+  // Traffico: una velatura rossa leggera dove i veicoli vanno piano.
+  if (!congestion || congestion.size === 0) return;
+  ctx.lineWidth = ROAD_WIDTH;
+  for (const e of edges) {
+    const c = congestion.get(e.a < e.b ? `${e.a}_${e.b}` : `${e.b}_${e.a}`);
+    if (!c || c < 0.05) continue;
+    const a = graph.nodes.get(e.a);
+    const b = graph.nodes.get(e.b);
+    if (!a || !b) continue;
+    ctx.strokeStyle = `rgba(214, 84, 70, ${(TRAFFIC_TINT * Math.min(1, c)).toFixed(3)})`;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
+}
+
+/**
+ * Le linee bianche tratteggiate fra le due corsie.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {RoadGraph} graph
+ */
+export function drawLaneMarks(ctx, graph) {
+  ctx.strokeStyle = LANE_MARK;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 5]);
+  ctx.beginPath();
+  for (const e of graph.edges.values()) {
+    if (e.bridgeId !== undefined) continue;
+    const a = graph.nodes.get(e.a);
+    const b = graph.nodes.get(e.b);
+    if (!a || !b) continue;
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
 }
 
 /**

@@ -4,7 +4,7 @@ import { Simulation } from './sim/simulation.js';
 import { setupCanvas, fitCamera, scaleFor, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
 import { createCamera, cameraRect, zoomAround } from './render/camera.js';
 import { attachPinch } from './input/pinch.js';
-import { drawRoads, drawPreview, drawRemoval, drawWater, drawOutsideVeil } from './render/roads.js';
+import { drawRoads, drawLaneMarks, drawPreview, drawRemoval, drawWater, drawOutsideVeil } from './render/roads.js';
 import { drawStations, drawSelectable } from './render/stations.js';
 import { STATION_RADIUS } from './sim/stations.js';
 import { drawVehicles } from './render/vehicles.js';
@@ -236,7 +236,8 @@ async function start() {
     ctx.fillRect(0, 0, level.world.width, level.world.height);
     drawWater(ctx, level.waters);
     drawOutsideVeil(ctx, level.world, visible);
-    drawRoads(ctx, graph);
+    drawRoads(ctx, graph, sim.traffic.congestion);
+    drawLaneMarks(ctx, graph);
     const preview = drawing.preview();
     if (preview.length >= 2) {
       const plan = sim.planRoad(preview);
@@ -245,7 +246,7 @@ async function start() {
     const removal = drawing.removal();
     const finger = drawing.finger();
     if (removal && finger) drawRemoval(ctx, graph, removal, sim.refundOf(removal), finger, framed);
-    drawVehicles(ctx, graph, sim.vehicles);
+    drawVehicles(ctx, sim.vehicles);
     drawCongestion(ctx, sim.stations, level.congestion.tolerance, now / 1000);
     drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed, framed.width / level.view[0].width);
     if (choosingStation) drawSelectable(ctx, sim.stations, now / 1000);

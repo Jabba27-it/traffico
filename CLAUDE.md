@@ -10,6 +10,7 @@ Puzzle per telefono, a livelli: ogni livello è una città ispirata a una città
 
 - Ogni stazione ha una forma e genera veicoli di una forma diversa dalla propria. Ogni veicolo deve raggiungere una stazione della sua forma, sul percorso più rapido; può attraversare stazioni di altre forme.
 - I veicoli in attesa restano in coda nella stazione d'origine; la coda si vede come una fila di forme grigie sopra la stazione.
+- I veicoli sono fisici (auto, furgoni, autobus visti dall'alto, col colore e la forma della destinazione): ognuno nella sua corsia, mantiene la distanza, rallenta in curva e agli incroci svolta seguendo una curva. Agli incroci e nelle stazioni attraversate passa chi arriva prima, purché la sua curva non incroci quella di chi è dentro e ci sia spazio per uscire. Le strade lente si velano di un rosso tenue.
 - Strade e incroci si disegnano col dito, nessun menu: la forma disegnata decide il tipo di incrocio (a raso, rotatoria, cavalcavia, semaforo).
 - Tutti i tipi di incrocio esistono da subito ma in quantità limitata; ogni settimana di gioco si sceglie un premio fra varie opzioni.
 - Congestione visibile (verde → rosso). Ogni stazione ha una capienza (di base 6 veicoli in coda); oltre la capienza parte un conto alla rovescia e, se si esaurisce, il livello fallisce.

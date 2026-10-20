@@ -3,7 +3,9 @@
 
 import { createRandom } from './random.js';
 import { shortestPaths, pathTo } from './pathfinding.js';
-import { advanceVehicle, vehiclePose } from './vehicles.js';
+import { pointOnVehicle, randomVehicleType } from './vehicles.js';
+import { LaneGeometry, projectOnLane } from './lanes.js';
+import { Traffic } from './traffic.js';
 import { closestPointOnSegment, distance } from './geometry.js';
 import { STATION_RADIUS, createStation } from './stations.js';
 import { pickNewStation } from './growth.js';
@@ -56,6 +58,11 @@ const SPAWN_MAX = 8;
 const DEPART_INTERVAL = 1;
 /** Se non c'è posto per una stazione nuova, si riprova dopo tanti secondi. */
 const GROWTH_RETRY = 1;
+/**
+ * Ritardo stimato per ogni incrocio attraversato, in unità di strada: i veicoli
+ * preferiscono i percorsi con meno incroci a parità di lunghezza.
+ */
+const JUNCTION_COST = 25;
 
 export class Simulation {
   /**
@@ -78,6 +85,8 @@ export class Simulation {
     /** @type {Vehicle[]} */
     this.vehicles = [];
     this.nextVehicleId = 1;
+    this.lanes = new LaneGeometry(graph);
+    this.traffic = new Traffic(this.lanes);
     /** Secondi di gioco trascorsi. */
     this.elapsed = 0;
     /** Veicoli arrivati a destinazione. */
@@ -360,11 +369,11 @@ export class Simulation {
       }
     }
 
-    this.vehicles = this.vehicles.filter((v) => {
-      if (!advanceVehicle(this.graph, v, dt)) return true;
-      this.trips++;
-      return false;
-    });
+    const arrived = new Set(this.traffic.step(this.vehicles, dt));
+    if (arrived.size > 0) {
+      this.trips += arrived.size;
+      this.vehicles = this.vehicles.filter((v) => !arrived.has(v));
+    }
 
     this.failedStation = updateCongestion(this.stations, dt, this.level.congestion.tolerance);
 
@@ -385,7 +394,7 @@ export class Simulation {
     /** @type {Map<number, Shape[]>} */
     const result = new Map();
     for (const v of this.vehicles) {
-      const p = vehiclePose(this.graph, v);
+      const p = v.pose;
       for (const s of this.stations) {
         if (distance(p, s) > STATION_RADIUS) continue;
         const isDestination = s.id === v.toStationId;
@@ -412,29 +421,48 @@ export class Simulation {
 
   /**
    * Fa partire il primo veicolo in coda che può raggiungere una stazione
-   * della sua forma, verso quella più vicina lungo le strade.
+   * della sua forma, verso quella più vicina lungo le strade. Parte solo se
+   * all'uscita della stazione c'è posto: altrimenti resta in coda.
    * @param {Station} origin
    * @returns {boolean} true se un veicolo è partito
    */
   depart(origin) {
-    const paths = shortestPaths(this.graph, origin.nodeId);
+    const paths = this.paths(origin.nodeId);
     for (let i = 0; i < origin.queue.length; i++) {
       const shape = origin.queue[i];
       const target = this.nearestStation(paths, shape);
       if (!target) continue;
-      origin.queue.splice(i, 1);
-      this.vehicles.push({
-        id: this.nextVehicleId++,
+      /** @type {Vehicle} */
+      const v = {
+        id: this.nextVehicleId,
         shape,
+        type: randomVehicleType(this.random),
         fromStationId: origin.id,
         toStationId: target.id,
         path: /** @type {number[]} */ (pathTo(paths, target.nodeId)),
         leg: 0,
-        along: 0,
-      });
+        phase: 'lane',
+        s: 0,
+        speed: 0,
+        pose: { x: origin.x, y: origin.y, dx: 1, dy: 0 },
+      };
+      if (!this.traffic.roomToDepart(v)) return false;
+      v.pose = pointOnVehicle(this.lanes, v);
+      this.nextVehicleId++;
+      origin.queue.splice(i, 1);
+      this.vehicles.push(v);
       return true;
     }
     return false;
+  }
+
+  /**
+   * Percorsi più rapidi da un nodo: la lunghezza delle strade più un piccolo
+   * ritardo per ogni incrocio o stazione attraversati.
+   * @param {number} from
+   */
+  paths(from) {
+    return shortestPaths(this.graph, from, (id) => (this.lanes.isJunction(id) ? JUNCTION_COST : 0));
   }
 
   /**
@@ -446,14 +474,30 @@ export class Simulation {
    *   è stata rimossa o non porta più a nessuna stazione della sua forma
    */
   reroute(v) {
+    // In curva: il veicolo finisce la curva e riparte dalla corsia d'uscita.
+    if (v.phase === 'turn') {
+      const [a, b, c] = v.path.slice(v.leg, v.leg + 3);
+      if (!this.graph.hasEdge(a, b) || !this.graph.hasEdge(b, c)) return false;
+      const paths = this.paths(c);
+      const target = this.nearestStation(paths, v.shape);
+      if (!target) return false;
+      v.path = [a, b, .../** @type {number[]} */ (pathTo(paths, target.nodeId))];
+      v.leg = 0;
+      v.toStationId = target.id;
+      v.s = Math.min(v.s, this.lanes.turn(a, b, c).length);
+      return true;
+    }
+
     const here = v.path[v.leg];
     let next = v.path[v.leg + 1];
-    if (next === undefined) return true;
+    if (!this.graph.nodes.has(here) || !this.graph.nodes.has(next)) return false;
 
     if (!this.graph.hasEdge(here, next)) {
       const a = /** @type {RoadNode} */ (this.graph.nodes.get(here));
       const b = /** @type {RoadNode} */ (this.graph.nodes.get(next));
       const length = distance(a, b);
+      // Quanto il veicolo ha già percorso del tratto, misurato sul centro strada.
+      const along = closestPointOnSegment(v.pose, a, b).t * length;
       let found = false;
       // Il tratto in corso è stato spezzato da un nuovo incrocio: il prossimo
       // nodo è il primo incrocio davanti al veicolo, dove potrà già svoltare.
@@ -461,7 +505,7 @@ export class Simulation {
       for (const n of this.graph.nodes.values()) {
         if (n.id === here || n.id === next) continue;
         const c = closestPointOnSegment(n, a, b);
-        if (distance(c, n) < 0.5 && c.t * length > v.along && c.t < bestT) {
+        if (distance(c, n) < 0.5 && c.t * length > along && c.t < bestT) {
           bestT = c.t;
           next = n.id;
           found = true;
@@ -481,12 +525,14 @@ export class Simulation {
       if (!found) return false;
     }
 
-    const paths = shortestPaths(this.graph, next);
+    const paths = this.paths(next);
     const target = this.nearestStation(paths, v.shape);
     if (!target) return false;
     v.path = [here, .../** @type {number[]} */ (pathTo(paths, target.nodeId))];
     v.leg = 0;
     v.toStationId = target.id;
+    // Le corsie possono essersi accorciate o spostate: si riparte dal punto più vicino.
+    v.s = projectOnLane(this.lanes.lane(here, next), v.pose);
     return true;
   }
 
@@ -497,10 +543,12 @@ export class Simulation {
   updateRoutes() {
     this.vehicles = this.vehicles.filter((v) => {
       if (this.reroute(v)) return true;
+      this.traffic.forget(v);
       const origin = this.stations.find((s) => s.id === v.fromStationId);
       origin?.queue.unshift(v.shape);
       return false;
     });
+    this.traffic.reset(this.vehicles);
     this.routedVersion = this.graph.version;
   }
 

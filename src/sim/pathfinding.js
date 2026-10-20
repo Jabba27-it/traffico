@@ -15,9 +15,10 @@ import { distance } from './geometry.js';
  * Distanze minime dal nodo `sourceId` a tutti i nodi raggiungibili.
  * @param {RoadGraph} graph
  * @param {number} sourceId
+ * @param {(nodeId: number) => number} [nodeCost]  costo in più per passare da un nodo
  * @returns {ShortestPaths}
  */
-export function shortestPaths(graph, sourceId) {
+export function shortestPaths(graph, sourceId, nodeCost) {
   /** @type {Map<number, {to: number, cost: number}[]>} */
   const adj = new Map();
   for (const e of graph.edges.values()) {
@@ -50,7 +51,7 @@ export function shortestPaths(graph, sourceId) {
     done.add(current);
     for (const { to, cost } of adj.get(current) ?? []) {
       if (done.has(to)) continue;
-      const d = best + cost;
+      const d = best + cost + (nodeCost ? nodeCost(to) : 0);
       if (d < (dist.get(to) ?? Infinity)) {
         dist.set(to, d);
         prev.set(to, current);
