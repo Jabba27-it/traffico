@@ -3,6 +3,7 @@
 
 import { distance } from './geometry.js';
 import { STATION_RADIUS } from './stations.js';
+import { distanceToWater } from './water.js';
 
 /** @typedef {import('./level.js').Level} Level */
 /** @typedef {import('./level.js').StationDef} StationDef */
@@ -11,6 +12,8 @@ import { STATION_RADIUS } from './stations.js';
 
 /** Quanti punti casuali provare prima di rinunciare per questa volta. */
 const ATTEMPTS = 20;
+/** Spazio minimo fra il bordo di una stazione e la riva. */
+const WATER_MARGIN = 16;
 
 /**
  * @param {() => number} random
@@ -28,7 +31,8 @@ export function pickNewStation(random, level, stations) {
     const x = clamp(zone.x + random() * zone.width, margin, level.world.width - margin);
     const y = clamp(zone.y + random() * zone.height, margin, level.world.height - margin);
     const p = { x, y };
-    if (stations.every((s) => distance(s, p) >= minDistance)) {
+    const dry = distanceToWater(level.waters, p) >= STATION_RADIUS + WATER_MARGIN;
+    if (dry && stations.every((s) => distance(s, p) >= minDistance)) {
       return { shape: pickShape(random, level.shapes, stations), x, y };
     }
   }

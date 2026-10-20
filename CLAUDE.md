@@ -14,7 +14,9 @@ Puzzle per telefono, a livelli: ogni livello è una città ispirata a una città
 - Tutti i tipi di incrocio esistono da subito ma in quantità limitata; ogni settimana di gioco si sceglie un premio fra varie opzioni.
 - Congestione visibile (verde → rosso). Ogni stazione ha una capienza (di base 6 veicoli in coda); oltre la capienza parte un conto alla rovescia e, se si esaurisce, il livello fallisce.
 - I tratti di strada sono limitati e aumentano nel tempo: il giocatore deve scegliere bene dove costruire.
-- Fra i premi di fine settimana: migliorare una stazione per aumentarne la capienza, ottenere più tratti di strada.
+- Fra i premi di fine settimana: migliorare una stazione per aumentarne la capienza, ottenere più tratti di strada, ottenere un ponte (nei livelli con acqua).
+- Le strade non attraversano l'acqua: una strada che attraversa un fiume diventa un ponte e consuma un ponte (risorsa limitata). Un ponte non può superare 2 volte la larghezza del fiume.
+- La mappa è ampia (mondo 520×1040) per lasciare spazio alla crescita della città.
 - Tre stelle per livello: 1 = viaggi minimi, 2 = giorni sopravvissuti, 3 = condizione speciale della città.
 - Telefono in verticale. Gesti: trascina = strada, pressione lunga = rimuovi, due dita = spostamento e zoom facoltativo.
 
@@ -47,6 +49,7 @@ levels/     file JSON delle città
 - v0.2 Città che cresce: stazioni nel tempo, code e congestione, sconfitta del livello.
 - v0.3 Primo livello: risorse settimanali, Roma con il Tevere, ponti, stelle.
 - v0.4 Tipi di incrocio: rotatoria, cavalcavia, semaforo, disegnati a mano.
+- v0.5 Fisica dei veicoli e scorrimento del traffico: distanza fra le auto, code sulle strade e agli incroci, rallentamenti.
 
 ## Come lavoriamo
 

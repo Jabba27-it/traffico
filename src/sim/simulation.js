@@ -12,6 +12,18 @@ import { planRoad, buildPlannedRoad } from './roadBuilder.js';
 import { findRoadPiece, removeRoadPiece, removeIsolatedNodes, edgeLength } from './roadEditing.js';
 
 /** @typedef {import('./roadEditing.js').RoadPiece} RoadPiece */
+/** @typedef {import('./graph.js').RoadEdge} RoadEdge */
+import { isInWater } from './water.js';
+
+/**
+ * @param {RoadGraph} graph
+ * @param {RoadEdge} e
+ */
+function edgeMidpoint(graph, e) {
+  const a = /** @type {RoadNode} */ (graph.nodes.get(e.a));
+  const b = /** @type {RoadNode} */ (graph.nodes.get(e.b));
+  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+}
 
 /** @typedef {{x: number, y: number}} Point */
 /** @typedef {import('./roadBuilder.js').RoadPlan} RoadPlan */
@@ -61,6 +73,9 @@ export class Simulation {
     this.failedStation = null;
     /** Tratti di strada ancora disponibili. */
     this.roadBudget = level.roads.initial;
+    /** Ponti ancora disponibili. */
+    this.bridgeBudget = level.bridges;
+    this.nextBridgeId = 1;
     /** L'ultimo giorno per cui sono già stati dati i tratti in più. */
     this.rewardedDay = 1;
     /** Settimane concluse per cui il premio è già stato proposto. */
@@ -124,7 +139,11 @@ export class Simulation {
    * @returns {RoadPlan}
    */
   planRoad(points) {
-    return planRoad(this.graph, points, this.roadBudget * this.level.roads.segmentLength);
+    return planRoad(this.graph, points, {
+      maxLength: this.roadBudget * this.level.roads.segmentLength,
+      bridges: this.bridgeBudget,
+      waters: this.level.waters,
+    });
   }
 
   /**
@@ -147,6 +166,7 @@ export class Simulation {
     buildPlannedRoad(this.graph, plan, snapRadius);
     const cost = this.roadCost(plan);
     this.roadBudget -= cost;
+    this.bridgeBudget -= plan.bridges;
 
     // Ogni arco nuovo ricorda la sua parte del costo, così rimuoverlo
     // restituisce esattamente quanto era stato pagato.
@@ -154,6 +174,22 @@ export class Simulation {
     const lengths = added.map((e) => edgeLength(this.graph, e.id));
     const total = lengths.reduce((a, b) => a + b, 0);
     if (total > 0) added.forEach((e, i) => (e.cost = (cost * lengths[i]) / total));
+
+    // Gli archi nuovi in acqua sono ponti: ogni gruppo di archi collegati è un ponte.
+    const wet = added.filter((e) => isInWater(this.level.waters, edgeMidpoint(this.graph, e)));
+    for (const e of wet) {
+      if (e.bridgeId !== undefined) continue;
+      const id = this.nextBridgeId++;
+      const stack = [e];
+      while (stack.length) {
+        const cur = /** @type {RoadEdge} */ (stack.pop());
+        if (cur.bridgeId !== undefined) continue;
+        cur.bridgeId = id;
+        for (const o of wet) {
+          if (o.bridgeId === undefined && (o.a === cur.a || o.a === cur.b || o.b === cur.a || o.b === cur.b)) stack.push(o);
+        }
+      }
+    }
   }
 
   /** true quando il livello è fallito: da lì la simulazione è ferma. */
@@ -164,6 +200,13 @@ export class Simulation {
   /** true se il tempo scorre: né livello fallito né premio in attesa di scelta. */
   get running() {
     return !this.failed && !this.rewardPending;
+  }
+
+  /** Premio di fine settimana: ponti in più. */
+  chooseBridgesReward() {
+    if (!this.rewardPending) return;
+    this.bridgeBudget += this.level.rewards.bridges;
+    this.rewardPending = false;
   }
 
   /** Premio di fine settimana: tratti di strada in più. */
@@ -385,6 +428,7 @@ export class Simulation {
    * @param {RoadPiece} piece
    */
   removeRoad(piece) {
+    this.bridgeBudget += piece.bridges;
     const touched = removeRoadPiece(this.graph, piece);
     this.roadBudget += this.refundOf(piece);
     // Subito, e non al prossimo passo: anche in pausa nessun veicolo deve

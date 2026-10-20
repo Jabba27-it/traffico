@@ -5,6 +5,7 @@
 import { closestPointOnSegment, distance, segmentIntersection } from './geometry.js';
 import { STATION_RADIUS } from './stations.js';
 import { ROAD_WIDTH } from './graph.js';
+import { isInWater, lengthInWater, widestWaterAlong } from './water.js';
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('./graph.js').RoadNode} RoadNode */
@@ -18,28 +19,99 @@ const DEAD_END_RADIUS = ROAD_WIDTH;
 const STATION_SNAP = STATION_RADIUS + 8;
 
 /**
+ * Perché il tratto disegnato è stato troncato:
+ * 'roads' tratti finiti, 'bridges' ponti finiti, 'long' ponte troppo lungo,
+ * 'water' il tratto finisce in acqua.
+ * @typedef {'roads' | 'bridges' | 'long' | 'water'} CutReason
+ */
+
+/**
  * @typedef {Object} RoadPlan
  * @property {Point[][]} runs  i pezzi di strada nuova da costruire
  * @property {number} length   lunghezza totale della strada nuova
- * @property {{index: number, x: number, y: number} | null} cut
- *   dove il tratto disegnato è stato troncato per mancanza di strade:
- *   il punto di taglio cade fra points[index - 1] e points[index]
+ * @property {number} bridges  ponti nuovi che verranno costruiti
+ * @property {{index: number, x: number, y: number, reason: CutReason} | null} cut
+ *   dove il tratto disegnato è stato troncato: il punto di taglio cade fra
+ *   points[index - 1] e points[index]
  */
+
+/**
+ * @typedef {Object} RoadLimits
+ * @property {number} maxLength  strada nuova costruibile con i tratti disponibili
+ * @property {number} bridges    ponti disponibili
+ * @property {Water[]} waters
+ */
+
+/** @typedef {import('./water.js').Water} Water */
 
 /**
  * Divide il tratto disegnato in pezzi di strada nuova, saltando le parti che
  * passano sopra strade o stazioni esistenti (quelle non costano nulla), e lo
- * tronca quando la strada nuova supera `maxLength`.
+ * tronca dove finiscono i tratti o i ponti, o dove un ponte sarebbe troppo lungo.
+ * Un ponte non viene mai lasciato a metà: il taglio arretra fino alla riva.
  * @param {RoadGraph} graph
  * @param {Point[]} points
- * @param {number} maxLength
+ * @param {RoadLimits} limits
  * @returns {RoadPlan}
  */
-export function planRoad(graph, points, maxLength) {
+export function planRoad(graph, points, limits) {
   const onRoad = points.map(
     (p) => graph.findEdgeNear(p.x, p.y, ROAD_WIDTH / 2) !== null || graph.findNodeNear(p.x, p.y, STATION_RADIUS, true) !== null,
   );
+  const wet = points.map((p) => isInWater(limits.waters, p));
 
+  // Attraversamenti dell'acqua, nell'ordine del tratto.
+  /** @type {{start: number, end: number}[]} indici del primo e dell'ultimo punto in acqua */
+  const crossings = [];
+  /** @type {{index: number, x: number, y: number, reason: CutReason} | null} */
+  let waterCut = null;
+  for (let i = 0; i < points.length && !waterCut; i++) {
+    if (!wet[i]) continue;
+    let end = i;
+    while (end + 1 < points.length && wet[end + 1]) end++;
+    const bank = i > 0 ? points[i - 1] : points[0];
+    const stop = (/** @type {CutReason} */ reason) => (waterCut = { index: Math.max(1, i), x: bank.x, y: bank.y, reason });
+    if (onRoad.slice(i, end + 1).every(Boolean)) {
+      // Si ripassa sopra un ponte che c'è già: gratis.
+    } else if (i === 0 || end === points.length - 1) {
+      stop('water');
+    } else {
+      const span = points.slice(i - 1, end + 2);
+      if (lengthInWater(limits.waters, span) > 2 * widestWaterAlong(limits.waters, span)) stop('long');
+      else if (crossings.length >= limits.bridges) stop('bridges');
+      else crossings.push({ start: i, end });
+    }
+    i = end;
+  }
+
+  const prefix = waterCut ? points.slice(0, waterCut.index) : points;
+  let plan = planBudget(points, prefix.length, onRoad, limits.maxLength);
+  let cut = plan.cut ? { ...plan.cut, reason: /** @type {CutReason} */ ('roads') } : waterCut;
+
+  // I tratti sono finiti in mezzo a un ponte: si costruisce solo fino alla riva.
+  const broken = plan.cut && crossings.find((c) => plan.cut && plan.cut.index >= c.start && plan.cut.index <= c.end + 1);
+  if (broken) {
+    plan = planBudget(points, broken.start, onRoad, limits.maxLength);
+    const bank = points[broken.start - 1];
+    cut = { index: broken.start, x: bank.x, y: bank.y, reason: 'roads' };
+  }
+
+  const built = cut ? cut.index : points.length;
+  const bridges = crossings.filter((c) => c.end + 1 < built).length;
+  return { runs: plan.runs, length: plan.length, bridges, cut };
+}
+
+/**
+ * La parte di `planRoad` che conta i tratti: considera solo i primi `count`
+ * punti e tronca quando la strada nuova supera `maxLength`.
+ * @param {Point[]} points
+ * @param {number} count
+ * @param {boolean[]} onRoad
+ * @param {number} maxLength
+ * @returns {{runs: Point[][], length: number, cut: {index: number, x: number, y: number} | null}}
+ */
+function planBudget(points, count, onRoad, maxLength) {
+  points = points.slice(0, count);
   // Ogni pezzo è una sequenza di punti fuori strada, più il punto su strada
   // subito prima e subito dopo, che lo agganciano alla rete esistente.
   /** @type {number[][]} */

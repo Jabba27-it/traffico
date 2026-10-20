@@ -43,6 +43,7 @@ import { SHAPES } from './stations.js';
  * @typedef {Object} Rewards  premi di fine settimana
  * @property {number} roads     tratti di strada in più
  * @property {number} capacity  capienza in più per la stazione migliorata
+ * @property {number} bridges   ponti in più (solo nei livelli con acqua)
  */
 
 /**
@@ -57,6 +58,8 @@ import { SHAPES } from './stations.js';
  * @property {number} dayLength  secondi di gioco in un giorno
  * @property {Roads} roads
  * @property {Rewards} rewards
+ * @property {import('./water.js').Water[]} waters
+ * @property {number} bridges  ponti disponibili all'inizio
  */
 
 /**
@@ -130,9 +133,27 @@ export function parseLevel(json) {
   const rewards = {
     roads: isNum(p.strade) ? p.strade : 15,
     capacity: isNum(p.capienza) ? p.capienza : 3,
+    bridges: isNum(p.ponti) ? p.ponti : 1,
   };
 
+  /** @type {import('./water.js').Water[]} */
+  const waters = [];
+  if (json.acqua !== undefined) {
+    if (!Array.isArray(json.acqua)) throw new Error('"acqua" deve essere una lista');
+    json.acqua.forEach((/** @type {any} */ a, /** @type {number} */ i) => {
+      if (a?.tipo !== 'fiume') throw new Error(`Acqua ${i + 1}: "tipo" deve essere "fiume"`);
+      // Più stretto di così un tratto disegnato potrebbe "saltare" il fiume fra due punti.
+      if (!isNum(a.larghezza) || a.larghezza < 30) throw new Error(`Acqua ${i + 1}: "larghezza" deve essere almeno 30`);
+      const ok = Array.isArray(a.punti) && a.punti.length >= 2 && a.punti.every((/** @type {any} */ q) => Array.isArray(q) && isNum(q[0]) && isNum(q[1]));
+      if (!ok) throw new Error(`Acqua ${i + 1}: "punti" deve essere una lista di almeno due [x, y]`);
+      waters.push({ kind: 'river', width: a.larghezza, points: a.punti.map((/** @type {number[]} */ q) => ({ x: q[0], y: q[1] })) });
+    });
+  }
+  const bridges = isNum(json.ponti?.iniziali) ? json.ponti.iniziali : waters.length > 0 ? 2 : 0;
+
   return {
+    waters,
+    bridges,
     congestion,
     dayLength,
     roads,

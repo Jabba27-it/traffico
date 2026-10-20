@@ -20,6 +20,7 @@ export const ROAD_WIDTH = 24;
  * @property {number} a  id del nodo di partenza
  * @property {number} b  id del nodo di arrivo
  * @property {number} [cost]  tratti di strada pagati per questo arco (anche frazioni)
+ * @property {number} [bridgeId]  presente se l'arco fa parte di un ponte
  */
 
 export class RoadGraph {
@@ -97,6 +98,7 @@ export class RoadGraph {
       first.cost = (edge.cost * Math.hypot(x - a.x, y - a.y)) / total;
       second.cost = edge.cost - first.cost;
     }
+    if (edge.bridgeId !== undefined && first && second) first.bridgeId = second.bridgeId = edge.bridgeId;
     return node;
   }
 

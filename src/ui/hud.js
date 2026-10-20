@@ -8,15 +8,17 @@
  * @property {number} day          giorno in corso, da 1
  * @property {number} dayProgress  quanto del giorno è passato, da 0 a 1
  * @property {number} roads        tratti di strada disponibili
+ * @property {number} bridges      ponti disponibili
  */
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
 /**
  * @param {HTMLElement} parent
+ * @param {boolean} showBridges  solo nei livelli con acqua
  * @returns {{ update: (values: HudValues) => void }}
  */
-export function createHud(parent) {
+export function createHud(parent, showBridges) {
   const root = document.createElement('div');
   root.className = 'hud';
   const day = addItem(root, 'Giorno');
@@ -28,6 +30,7 @@ export function createHud(parent) {
   const score = addItem(root, 'Punteggio');
   const trips = addItem(root, 'Viaggi');
   const roads = addItem(root, 'Strade');
+  const bridges = showBridges ? addItem(root, 'Ponti') : null;
   parent.appendChild(root);
 
   let last = '';
@@ -39,7 +42,7 @@ export function createHud(parent) {
         lastBar = percent;
         barFill.style.width = `${percent}%`;
       }
-      const text = `${values.day}|${values.score}|${values.trips}|${values.roads}`;
+      const text = `${values.day}|${values.score}|${values.trips}|${values.roads}|${values.bridges}`;
       if (text === last) return; // tocca il DOM solo quando qualcosa cambia
       last = text;
       day.textContent = `${WEEKDAYS[(values.day - 1) % 7]} ${values.day}`;
@@ -47,6 +50,10 @@ export function createHud(parent) {
       trips.textContent = String(values.trips);
       roads.textContent = Number.isFinite(values.roads) ? String(values.roads) : '∞';
       roads.classList.toggle('hud-empty', values.roads === 0);
+      if (bridges) {
+        bridges.textContent = String(values.bridges);
+        bridges.classList.toggle('hud-empty', values.bridges === 0);
+      }
     },
   };
 }

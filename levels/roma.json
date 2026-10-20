@@ -1,0 +1,29 @@
+{
+  "nome": "Roma",
+  "mondo": { "larghezza": 520, "altezza": 1040 },
+  "forme": ["cerchio", "quadrato", "triangolo", "pentagono", "esagono", "stella"],
+  "stazioni": [
+    { "forma": "cerchio",   "x": 90,  "y": 470 },
+    { "forma": "quadrato",  "x": 420, "y": 690 },
+    { "forma": "triangolo", "x": 440, "y": 400 }
+  ],
+  "acqua": [
+    {
+      "tipo": "fiume",
+      "larghezza": 44,
+      "punti": [
+        [340, 0], [325, 110], [270, 220], [200, 320], [185, 420], [225, 490],
+        [300, 545], [325, 615], [295, 700], [245, 780], [222, 880], [238, 1040]
+      ]
+    }
+  ],
+  "ponti": { "iniziali": 2 },
+  "crescita": { "ogni": 25, "massimo": 18, "distanzaMinima": 90 },
+  "congestione": { "capienza": 6, "tolleranza": 20 },
+  "tempo": { "giorno": 20 },
+  "strade": { "iniziali": 25, "perGiorno": 3, "lunghezzaTratto": 40 },
+  "premi": { "strade": 15, "capienza": 3, "ponti": 1 },
+  "zone": [
+    { "x": 40, "y": 110, "larghezza": 440, "altezza": 820 }
+  ]
+}

@@ -2,7 +2,7 @@ import { RoadGraph } from './sim/graph.js';
 import { parseLevel } from './sim/level.js';
 import { Simulation } from './sim/simulation.js';
 import { setupCanvas, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
-import { drawRoads, drawPreview, drawRemoval } from './render/roads.js';
+import { drawRoads, drawPreview, drawRemoval, drawWater } from './render/roads.js';
 import { drawStations, drawSelectable } from './render/stations.js';
 import { STATION_RADIUS } from './sim/stations.js';
 import { drawVehicles } from './render/vehicles.js';
@@ -11,9 +11,11 @@ import { attachRoadDrawing } from './input/drawRoad.js';
 import { createHud } from './ui/hud.js';
 import { showGameOver } from './ui/gameOver.js';
 import { createSpeedControls } from './ui/speed.js';
-import { showRewardChoice, showStationPrompt } from './ui/reward.js';
+import { showRewardChoice, showStationPrompt, REWARD_ICONS } from './ui/reward.js';
 
-const LEVEL_URL = 'levels/prova.json';
+// Il livello si sceglie dall'indirizzo, es. ?livello=roma (di base: prova).
+const LEVEL_NAME = new URLSearchParams(location.search).get('livello') ?? 'prova';
+const LEVEL_URL = /^[a-z0-9_-]+$/.test(LEVEL_NAME) ? `levels/${LEVEL_NAME}.json` : 'levels/prova.json';
 const OUTSIDE = '#e3dfd5';
 const BACKGROUND = '#f2efe8';
 /** Passo fisso della simulazione, in secondi. */
@@ -48,7 +50,8 @@ async function start() {
       active: () => !choosingStation,
     },
   );
-  const hud = createHud(document.body);
+  const hasWater = level.waters.length > 0;
+  const hud = createHud(document.body, hasWater);
   const speed = createSpeedControls(document.body);
 
   let lastTime = performance.now();
@@ -86,16 +89,38 @@ async function start() {
 
     if (sim.rewardPending && !rewardShown) {
       rewardShown = true;
-      showRewardChoice(document.body, sim.rewardedWeeks, level.rewards, {
-        onRoads: () => {
-          sim.chooseRoadsReward();
-          rewardShown = false;
+      const cards = [
+        {
+          icon: REWARD_ICONS.roads,
+          value: `+${level.rewards.roads}`,
+          label: 'tratti di strada',
+          onPick: () => {
+            sim.chooseRoadsReward();
+            rewardShown = false;
+          },
         },
-        onUpgrade: () => {
-          choosingStation = true;
-          hidePrompt = showStationPrompt(document.body);
+        {
+          icon: REWARD_ICONS.upgrade,
+          value: `+${level.rewards.capacity}`,
+          label: 'capienza a una stazione',
+          onPick: () => {
+            choosingStation = true;
+            hidePrompt = showStationPrompt(document.body);
+          },
         },
-      });
+      ];
+      if (hasWater) {
+        cards.push({
+          icon: REWARD_ICONS.bridge,
+          value: `+${level.rewards.bridges}`,
+          label: level.rewards.bridges === 1 ? 'ponte' : 'ponti',
+          onPick: () => {
+            sim.chooseBridgesReward();
+            rewardShown = false;
+          },
+        });
+      }
+      showRewardChoice(document.body, sim.rewardedWeeks, cards);
     }
     const results = {
       score: sim.score,
@@ -104,6 +129,7 @@ async function start() {
       day: sim.day,
       dayProgress: sim.dayProgress,
       roads: sim.roadBudget,
+      bridges: sim.bridgeBudget,
     };
     hud.update(results);
     if (sim.failed && !gameOverShown) {
@@ -118,11 +144,12 @@ async function start() {
     useWorldSpace(view);
     ctx.fillStyle = BACKGROUND;
     ctx.fillRect(0, 0, level.world.width, level.world.height);
+    drawWater(ctx, level.waters);
     drawRoads(ctx, graph);
     const preview = drawing.preview();
     if (preview.length >= 2) {
       const plan = sim.planRoad(preview);
-      drawPreview(ctx, preview, plan.cut, sim.roadCost(plan), level.world.width);
+      drawPreview(ctx, preview, plan.cut, sim.roadCost(plan), plan.bridges, level.world.width);
     }
     const removal = drawing.removal();
     const finger = drawing.finger();

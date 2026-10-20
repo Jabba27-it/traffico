@@ -11,6 +11,7 @@ import { ROAD_WIDTH } from './graph.js';
  * @property {number[]} edgeIds
  * @property {number} length
  * @property {number} cost    tratti pagati a suo tempo per costruirlo
+ * @property {number} bridges ponti che contiene
  */
 
 /**
@@ -52,11 +53,15 @@ export function findRoadPiece(graph, x, y) {
 
   let length = 0;
   let cost = 0;
+  /** @type {Set<number>} */
+  const bridgeIds = new Set();
   for (const id of piece) {
+    const e = graph.edges.get(id);
     length += edgeLength(graph, id);
-    cost += graph.edges.get(id)?.cost ?? 0;
+    cost += e?.cost ?? 0;
+    if (e?.bridgeId !== undefined) bridgeIds.add(e.bridgeId);
   }
-  return { edgeIds: [...piece], length, cost };
+  return { edgeIds: [...piece], length, cost, bridges: bridgeIds.size };
 }
 
 /**
