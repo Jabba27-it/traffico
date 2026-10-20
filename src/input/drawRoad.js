@@ -1,12 +1,15 @@
 // Gesto "trascina = strada": raccoglie i punti del dito e, al rilascio,
-// li trasforma in una catena di nodi e archi nel grafo.
+// li passa al grafo che crea strade e incroci.
+
+import { buildRoad } from '../sim/roadBuilder.js';
+import { distance } from '../sim/geometry.js';
 
 /** @typedef {import('../sim/graph.js').RoadGraph} RoadGraph */
 /** @typedef {{x: number, y: number}} Point */
 
 /** Distanza minima fra due punti campionati del tratto. */
 const SAMPLE_SPACING = 24;
-/** Entro questa distanza un estremo del tratto si aggancia a un nodo esistente. */
+/** Entro questa distanza un estremo del tratto si aggancia a una strada esistente. */
 const SNAP_RADIUS = 22;
 
 /**
@@ -34,7 +37,7 @@ export function attachRoadDrawing(canvas, graph) {
     activePointer = e.pointerId;
     canvas.setPointerCapture(e.pointerId);
     const p = toPoint(e);
-    const snap = graph.findNodeNear(p.x, p.y, SNAP_RADIUS);
+    const snap = graph.findNodeNear(p.x, p.y, SNAP_RADIUS) ?? graph.findEdgeNear(p.x, p.y, SNAP_RADIUS);
     points = [snap ? { x: snap.x, y: snap.y } : p];
     cursor = p;
   });
@@ -43,15 +46,14 @@ export function attachRoadDrawing(canvas, graph) {
     if (e.pointerId !== activePointer) return;
     const p = toPoint(e);
     cursor = p;
-    const last = points[points.length - 1];
-    if (dist(p, last) >= SAMPLE_SPACING) points.push(p);
+    if (distance(p, points[points.length - 1]) >= SAMPLE_SPACING) points.push(p);
   });
 
   canvas.addEventListener('pointerup', (e) => {
     if (e.pointerId !== activePointer) return;
     const p = toPoint(e);
-    if (dist(p, points[points.length - 1]) >= SAMPLE_SPACING / 2) points.push(p);
-    commitStroke(graph, points);
+    if (distance(p, points[points.length - 1]) >= SAMPLE_SPACING / 2) points.push(p);
+    buildRoad(graph, points, SNAP_RADIUS);
     reset();
   });
 
@@ -70,46 +72,4 @@ export function attachRoadDrawing(canvas, graph) {
   return {
     preview: () => (cursor && points.length ? [...points, cursor] : []),
   };
-}
-
-/**
- * Aggiunge il tratto al grafo. Se l'inizio o la fine cadono vicino a un nodo
- * esistente, il tratto si collega a quel nodo (incrocio semplice).
- * @param {RoadGraph} graph
- * @param {Point[]} points
- */
-function commitStroke(graph, points) {
-  if (points.length < 2) return;
-  const first = points[0];
-  const last = points[points.length - 1];
-  const startNode = graph.findNodeNear(first.x, first.y, SNAP_RADIUS);
-  const endNode = graph.findNodeNear(last.x, last.y, SNAP_RADIUS);
-
-  // Scarta i punti che cadono dentro il raggio di aggancio degli estremi.
-  let from = 1;
-  let to = points.length - 1;
-  if (startNode) {
-    while (from < points.length && dist(points[from], startNode) <= SNAP_RADIUS) from++;
-  } else {
-    from = 0;
-  }
-  if (endNode) {
-    while (to >= from && dist(points[to], endNode) <= SNAP_RADIUS) to--;
-  }
-
-  /** @type {number[]} */
-  const ids = [];
-  if (startNode) ids.push(startNode.id);
-  for (let i = from; i <= to; i++) ids.push(graph.addNode(points[i].x, points[i].y).id);
-  if (endNode) ids.push(endNode.id);
-
-  for (let i = 1; i < ids.length; i++) graph.addEdge(ids[i - 1], ids[i]);
-}
-
-/**
- * @param {Point} a
- * @param {Point} b
- */
-function dist(a, b) {
-  return Math.hypot(a.x - b.x, a.y - b.y);
 }

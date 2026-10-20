@@ -1,6 +1,8 @@
 // Grafo stradale: nodi (punti) e archi (tratti di strada fra due nodi).
 // Le coordinate sono in unità di mondo; il modulo non sa nulla del disegno.
 
+import { closestPointOnSegment } from './geometry.js';
+
 /**
  * @typedef {Object} RoadNode
  * @property {number} id
@@ -58,6 +60,47 @@ export class RoadGraph {
       if ((e.a === a && e.b === b) || (e.a === b && e.b === a)) return true;
     }
     return false;
+  }
+
+  /**
+   * Spezza un arco in due inserendo un nuovo nodo in (x, y).
+   * @param {number} edgeId
+   * @param {number} x
+   * @param {number} y
+   * @returns {RoadNode}
+   */
+  splitEdge(edgeId, x, y) {
+    const edge = this.edges.get(edgeId);
+    if (!edge) throw new Error(`Arco ${edgeId} inesistente`);
+    this.edges.delete(edgeId);
+    const node = this.addNode(x, y);
+    this.addEdge(edge.a, node.id);
+    this.addEdge(node.id, edge.b);
+    return node;
+  }
+
+  /**
+   * Il punto più vicino a (x, y) su un arco, entro `radius`, oppure null.
+   * @param {number} x
+   * @param {number} y
+   * @param {number} radius
+   * @returns {{edge: RoadEdge, x: number, y: number} | null}
+   */
+  findEdgeNear(x, y, radius) {
+    let best = null;
+    let bestDist = radius;
+    for (const e of this.edges.values()) {
+      const a = this.nodes.get(e.a);
+      const b = this.nodes.get(e.b);
+      if (!a || !b) continue;
+      const c = closestPointOnSegment({ x, y }, a, b);
+      const d = Math.hypot(c.x - x, c.y - y);
+      if (d <= bestDist) {
+        best = { edge: e, x: c.x, y: c.y };
+        bestDist = d;
+      }
+    }
+    return best;
   }
 
   /**
