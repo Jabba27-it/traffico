@@ -33,6 +33,8 @@ const CURVE_SAMPLES = 20;
  * @property {boolean} guarded  per le curve: serve il permesso per entrarci (incroci e stazioni)
  * @property {boolean} elevated sale o scende dal cavalcavia: lì si va più piano
  * @property {boolean} fast     corsia di superstrada: lì si va più veloci
+ * @property {number} from      per le curve: il nodo da cui si arriva
+ * @property {number} to        per le curve: il nodo verso cui si va
  */
 
 export class LaneGeometry {
@@ -44,6 +46,8 @@ export class LaneGeometry {
     this.cache = new Map();
     /** @type {Map<number, number>} */
     this.degree = new Map();
+    /** @type {Map<number, Set<number>>} strada principale di ogni incrocio */
+    this.mains = new Map();
   }
 
   /** Svuota le misure se le strade sono cambiate. */
@@ -52,6 +56,7 @@ export class LaneGeometry {
     this.version = this.graph.version;
     this.cache.clear();
     this.degree.clear();
+    this.mains.clear();
     for (const e of this.graph.edges.values()) {
       this.degree.set(e.a, (this.degree.get(e.a) ?? 0) + 1);
       this.degree.set(e.b, (this.degree.get(e.b) ?? 0) + 1);
@@ -153,8 +158,49 @@ export class LaneGeometry {
     piece.elevated = Boolean(node(this.graph, b).overpass?.upper);
     // Una curva fra due tratti di superstrada fa parte della superstrada.
     piece.fast = inLane.fast && outLane.fast;
+    piece.from = a;
+    piece.to = c;
     this.cache.set(key, piece);
     return piece;
+  }
+
+  /**
+   * La strada principale di un incrocio: i due nodi vicini da cui la strada
+   * attraversa più dritta (preferendo le superstrade e gli anelli delle
+   * rotatorie). Chi arriva da lì ha la precedenza.
+   * @param {number} id
+   * @returns {Set<number>}
+   */
+  mainRoad(id) {
+    this.refresh();
+    const cached = this.mains.get(id);
+    if (cached) return cached;
+    const center = node(this.graph, id);
+    const around = [...this.graph.edges.values()].filter((e) => e.a === id || e.b === id);
+    let best = new Set();
+    let bestScore = -Infinity;
+    for (let i = 0; i < around.length; i++) {
+      for (let j = i + 1; j < around.length; j++) {
+        const p = node(this.graph, around[i].a === id ? around[i].b : around[i].a);
+        const q = node(this.graph, around[j].a === id ? around[j].b : around[j].a);
+        const da = Math.atan2(p.y - center.y, p.x - center.x);
+        const db = Math.atan2(q.y - center.y, q.x - center.x);
+        let diff = Math.abs(da - db) % (2 * Math.PI);
+        if (diff > Math.PI) diff = 2 * Math.PI - diff;
+        // 1 se le due strade sono una il proseguimento dell'altra, 0 se ad angolo retto o meno.
+        let score = Math.max(0, (diff - Math.PI / 2) / (Math.PI / 2));
+        for (const e of [around[i], around[j]]) {
+          if (e.kind === 'super') score += 0.6;
+          if (e.ring) score += 2;
+        }
+        if (score > bestScore) {
+          bestScore = score;
+          best = new Set([p.id, q.id]);
+        }
+      }
+    }
+    this.mains.set(id, best);
+    return best;
   }
 
   /**
@@ -215,7 +261,7 @@ function makePiece(key, kind, points, nodeId, angle, guarded) {
   for (let i = 1; i < points.length; i++) {
     lengths.push(lengths[i - 1] + Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y));
   }
-  return { key, kind, points, lengths, length: lengths[lengths.length - 1], node: nodeId, angle, guarded, elevated: false, fast: false };
+  return { key, kind, points, lengths, length: lengths[lengths.length - 1], node: nodeId, angle, guarded, elevated: false, fast: false, from: -1, to: -1 };
 }
 
 /**

@@ -31,6 +31,13 @@ const RAMP_CAR = 0.85;
 const RAMP_HEAVY = 0.65;
 /** Un veicolo è "fermo nel traffico" sotto questa frazione della sua velocità massima. */
 const SLOW = 0.3;
+/**
+ * Durata del verde del semaforo: più lungo per la strada principale, che ha
+ * più traffico. Fra una fase e l'altra, un momento di tutto rosso.
+ */
+const GREEN_TIME = 8;
+const SIDE_GREEN_TIME = 4;
+const ALL_RED_TIME = 1.5;
 /** Quanto in fretta il colore del traffico di una strada segue la realtà. */
 const CONGESTION_RATE = 0.8;
 
@@ -58,6 +65,12 @@ export class Traffic {
     this.conflictCache = new Map();
     /** @type {Map<string, number>} traffico lento su ogni strada, 0..1, per coppia di nodi */
     this.congestion = new Map();
+    /**
+     * Semafori: fase 0 = verde alla strada principale, 1 = alle laterali.
+     * @type {Map<number, {phase: 0 | 1, allRed: boolean, t: number}>}
+     */
+    this.signals = new Map();
+    this.signalVersion = -1;
   }
 
   /**
@@ -68,6 +81,7 @@ export class Traffic {
    */
   step(vehicles, dt) {
     this.indexVehicles(vehicles);
+    this.updateSignals(dt);
     this.grantPermissions();
 
     for (const v of vehicles) v.speed = this.safeSpeed(v, dt);
@@ -222,23 +236,64 @@ export class Traffic {
     else j.queue.push({ v, turn });
   }
 
-  /** Dà il permesso alle richieste che possono passare, in ordine d'arrivo. */
+  /**
+   * Dà il permesso alle richieste che possono passare.
+   * - Chi arriva dalla strada principale viene prima; chi arriva da una laterale
+   *   passa solo se nessuno della principale con una traiettoria in conflitto
+   *   sta arrivando (è l'immissione: se il varco c'è, non serve fermarsi).
+   * - Con il semaforo passa solo chi ha il verde.
+   * - Fra pari, passa chi è arrivato prima.
+   */
   grantPermissions() {
-    for (const j of this.junctions.values()) {
+    for (const [node, j] of this.junctions) {
+      const signal = this.signals.get(node);
+      const main = this.lanes.mainRoad(node);
+      const fromMain = (/** @type {Request} */ r) => main.has(r.turn.from);
+      // Le richieste della principale prima, ognuna nel suo ordine d'arrivo.
+      const ordered = signal ? j.queue : [...j.queue.filter(fromMain), ...j.queue.filter((r) => !fromMain(r))];
       /** @type {Request[]} */
       const waiting = [];
-      j.queue = j.queue.filter((r) => {
+      j.queue = ordered.filter((r) => {
+        const red = signal !== undefined && (signal.allRed || (signal.phase === 0) !== fromMain(r));
         const blocked =
+          red ||
           [...j.inside.values()].some((t) => this.conflicts(t, r.turn)) ||
           waiting.some((w) => this.conflicts(w.turn, r.turn)) ||
           !this.exitIsFree(r.v, r.turn);
         if (blocked) {
-          waiting.push(r);
+          if (!red) waiting.push(r);
           return true;
         }
         j.inside.set(r.v.id, r.turn);
         return false;
       });
+    }
+  }
+
+  /**
+   * Fa avanzare i semafori: verde alla strada principale, poi tutto rosso,
+   * verde alle laterali, tutto rosso, e così via.
+   * @param {number} dt
+   */
+  updateSignals(dt) {
+    if (this.signalVersion !== this.lanes.graph.version) {
+      this.signalVersion = this.lanes.graph.version;
+      for (const n of this.lanes.graph.nodes.values()) {
+        if (n.signal && !this.signals.has(n.id)) this.signals.set(n.id, { phase: 0, allRed: false, t: GREEN_TIME });
+      }
+      for (const id of this.signals.keys()) if (!this.lanes.graph.nodes.get(id)?.signal) this.signals.delete(id);
+    }
+    for (const s of this.signals.values()) {
+      s.t -= dt;
+      if (s.t > 0) continue;
+      if (s.allRed) {
+        s.allRed = false;
+        s.phase = s.phase === 0 ? 1 : 0;
+        s.t = s.phase === 0 ? GREEN_TIME : SIDE_GREEN_TIME;
+      } else {
+        s.allRed = true;
+        s.t = ALL_RED_TIME;
+      }
     }
   }
 

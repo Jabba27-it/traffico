@@ -6,6 +6,7 @@ import { createCamera, cameraRect, zoomAround } from './render/camera.js';
 import { attachPinch } from './input/pinch.js';
 import { drawRoads, drawLaneMarks, drawOverpasses, drawPreview, drawRemoval, drawWater, drawOutsideVeil } from './render/roads.js';
 import { currentPiece } from './sim/vehicles.js';
+import { drawJunctionMarks } from './render/junctions.js';
 import { drawStations, drawSelectable } from './render/stations.js';
 import { STATION_RADIUS } from './sim/stations.js';
 import { drawVehicles } from './render/vehicles.js';
@@ -31,10 +32,11 @@ const MENU_ICON =
 const STAR_NAMES = ['Prima', 'Seconda', 'Terza'];
 /** @type {Record<string, string>} avvisi dopo un tocco breve sulla mappa */
 const TAP_MESSAGES = {
+  signal: 'Semaforo',
+  normal: 'Incrocio con precedenza alla strada principale',
+  'normal-no-overpass': 'Incrocio normale (per il cavalcavia servono scorte)',
   built: 'Cavalcavia costruito',
   removed: 'Cavalcavia tolto: torna incrocio',
-  'none-left': 'Non hai cavalcavia: arrivano con i premi',
-  'not-a-cross': 'Il cavalcavia va su un incrocio a croce',
   two: 'Doppio senso',
   forward: 'Senso unico',
   backward: 'Senso unico (al contrario)',
@@ -269,6 +271,7 @@ async function start() {
     drawOutsideVeil(ctx, level.world, visible);
     drawRoads(ctx, graph, sim.traffic.congestion);
     drawLaneMarks(ctx, graph);
+    drawJunctionMarks(ctx, graph, sim.lanes, sim.traffic.signals);
     const preview = drawing.preview();
     if (preview.length >= 2) {
       const plan = sim.planRoad(preview);
