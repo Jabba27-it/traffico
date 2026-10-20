@@ -137,10 +137,7 @@ async function start() {
   let gameOverShown = false;
   let rewardShown = false;
   /** @type {{text: string, at: number} | null} */
-  let lastAnnouncement = null;
-  /** @type {{text: string, at: number} | null} */
-  let lastRushNotice = null;
-  /** Dopo aver scelto "migliora una stazione", finché non se ne tocca una. */
+  let lastAnnouncement = null;  /** Dopo aver scelto "migliora una stazione", finché non se ne tocca una. */
   let choosingStation = false;
   /** @type {() => void} */
   let hidePrompt = () => {};
@@ -246,12 +243,7 @@ async function start() {
     if (sim.announcement && sim.announcement !== lastAnnouncement) {
       lastAnnouncement = sim.announcement;
       showToast(document.body, sim.announcement.text);
-    }
-    if (sim.rushNotice && sim.rushNotice !== lastRushNotice) {
-      lastRushNotice = sim.rushNotice;
-      showToast(document.body, sim.rushNotice.text);
-    }
-    const results = {
+    }    const results = {
       score: sim.score,
       seconds: sim.seconds,
       trips: sim.trips,
@@ -260,9 +252,7 @@ async function start() {
       roads: sim.roadBudget,
       bridges: sim.bridgeBudget,
       overpasses: sim.overpassBudget,
-      stars: sim.starsEarned,
-      rush: sim.rushHour !== null,
-      efficiency: sim.efficiency,
+      stars: sim.starsEarned,      efficiency: sim.efficiency,
     };
     hud.update(results);
     if (sim.failed && !gameOverShown) {

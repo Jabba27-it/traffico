@@ -75,7 +75,6 @@
   "congestione": { "capienza": 6, "tolleranza": 20 },
   "tempo": { "giorno": 20 },
   "veicoli": { "ogniMin": 7, "ogniMax": 9 },
-  "orePunta": { "intensita": 1.8 },
   "strade": { "iniziali": 25, "perGiorno": 7, "lunghezzaTratto": 40 },
   "premi": { "strade": 20, "capienza": 3, "ponti": 1, "cavalcavia": 1 },
   "stelle": {

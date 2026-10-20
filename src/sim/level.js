@@ -96,9 +96,7 @@ import { SHAPES } from './stations.js';
  * @property {number} bridges  ponti disponibili all'inizio
  * @property {Stars | null} stars
  * @property {number} overpasses  cavalcavia disponibili all'inizio
- * @property {{min: number, max: number}} spawn  secondi fra un veicolo nuovo e il successivo, per stazione
- * @property {number} rushHour  quanto più spesso nascono veicoli nelle ore di punta (1 = niente ore di punta)
- * @property {{name: string, x: number, y: number}[]} districts
+ * @property {{min: number, max: number}} spawn  secondi fra un veicolo nuovo e il successivo, per stazione * @property {{name: string, x: number, y: number}[]} districts
  *   quartieri: una stazione nata a caso prende il nome del quartiere più vicino
  */
 
@@ -254,10 +252,7 @@ export function parseLevel(json) {
   const spawnMin = isNum(vh.ogniMin) && vh.ogniMin > 0 ? vh.ogniMin : 6;
   const spawn = { min: spawnMin, max: isNum(vh.ogniMax) && vh.ogniMax >= spawnMin ? vh.ogniMax : spawnMin + 2 };
 
-  const rushHour = isNum(json.orePunta?.intensita) && json.orePunta.intensita >= 1 ? json.orePunta.intensita : 1;
-
   return {
-    rushHour,
     overpasses,
     spawn,
     districts,
