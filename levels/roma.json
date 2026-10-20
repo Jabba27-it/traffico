@@ -17,7 +17,7 @@
       ]
     }
   ],
-  "ponti": { "iniziali": 2 },
+  "ponti": { "iniziali": 1 },
   "crescita": { "ogni": 25, "massimo": 18, "distanzaMinima": 90 },
   "congestione": { "capienza": 6, "tolleranza": 20 },
   "tempo": { "giorno": 20 },
