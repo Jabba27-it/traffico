@@ -12,7 +12,9 @@ Puzzle per telefono, a livelli: ogni livello è una città ispirata a una città
 - I veicoli in attesa restano in coda nella stazione d'origine; la coda si vede come una fila di forme grigie sopra la stazione.
 - Strade e incroci si disegnano col dito, nessun menu: la forma disegnata decide il tipo di incrocio (a raso, rotatoria, cavalcavia, semaforo).
 - Tutti i tipi di incrocio esistono da subito ma in quantità limitata; ogni settimana di gioco si sceglie un premio fra varie opzioni.
-- Congestione visibile (verde → rosso). Se una stazione resta congestionata troppo a lungo, il livello fallisce.
+- Congestione visibile (verde → rosso). Ogni stazione ha una capienza (di base 6 veicoli in coda); oltre la capienza parte un conto alla rovescia e, se si esaurisce, il livello fallisce.
+- I tratti di strada sono limitati e aumentano nel tempo: il giocatore deve scegliere bene dove costruire.
+- Fra i premi di fine settimana: migliorare una stazione per aumentarne la capienza, ottenere più tratti di strada.
 - Tre stelle per livello: 1 = viaggi minimi, 2 = giorni sopravvissuti, 3 = condizione speciale della città.
 - Telefono in verticale. Gesti: trascina = strada, pressione lunga = rimuovi, due dita = spostamento e zoom facoltativo.
 

@@ -27,6 +27,12 @@ import { SHAPES } from './stations.js';
  */
 
 /**
+ * @typedef {Object} Congestion
+ * @property {number} capacity   veicoli in coda che una stazione regge senza sovraccarico
+ * @property {number} tolerance  secondi di sovraccarico prima che il livello fallisca
+ */
+
+/**
  * @typedef {Object} Level
  * @property {string} name
  * @property {{width: number, height: number}} world
@@ -34,6 +40,7 @@ import { SHAPES } from './stations.js';
  * @property {StationDef[]} stations stazioni presenti dall'inizio
  * @property {Growth | null} growth  null se la città non cresce
  * @property {Zone[]} zones
+ * @property {Congestion} congestion
  */
 
 /**
@@ -86,7 +93,14 @@ export function parseLevel(json) {
     });
   }
 
+  const c = json.congestione ?? {};
+  const congestion = {
+    capacity: isNum(c.capienza) && c.capienza > 0 ? c.capienza : 6,
+    tolerance: isNum(c.tolleranza) && c.tolleranza > 0 ? c.tolleranza : 20,
+  };
+
   return {
+    congestion,
     name: String(json.nome ?? 'Senza nome'),
     world: { width: world.larghezza, height: world.altezza },
     shapes,

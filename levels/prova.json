@@ -8,6 +8,7 @@
     { "forma": "triangolo", "x": 120, "y": 600 }
   ],
   "crescita": { "ogni": 25, "massimo": 14, "distanzaMinima": 80 },
+  "congestione": { "capienza": 6, "tolleranza": 20 },
   "zone": [
     { "x": 30, "y": 90, "larghezza": 340, "altezza": 680 }
   ]

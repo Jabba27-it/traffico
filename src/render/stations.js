@@ -63,7 +63,8 @@ function drawQueue(ctx, s, shapes) {
   const shown = count > capacity ? capacity - 1 : count;
 
   ctx.fillStyle = QUEUE_COLOR;
-  const baseY = s.y - STATION_RADIUS - 10;
+  // Sopra l'anello della congestione.
+  const baseY = s.y - STATION_RADIUS - 18;
   const slot = (/** @type {number} */ i) => {
     const row = Math.floor(i / QUEUE_PER_ROW);
     const col = i % QUEUE_PER_ROW;

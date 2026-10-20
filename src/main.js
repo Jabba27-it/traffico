@@ -5,8 +5,10 @@ import { setupCanvas, useScreenSpace, useWorldSpace, screenToWorld } from './ren
 import { drawRoads, drawPreview } from './render/roads.js';
 import { drawStations } from './render/stations.js';
 import { drawVehicles } from './render/vehicles.js';
+import { drawCongestion } from './render/congestion.js';
 import { attachRoadDrawing } from './input/drawRoad.js';
 import { createHud } from './ui/hud.js';
+import { showGameOver } from './ui/gameOver.js';
 
 const LEVEL_URL = 'levels/prova.json';
 const OUTSIDE = '#e3dfd5';
@@ -37,16 +39,22 @@ async function start() {
 
   let lastTime = performance.now();
   let pending = 0;
+  let gameOverShown = false;
 
   /** @param {number} now */
   function frame(now) {
     pending += Math.min((now - lastTime) / 1000, MAX_FRAME_TIME);
     lastTime = now;
-    while (pending >= STEP) {
+    while (pending >= STEP && !sim.failed) {
       sim.step(STEP);
       pending -= STEP;
     }
-    hud.update({ score: sim.score, seconds: sim.seconds, trips: sim.trips });
+    const results = { score: sim.score, seconds: sim.seconds, trips: sim.trips };
+    hud.update(results);
+    if (sim.failed && !gameOverShown) {
+      gameOverShown = true;
+      showGameOver(document.body, results, () => location.reload());
+    }
 
     const { ctx } = view;
     useScreenSpace(view);
@@ -58,6 +66,7 @@ async function start() {
     drawRoads(ctx, graph);
     drawPreview(ctx, drawing.preview());
     drawVehicles(ctx, graph, sim.vehicles);
+    drawCongestion(ctx, sim.stations, level.congestion.tolerance, now / 1000);
     drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed);
     requestAnimationFrame(frame);
   }

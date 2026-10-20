@@ -7,6 +7,7 @@ import { advanceVehicle, vehiclePose } from './vehicles.js';
 import { closestPointOnSegment, distance } from './geometry.js';
 import { STATION_RADIUS, createStation } from './stations.js';
 import { pickNewStation } from './growth.js';
+import { updateCongestion } from './congestion.js';
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('./level.js').Level} Level */
@@ -49,6 +50,8 @@ export class Simulation {
     this.departTimers = new Map();
     /** Secondi alla prossima stazione nuova. */
     this.growthTimer = level.growth ? level.growth.interval : Infinity;
+    /** @type {Station | null} la stazione rimasta sovraccarica troppo a lungo */
+    this.failedStation = null;
 
     // Le stazioni iniziali ci sono già: niente animazione di comparsa.
     for (const def of level.stations) this.addStation(def, -Infinity);
@@ -61,7 +64,7 @@ export class Simulation {
    * @param {number} bornAt
    */
   addStation(def, bornAt) {
-    const station = createStation(this.graph, def, this.stations.length + 1, bornAt);
+    const station = createStation(this.graph, def, this.stations.length + 1, bornAt, this.level.congestion.capacity);
     this.stations.push(station);
     this.spawnTimers.set(station.id, this.nextSpawnDelay());
     this.departTimers.set(station.id, 0);
@@ -90,8 +93,14 @@ export class Simulation {
     return this.trips + this.seconds;
   }
 
+  /** true quando il livello è fallito: da lì la simulazione è ferma. */
+  get failed() {
+    return this.failedStation !== null;
+  }
+
   /** @param {number} dt  secondi */
   step(dt) {
+    if (this.failed) return;
     this.elapsed += dt;
 
     this.growthTimer -= dt;
@@ -123,6 +132,8 @@ export class Simulation {
       this.trips++;
       return false;
     });
+
+    this.failedStation = updateCongestion(this.stations, dt, this.level.congestion.tolerance);
   }
 
   /**

@@ -40,6 +40,38 @@
     .hud-item { text-align: center; min-width: 56px; }
     .hud-value { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
     .hud-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; }
+    .game-over {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(242, 239, 232, 0.75);
+      font-family: system-ui, sans-serif;
+      color: #3d4047;
+    }
+    .game-over-box {
+      width: 100%;
+      max-width: 320px;
+      padding: 24px;
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      text-align: center;
+    }
+    .game-over h1 { margin: 0 0 8px; font-size: 24px; }
+    .game-over p { margin: 0 0 20px; font-size: 14px; opacity: 0.75; }
+    .game-over-stats { display: flex; justify-content: space-around; margin-bottom: 24px; }
+    .game-over button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: #3d4047;
+      color: #ffffff;
+      font: 600 17px system-ui, sans-serif;
+    }
   </style>
 </head>
 <body>
