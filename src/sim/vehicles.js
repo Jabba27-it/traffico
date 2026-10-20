@@ -1,4 +1,4 @@
-// Veicoli: partono da una stazione e viaggiano verso una stazione della stessa forma.
+// Veicoli: partono da una stazione e viaggiano verso una stazione della loro forma.
 
 import { distance } from './geometry.js';
 
@@ -11,7 +11,7 @@ export const VEHICLE_SPEED = 60;
 /**
  * @typedef {Object} Vehicle
  * @property {number} id
- * @property {Shape} shape   la forma della stazione d'origine
+ * @property {Shape} shape   la forma delle stazioni dove il veicolo può arrivare
  * @property {number} fromStationId
  * @property {number} toStationId
  * @property {number[]} path  id dei nodi da attraversare, dalla partenza all'arrivo

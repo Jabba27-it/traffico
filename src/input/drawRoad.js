@@ -11,7 +11,7 @@ import { STATION_RADIUS } from '../sim/stations.js';
 /** Distanza minima fra due punti campionati del tratto. */
 const SAMPLE_SPACING = 24;
 /** Entro questa distanza un estremo del tratto si aggancia a una strada esistente. */
-const SNAP_RADIUS = 22;
+const SNAP_RADIUS = 28;
 
 /**
  * @param {HTMLCanvasElement} canvas

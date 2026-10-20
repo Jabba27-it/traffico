@@ -10,7 +10,7 @@
 export const SHAPES = ['cerchio', 'quadrato', 'triangolo', 'pentagono', 'esagono', 'stella'];
 
 /** Raggio dell'area occupata da una stazione: nessuna strada la scavalca. */
-export const STATION_RADIUS = 18;
+export const STATION_RADIUS = 24;
 
 /**
  * @typedef {Object} Station
@@ -19,6 +19,7 @@ export const STATION_RADIUS = 18;
  * @property {number} x
  * @property {number} y
  * @property {number} nodeId  nodo del grafo stradale che rappresenta la stazione
+ * @property {Shape[]} queue   forme dei veicoli in attesa di partire, dal primo arrivato
  */
 
 /**
@@ -32,6 +33,6 @@ export function createStations(graph, defs) {
     const node = graph.addNode(def.x, def.y);
     const id = i + 1;
     node.stationId = id;
-    return { id, shape: def.shape, x: def.x, y: def.y, nodeId: node.id };
+    return { id, shape: def.shape, x: def.x, y: def.y, nodeId: node.id, queue: [] };
   });
 }

@@ -1,14 +1,15 @@
 // Disegno dei veicoli: piccole forme col colore della stazione d'origine.
 
 import { vehiclePose } from '../sim/vehicles.js';
+import { ROAD_WIDTH } from '../sim/graph.js';
 import { SHAPE_COLORS, traceShape } from './stations.js';
 
 /** @typedef {import('../sim/graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('../sim/vehicles.js').Vehicle} Vehicle */
 
-const VEHICLE_RADIUS = 6;
-/** Spostamento a destra del senso di marcia, per separare le due direzioni. */
-const LANE_OFFSET = 3.5;
+const VEHICLE_RADIUS = 5.5;
+/** Spostamento a destra del senso di marcia: il centro della corsia. */
+const LANE_OFFSET = ROAD_WIDTH / 4;
 
 /**
  * @param {CanvasRenderingContext2D} ctx

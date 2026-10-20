@@ -1,8 +1,9 @@
 // Disegno delle strade e dell'anteprima del tratto in corso.
 
+import { ROAD_WIDTH } from '../sim/graph.js';
+
 /** @typedef {import('../sim/graph.js').RoadGraph} RoadGraph */
 
-const ROAD_WIDTH = 14;
 const ROAD_COLOR = '#5d6169';
 const PREVIEW_COLOR = 'rgba(93, 97, 105, 0.4)';
 

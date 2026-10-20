@@ -17,6 +17,12 @@ export const SHAPE_COLORS = {
 
 const OUTLINE = '#ffffff';
 
+const QUEUE_COLOR = '#8d9097';
+const QUEUE_ITEM_RADIUS = 5;
+const QUEUE_SPACING = 13;
+const QUEUE_PER_ROW = 6;
+const QUEUE_MAX_ROWS = 2;
+
 /**
  * @param {CanvasRenderingContext2D} ctx
  * @param {Station[]} stations
@@ -31,6 +37,46 @@ export function drawStations(ctx, stations) {
     ctx.fillStyle = SHAPE_COLORS[s.shape];
     ctx.fill();
     ctx.stroke();
+  }
+  for (const s of stations) drawQueue(ctx, s);
+}
+
+/**
+ * La coda della stazione: forme grigie in righe sopra la stazione, la prima
+ * riga più vicina. Se non stanno tutte, l'ultima posizione mostra "+N".
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Station} s
+ */
+function drawQueue(ctx, s) {
+  const count = s.queue.length;
+  if (count === 0) return;
+  const capacity = QUEUE_PER_ROW * QUEUE_MAX_ROWS;
+  const shown = count > capacity ? capacity - 1 : count;
+
+  ctx.fillStyle = QUEUE_COLOR;
+  const baseY = s.y - STATION_RADIUS - 10;
+  const slot = (/** @type {number} */ i) => {
+    const row = Math.floor(i / QUEUE_PER_ROW);
+    const col = i % QUEUE_PER_ROW;
+    const inRow = Math.min(QUEUE_PER_ROW, (count > capacity ? capacity : count) - row * QUEUE_PER_ROW);
+    return {
+      x: s.x + (col - (inRow - 1) / 2) * QUEUE_SPACING,
+      y: baseY - row * QUEUE_SPACING,
+    };
+  };
+
+  for (let i = 0; i < shown; i++) {
+    const p = slot(i);
+    ctx.beginPath();
+    traceShape(ctx, s.queue[i], p.x, p.y, QUEUE_ITEM_RADIUS);
+    ctx.fill();
+  }
+  if (count > capacity) {
+    const p = slot(capacity - 1);
+    ctx.font = 'bold 10px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`+${count - shown}`, p.x, p.y);
   }
 }
 

@@ -4,15 +4,16 @@
 
 import { closestPointOnSegment, distance, segmentIntersection } from './geometry.js';
 import { STATION_RADIUS } from './stations.js';
+import { ROAD_WIDTH } from './graph.js';
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('./graph.js').RoadNode} RoadNode */
 /** @typedef {{x: number, y: number}} Point */
 
 /** Un incrocio che cade così vicino a un nodo esistente riusa quel nodo. */
-const MERGE_RADIUS = 10;
-/** Un tratto che passa così vicino all'estremità di una strada vi si collega. */
-const DEAD_END_RADIUS = 16;
+const MERGE_RADIUS = 12;
+/** Un tratto che passa così vicino all'estremità di una strada (le due si toccano a vista) vi si collega. */
+const DEAD_END_RADIUS = ROAD_WIDTH;
 /** Un estremo del tratto che cade così vicino a una stazione vi si aggancia. */
 const STATION_SNAP = STATION_RADIUS + 8;
 

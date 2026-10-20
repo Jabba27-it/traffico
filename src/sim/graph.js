@@ -3,6 +3,9 @@
 
 import { closestPointOnSegment } from './geometry.js';
 
+/** Larghezza di una strada in unità di mondo (due corsie). */
+export const ROAD_WIDTH = 24;
+
 /**
  * @typedef {Object} RoadNode
  * @property {number} id
