@@ -24,6 +24,8 @@ const REQUEST_DISTANCE = 50;
 const SHARPEST_CURVE = 0.3;
 /** Accelerazione laterale massima in curva: v² / raggio. */
 const MAX_LATERAL = 90;
+/** Sulle superstrade si va più veloci della velocità massima normale. */
+const SUPER_SPEED = 1.35;
 /** Velocità sul cavalcavia, in frazione della massima: automobili e mezzi pesanti. */
 const RAMP_CAR = 0.85;
 const RAMP_HEAVY = 0.65;
@@ -146,12 +148,16 @@ export class Traffic {
    * @param {number} dt
    */
   safeSpeed(v, dt) {
-    let limit = v.type.maxSpeed;
+    let limit = Infinity;
     let toStart = -v.s; // distanza dal veicolo all'inizio del pezzo esaminato
     let leaderFound = false;
     for (const piece of upcomingPieces(this.lanes, v)) {
       if (toStart > LOOKAHEAD) break;
       const ahead = Math.max(0, toStart);
+
+      // Velocità della strada: sulle superstrade più alta. Prima di lasciarle si frena.
+      const roadSpeed = v.type.maxSpeed * (piece.fast ? SUPER_SPEED : 1);
+      limit = Math.min(limit, Math.sqrt(roadSpeed * roadSpeed + 2 * BRAKE * ahead));
 
       // Salita e discesa del cavalcavia: le auto rallentano poco, i mezzi pesanti di più.
       if (piece.elevated) {

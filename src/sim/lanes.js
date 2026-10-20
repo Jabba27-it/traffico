@@ -32,6 +32,7 @@ const CURVE_SAMPLES = 20;
  * @property {number} angle     per le curve: quanto si gira, in radianti (0..π)
  * @property {boolean} guarded  per le curve: serve il permesso per entrarci (incroci e stazioni)
  * @property {boolean} elevated sale o scende dal cavalcavia: lì si va più piano
+ * @property {boolean} fast     corsia di superstrada: lì si va più veloci
  */
 
 export class LaneGeometry {
@@ -83,8 +84,10 @@ export class LaneGeometry {
     const dx = (pb.x - pa.x) / len;
     const dy = (pb.y - pa.y) / len;
     // Con l'asse y verso il basso, la destra del senso di marcia è (-dy, dx).
-    const nx = -dy * LANE_OFFSET;
-    const ny = dx * LANE_OFFSET;
+    // I sensi unici hanno una corsia sola, al centro della strada.
+    const offset = this.graph.getEdge(a, b)?.oneWay ? 0 : LANE_OFFSET;
+    const nx = -dy * offset;
+    const ny = dx * offset;
     let ra = this.nodeRadius(a);
     let rb = this.nodeRadius(b);
     // Sulle strade cortissime le due curve non devono sovrapporsi.
@@ -98,6 +101,7 @@ export class LaneGeometry {
     const end = { x: pb.x + nx - dx * rb, y: pb.y + ny - dy * rb };
     const piece = makePiece(key, 'lane', [start, end], -1, 0, false);
     piece.elevated = Boolean(pa.overpass?.upper || pb.overpass?.upper);
+    piece.fast = this.graph.getEdge(a, b)?.kind === 'super';
     this.cache.set(key, piece);
     return piece;
   }
@@ -147,6 +151,8 @@ export class LaneGeometry {
     }
     const piece = makePiece(key, 'turn', points, b, angle, this.isJunction(b));
     piece.elevated = Boolean(node(this.graph, b).overpass?.upper);
+    // Una curva fra due tratti di superstrada fa parte della superstrada.
+    piece.fast = inLane.fast && outLane.fast;
     this.cache.set(key, piece);
     return piece;
   }
@@ -209,7 +215,7 @@ function makePiece(key, kind, points, nodeId, angle, guarded) {
   for (let i = 1; i < points.length; i++) {
     lengths.push(lengths[i - 1] + Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y));
   }
-  return { key, kind, points, lengths, length: lengths[lengths.length - 1], node: nodeId, angle, guarded, elevated: false };
+  return { key, kind, points, lengths, length: lengths[lengths.length - 1], node: nodeId, angle, guarded, elevated: false, fast: false };
 }
 
 /**

@@ -53,6 +53,8 @@ export function createStation(graph, def, id, bornAt, capacity) {
     const second = graph.addEdge(node.id, e.b);
     // Il costo pagato passa ai due nuovi archi, metà ciascuno.
     if (e.cost && first && second) first.cost = second.cost = e.cost / 2;
+    graph.copyRoadKind(e, first);
+    graph.copyRoadKind(e, second);
   }
   return {
     id,

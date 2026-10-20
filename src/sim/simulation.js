@@ -11,7 +11,7 @@ import { STATION_RADIUS, createStation } from './stations.js';
 import { pickNewStation } from './growth.js';
 import { updateCongestion } from './congestion.js';
 import { planRoad, buildPlannedRoad } from './roadBuilder.js';
-import { findRoadPiece, removeRoadPiece, removeIsolatedNodes, edgeLength } from './roadEditing.js';
+import { findRoadPiece, removeRoadPiece, removeIsolatedNodes, edgeLength, orderedChain, pieceType, setPieceType } from './roadEditing.js';
 import { isInWater } from './water.js';
 import { viewAt, segmentAt, insetRect, rectContains } from './view.js';
 import { starGoals } from './stars.js';
@@ -299,6 +299,58 @@ export class Simulation {
     if (!this.rewardPending) return;
     this.overpassBudget += this.level.rewards.overpasses;
     this.rewardPending = false;
+  }
+
+  /**
+   * Tocco breve sulla mappa: su un incrocio ne cambia il tipo, su una strada ne
+   * cambia il senso di marcia o la fa diventare superstrada.
+   * @param {number} x
+   * @param {number} y
+   * @param {number} radius
+   * @returns {string | null}  cosa è successo (per l'avviso), null se niente
+   */
+  tap(x, y, radius) {
+    const junction = this.toggleOverpass(x, y, radius);
+    if (junction) return junction;
+    const piece = this.findRoadPiece(x, y, radius);
+    return piece ? this.cycleRoadType(piece) : null;
+  }
+
+  /**
+   * Doppio senso → senso unico → senso unico al contrario → superstrada → doppio senso.
+   * La superstrada costa altrettanti tratti quanti ne è lunga, restituiti quando torna normale.
+   * @param {RoadPiece} piece
+   * @returns {string}
+   */
+  cycleRoadType(piece) {
+    /** @type {import('./roadEditing.js').RoadType[]} */
+    const order = ['two', 'forward', 'backward', 'super'];
+    const current = pieceType(this.graph, piece);
+    let next = order[(order.indexOf(current) + 1) % order.length];
+    const chain = orderedChain(this.graph, piece);
+
+    if (current === 'super') {
+      let paid = 0;
+      for (const { edge } of chain) {
+        paid += edge.superPaid ?? 0;
+        delete edge.superPaid;
+      }
+      this.roadBudget += Math.floor(paid + 1e-6);
+    }
+    let result = next;
+    if (next === 'super') {
+      const extra = Math.ceil(piece.length / this.level.roads.segmentLength - 1e-6);
+      if (this.roadBudget < extra) {
+        next = 'two';
+        result = 'super-too-expensive';
+      } else {
+        this.roadBudget -= extra;
+        for (const { edge } of chain) edge.superPaid = (extra * edgeLength(this.graph, edge.id)) / (piece.length || 1);
+      }
+    }
+    setPieceType(this.graph, piece, next);
+    this.updateRoutes();
+    return result;
   }
 
   /**

@@ -77,12 +77,13 @@ export function removeOverpass(graph, node) {
  * @param {number} to
  */
 function moveEdgeEnd(graph, e, from, to) {
-  const other = e.a === from ? e.b : e.a;
   graph.removeEdge(e.id);
-  const moved = graph.addEdge(other, to);
+  // Stesso verso di prima: conta per i sensi unici.
+  const moved = graph.addEdge(e.a === from ? to : e.a, e.b === from ? to : e.b);
   if (moved) {
     if (e.cost) moved.cost = e.cost;
     if (e.bridgeId !== undefined) moved.bridgeId = e.bridgeId;
+    graph.copyRoadKind(e, moved);
   }
 }
 

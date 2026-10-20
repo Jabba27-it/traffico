@@ -24,6 +24,9 @@ export const ROAD_WIDTH = 24;
  * @property {number} b  id del nodo di arrivo
  * @property {number} [cost]  tratti di strada pagati per questo arco (anche frazioni)
  * @property {number} [bridgeId]  presente se l'arco fa parte di un ponte
+ * @property {boolean} [oneWay]  senso unico: si percorre solo da `a` verso `b`
+ * @property {'super'} [kind]    superstrada: più veloce, con la precedenza
+ * @property {number} [superPaid]  tratti pagati in più per farne una superstrada
  */
 
 export class RoadGraph {
@@ -74,6 +77,40 @@ export class RoadGraph {
     return false;
   }
 
+  /**
+   * L'arco fra due nodi, in qualsiasi verso, oppure null.
+   * @param {number} a
+   * @param {number} b
+   * @returns {RoadEdge | null}
+   */
+  getEdge(a, b) {
+    for (const e of this.edges.values()) {
+      if ((e.a === a && e.b === b) || (e.a === b && e.b === a)) return e;
+    }
+    return null;
+  }
+
+  /**
+   * true se si può andare da a verso b (c'è la strada e non è contromano).
+   * @param {number} a
+   * @param {number} b
+   */
+  canTravel(a, b) {
+    const e = this.getEdge(a, b);
+    return e !== null && (!e.oneWay || e.a === a);
+  }
+
+  /**
+   * Copia sensi unici e tipo di strada da un arco a uno nuovo con lo stesso verso.
+   * @param {RoadEdge} from
+   * @param {RoadEdge | null} to
+   */
+  copyRoadKind(from, to) {
+    if (!to) return;
+    if (from.oneWay) to.oneWay = true;
+    if (from.kind) to.kind = from.kind;
+  }
+
   /** @param {number} edgeId */
   removeEdge(edgeId) {
     if (this.edges.delete(edgeId)) this.version++;
@@ -93,15 +130,23 @@ export class RoadGraph {
     const node = this.addNode(x, y);
     const first = this.addEdge(edge.a, node.id);
     const second = this.addEdge(node.id, edge.b);
-    // Il costo pagato si divide fra le due metà in proporzione alla lunghezza.
-    if (edge.cost && first && second) {
+    // Quanto pagato si divide fra le due metà in proporzione alla lunghezza.
+    if (first && second) {
       const a = /** @type {RoadNode} */ (this.nodes.get(edge.a));
       const b = /** @type {RoadNode} */ (this.nodes.get(edge.b));
-      const total = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-      first.cost = (edge.cost * Math.hypot(x - a.x, y - a.y)) / total;
-      second.cost = edge.cost - first.cost;
+      const share = Math.hypot(x - a.x, y - a.y) / (Math.hypot(b.x - a.x, b.y - a.y) || 1);
+      if (edge.cost) {
+        first.cost = edge.cost * share;
+        second.cost = edge.cost - first.cost;
+      }
+      if (edge.superPaid) {
+        first.superPaid = edge.superPaid * share;
+        second.superPaid = edge.superPaid - first.superPaid;
+      }
     }
     if (edge.bridgeId !== undefined && first && second) first.bridgeId = second.bridgeId = edge.bridgeId;
+    this.copyRoadKind(edge, first);
+    this.copyRoadKind(edge, second);
     return node;
   }
 

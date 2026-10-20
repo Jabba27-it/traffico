@@ -12,6 +12,9 @@ const REMOVAL_COLOR = 'rgba(224, 69, 58, 0.85)';
 const TRAFFIC_TINT = 0.32;
 const LANE_MARK = 'rgba(255, 255, 255, 0.35)';
 const BRIDGE_RAIL = '#44474e';
+const SUPER_COLOR = '#4b4f57';
+const SUPER_EDGE = '#e9d18a';
+const ARROW_COLOR = 'rgba(255, 255, 255, 0.7)';
 const OVERPASS_DECK = '#6c7078';
 const OVERPASS_SHADOW = 'rgba(0, 0, 0, 0.22)';
 const BRIDGE_DECK = '#8b8f97';
@@ -44,12 +47,17 @@ export function drawRoads(ctx, graph, congestion) {
   ctx.lineJoin = 'round';
   const edges = [...graph.edges.values()];
   const bridges = edges.filter((e) => e.bridgeId !== undefined);
+  const supers = edges.filter((e) => e.kind === 'super');
+  // Superstrade: un bordo chiaro sotto, così si riconoscono a colpo d'occhio.
+  strokeEdges(ctx, graph, supers, ROAD_WIDTH + 4, SUPER_EDGE);
   strokeEdges(ctx, graph, edges, ROAD_WIDTH, ROAD_COLOR);
+  strokeEdges(ctx, graph, supers, ROAD_WIDTH - 3, SUPER_COLOR);
   // Ponti: impalcato più chiaro fra due parapetti scuri.
   ctx.lineCap = 'butt';
   strokeEdges(ctx, graph, bridges, ROAD_WIDTH + 6, BRIDGE_RAIL);
   strokeEdges(ctx, graph, bridges, ROAD_WIDTH - 2, BRIDGE_DECK);
   ctx.lineCap = 'round';
+  drawOneWayArrows(ctx, graph, edges.filter((e) => e.oneWay));
 
   // Traffico: una velatura rossa leggera dove i veicoli vanno piano.
   if (!congestion || congestion.size === 0) return;
@@ -101,6 +109,34 @@ export function drawOverpasses(ctx, graph) {
 }
 
 /**
+ * Frecce sui sensi unici: una ogni due archi circa, nel verso di marcia.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {RoadGraph} graph
+ * @param {import('../sim/graph.js').RoadEdge[]} edges
+ */
+function drawOneWayArrows(ctx, graph, edges) {
+  ctx.fillStyle = ARROW_COLOR;
+  for (const e of edges) {
+    if (e.id % 2) continue; // non su ogni arco: sarebbero troppe
+    const a = graph.nodes.get(e.a);
+    const b = graph.nodes.get(e.b);
+    if (!a || !b) continue;
+    const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+    const dx = (b.x - a.x) / len;
+    const dy = (b.y - a.y) / len;
+    const mx = (a.x + b.x) / 2;
+    const my = (a.y + b.y) / 2;
+    ctx.beginPath();
+    ctx.moveTo(mx + dx * 5, my + dy * 5);
+    ctx.lineTo(mx - dx * 3 - dy * 4.5, my - dy * 3 + dx * 4.5);
+    ctx.lineTo(mx - dx * 1, my - dy * 1);
+    ctx.lineTo(mx - dx * 3 + dy * 4.5, my - dy * 3 - dx * 4.5);
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
+/**
  * Le linee bianche tratteggiate fra le due corsie.
  * @param {CanvasRenderingContext2D} ctx
  * @param {RoadGraph} graph
@@ -111,7 +147,8 @@ export function drawLaneMarks(ctx, graph) {
   ctx.setLineDash([4, 5]);
   ctx.beginPath();
   for (const e of graph.edges.values()) {
-    if (e.bridgeId !== undefined) continue;
+    // I sensi unici hanno una corsia sola: niente linea in mezzo.
+    if (e.bridgeId !== undefined || e.oneWay) continue;
     const a = graph.nodes.get(e.a);
     const b = graph.nodes.get(e.b);
     if (!a || !b) continue;

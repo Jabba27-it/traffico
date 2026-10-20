@@ -29,11 +29,17 @@ const INDEX_URL = 'levels/indice.json';
 const MENU_ICON =
   '<svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><rect x="2" y="3" width="14" height="2.2" rx="1"/><rect x="2" y="8" width="14" height="2.2" rx="1"/><rect x="2" y="13" width="14" height="2.2" rx="1"/></svg>';
 const STAR_NAMES = ['Prima', 'Seconda', 'Terza'];
-const OVERPASS_MESSAGES = {
+/** @type {Record<string, string>} avvisi dopo un tocco breve sulla mappa */
+const TAP_MESSAGES = {
   built: 'Cavalcavia costruito',
   removed: 'Cavalcavia tolto: torna incrocio',
   'none-left': 'Non hai cavalcavia: arrivano con i premi',
   'not-a-cross': 'Il cavalcavia va su un incrocio a croce',
+  two: 'Doppio senso',
+  forward: 'Senso unico',
+  backward: 'Senso unico (al contrario)',
+  super: 'Superstrada',
+  'super-too-expensive': 'Doppio senso: per la superstrada servono più tratti',
 };
 /** Quante carte premio si propongono a fine settimana (scelte a caso fra quelle possibili). */
 const REWARD_CHOICES = 3;
@@ -86,8 +92,8 @@ async function start() {
     remove: (piece) => sim.removeRoad(piece),
     active: () => !choosingStation,
     tap: (x, y, radius) => {
-      const result = sim.toggleOverpass(x, y, Math.max(radius, 20));
-      if (result) showToast(document.body, OVERPASS_MESSAGES[result]);
+      const result = sim.tap(x, y, Math.max(radius, 20));
+      if (result && TAP_MESSAGES[result]) showToast(document.body, TAP_MESSAGES[result]);
     },
   });
   attachPinch(canvas, {

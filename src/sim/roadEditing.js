@@ -59,10 +59,81 @@ export function findRoadPiece(graph, x, y, radius = ROAD_WIDTH) {
   for (const id of piece) {
     const e = graph.edges.get(id);
     length += edgeLength(graph, id);
-    cost += e?.cost ?? 0;
+    cost += (e?.cost ?? 0) + (e?.superPaid ?? 0);
     if (e?.bridgeId !== undefined) bridgeIds.add(e.bridgeId);
   }
   return { edgeIds: [...piece], length, cost, bridges: bridgeIds.size };
+}
+
+/**
+ * Tipo di un pezzo di strada: doppio senso, senso unico in un verso o
+ * nell'altro (rispetto all'ordine della catena), superstrada.
+ * @typedef {'two' | 'forward' | 'backward' | 'super'} RoadType
+ */
+
+/**
+ * Gli archi del pezzo in fila, dal primo estremo all'altro, ciascuno con il
+ * verso di percorrenza della fila.
+ * @param {RoadGraph} graph
+ * @param {RoadPiece} piece
+ * @returns {{edge: import('./graph.js').RoadEdge, from: number, to: number}[]}
+ */
+export function orderedChain(graph, piece) {
+  const edges = piece.edgeIds.map((id) => /** @type {import('./graph.js').RoadEdge} */ (graph.edges.get(id))).filter(Boolean);
+  /** @type {Map<number, number>} */
+  const count = new Map();
+  for (const e of edges) for (const n of [e.a, e.b]) count.set(n, (count.get(n) ?? 0) + 1);
+  // Si parte sempre dallo stesso estremo (il nodo di id più basso fra quelli
+  // toccati una volta sola), così "avanti" e "indietro" non si scambiano fra un
+  // tocco e l'altro. In un anello si parte dal nodo di id più basso.
+  const ends = [...count.entries()].filter(([, c]) => c === 1).map(([id]) => id);
+  let start = Math.min(...(ends.length > 0 ? ends : [...count.keys()]));
+  const left = new Set(edges);
+  const chain = [];
+  while (left.size > 0) {
+    const e = [...left].find((x) => x.a === start || x.b === start);
+    if (!e) break;
+    left.delete(e);
+    const to = e.a === start ? e.b : e.a;
+    chain.push({ edge: e, from: start, to });
+    start = to;
+  }
+  return chain;
+}
+
+/**
+ * @param {RoadGraph} graph
+ * @param {RoadPiece} piece
+ * @returns {RoadType}
+ */
+export function pieceType(graph, piece) {
+  const first = orderedChain(graph, piece)[0];
+  if (!first) return 'two';
+  if (first.edge.kind === 'super') return 'super';
+  if (!first.edge.oneWay) return 'two';
+  return first.edge.a === first.from ? 'forward' : 'backward';
+}
+
+/**
+ * Cambia il tipo di tutto il pezzo di strada.
+ * @param {RoadGraph} graph
+ * @param {RoadPiece} piece
+ * @param {RoadType} type
+ */
+export function setPieceType(graph, piece, type) {
+  for (const { edge, from, to } of orderedChain(graph, piece)) {
+    delete edge.kind;
+    delete edge.oneWay;
+    if (type === 'super') edge.kind = 'super';
+    if (type === 'forward' || type === 'backward') {
+      edge.oneWay = true;
+      // Il senso unico va da `a` a `b`: si girano gli estremi se serve.
+      const [a, b] = type === 'forward' ? [from, to] : [to, from];
+      edge.a = a;
+      edge.b = b;
+    }
+  }
+  graph.version++;
 }
 
 /**
