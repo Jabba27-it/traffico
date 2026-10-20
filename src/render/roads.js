@@ -6,6 +6,11 @@ import { ROAD_WIDTH } from '../sim/graph.js';
 
 const ROAD_COLOR = '#5d6169';
 const PREVIEW_COLOR = 'rgba(93, 97, 105, 0.4)';
+const BLOCKED_COLOR = 'rgba(224, 69, 58, 0.45)';
+const LABEL_COLOR = '#3d4047';
+const BLOCKED_TEXT = '#c0392b';
+/** Il numero del costo sta sopra il dito, per non restare coperto. */
+const LABEL_OFFSET = 34;
 
 /**
  * @param {CanvasRenderingContext2D} ctx
@@ -28,15 +33,47 @@ export function drawRoads(ctx, graph) {
 }
 
 /**
+ * Anteprima del tratto in corso: grigia fin dove bastano le strade, rossa
+ * oltre. Vicino al dito mostra quanti tratti costerà.
  * @param {CanvasRenderingContext2D} ctx
  * @param {{x: number, y: number}[]} points
+ * @param {import('../sim/roadBuilder.js').RoadPlan['cut']} cut
+ * @param {number} cost  tratti di strada che verranno consumati
+ * @param {number} worldWidth  per tenere la scritta dentro lo schermo
  */
-export function drawPreview(ctx, points) {
+export function drawPreview(ctx, points, cut, cost, worldWidth) {
   if (points.length < 2) return;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.lineWidth = ROAD_WIDTH;
-  ctx.strokeStyle = PREVIEW_COLOR;
+
+  const affordable = cut ? [...points.slice(0, cut.index), cut] : points;
+  strokeLine(ctx, affordable, PREVIEW_COLOR);
+  if (cut) strokeLine(ctx, [cut, ...points.slice(cut.index)], BLOCKED_COLOR);
+
+  const tip = points[points.length - 1];
+  const label = cut ? 'Strade finite' : cost > 0 ? `−${cost}` : '';
+  if (!label) return;
+  ctx.font = 'bold 15px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+  const half = ctx.measureText(label).width / 2 + 6;
+  const x = Math.max(half, Math.min(worldWidth - half, tip.x));
+  ctx.strokeText(label, x, tip.y - LABEL_OFFSET);
+  ctx.fillStyle = cut ? BLOCKED_TEXT : LABEL_COLOR;
+  ctx.fillText(label, x, tip.y - LABEL_OFFSET);
+}
+
+/**
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {{x: number, y: number}[]} points
+ * @param {string} color
+ */
+function strokeLine(ctx, points, color) {
+  if (points.length < 2) return;
+  ctx.strokeStyle = color;
   ctx.beginPath();
   ctx.moveTo(points[0].x, points[0].y);
   for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);

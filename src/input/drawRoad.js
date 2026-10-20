@@ -1,7 +1,6 @@
 // Gesto "trascina = strada": raccoglie i punti del dito e, al rilascio,
-// li passa al grafo che crea strade e incroci.
+// li passa alla simulazione che crea strade e incroci.
 
-import { buildRoad } from '../sim/roadBuilder.js';
 import { distance } from '../sim/geometry.js';
 import { STATION_RADIUS } from '../sim/stations.js';
 
@@ -17,9 +16,10 @@ const SNAP_RADIUS = 28;
  * @param {HTMLCanvasElement} canvas
  * @param {RoadGraph} graph
  * @param {(x: number, y: number) => Point} toWorld  da pixel del canvas a coordinate di mondo
+ * @param {(points: Point[], snapRadius: number) => void} build  costruisce il tratto disegnato
  * @returns {{ preview: () => Point[] }} i punti del tratto in corso, per l'anteprima
  */
-export function attachRoadDrawing(canvas, graph, toWorld) {
+export function attachRoadDrawing(canvas, graph, toWorld, build) {
   /** @type {number | null} */
   let activePointer = null;
   /** @type {Point[]} */
@@ -58,7 +58,7 @@ export function attachRoadDrawing(canvas, graph, toWorld) {
     if (e.pointerId !== activePointer) return;
     const p = toPoint(e);
     if (distance(p, points[points.length - 1]) >= SAMPLE_SPACING / 2) points.push(p);
-    buildRoad(graph, points, SNAP_RADIUS);
+    build(points, SNAP_RADIUS);
     reset();
   });
 

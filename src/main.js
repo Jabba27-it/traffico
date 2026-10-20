@@ -9,6 +9,7 @@ import { drawCongestion } from './render/congestion.js';
 import { attachRoadDrawing } from './input/drawRoad.js';
 import { createHud } from './ui/hud.js';
 import { showGameOver } from './ui/gameOver.js';
+import { createSpeedControls } from './ui/speed.js';
 
 const LEVEL_URL = 'levels/prova.json';
 const OUTSIDE = '#e3dfd5';
@@ -33,9 +34,15 @@ async function start() {
 
   const view = setupCanvas(canvas, level.world);
   const graph = new RoadGraph();
-  const drawing = attachRoadDrawing(canvas, graph, (x, y) => screenToWorld(view, x, y));
   const sim = new Simulation(graph, level, Date.now());
+  const drawing = attachRoadDrawing(
+    canvas,
+    graph,
+    (x, y) => screenToWorld(view, x, y),
+    (points, snapRadius) => sim.buildRoad(points, snapRadius),
+  );
   const hud = createHud(document.body);
+  const speed = createSpeedControls(document.body);
 
   let lastTime = performance.now();
   let pending = 0;
@@ -43,13 +50,21 @@ async function start() {
 
   /** @param {number} now */
   function frame(now) {
-    pending += Math.min((now - lastTime) / 1000, MAX_FRAME_TIME);
+    // A velocità doppia scorre il doppio del tempo di gioco, sempre a passi fissi.
+    pending += Math.min((now - lastTime) / 1000, MAX_FRAME_TIME) * speed.speed();
     lastTime = now;
     while (pending >= STEP && !sim.failed) {
       sim.step(STEP);
       pending -= STEP;
     }
-    const results = { score: sim.score, seconds: sim.seconds, trips: sim.trips };
+    const results = {
+      score: sim.score,
+      seconds: sim.seconds,
+      trips: sim.trips,
+      day: sim.day,
+      dayProgress: sim.dayProgress,
+      roads: sim.roadBudget,
+    };
     hud.update(results);
     if (sim.failed && !gameOverShown) {
       gameOverShown = true;
@@ -64,7 +79,11 @@ async function start() {
     ctx.fillStyle = BACKGROUND;
     ctx.fillRect(0, 0, level.world.width, level.world.height);
     drawRoads(ctx, graph);
-    drawPreview(ctx, drawing.preview());
+    const preview = drawing.preview();
+    if (preview.length >= 2) {
+      const plan = sim.planRoad(preview);
+      drawPreview(ctx, preview, plan.cut, sim.roadCost(plan), level.world.width);
+    }
     drawVehicles(ctx, graph, sim.vehicles);
     drawCongestion(ctx, sim.stations, level.congestion.tolerance, now / 1000);
     drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed);

@@ -8,6 +8,10 @@ import { closestPointOnSegment, distance } from './geometry.js';
 import { STATION_RADIUS, createStation } from './stations.js';
 import { pickNewStation } from './growth.js';
 import { updateCongestion } from './congestion.js';
+import { planRoad, buildPlannedRoad } from './roadBuilder.js';
+
+/** @typedef {{x: number, y: number}} Point */
+/** @typedef {import('./roadBuilder.js').RoadPlan} RoadPlan */
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('./level.js').Level} Level */
@@ -52,6 +56,10 @@ export class Simulation {
     this.growthTimer = level.growth ? level.growth.interval : Infinity;
     /** @type {Station | null} la stazione rimasta sovraccarica troppo a lungo */
     this.failedStation = null;
+    /** Tratti di strada ancora disponibili. */
+    this.roadBudget = level.roads.initial;
+    /** L'ultimo giorno per cui sono già stati dati i tratti in più. */
+    this.rewardedDay = 1;
 
     // Le stazioni iniziali ci sono già: niente animazione di comparsa.
     for (const def of level.stations) this.addStation(def, -Infinity);
@@ -93,6 +101,45 @@ export class Simulation {
     return this.trips + this.seconds;
   }
 
+  /** Giorno in corso, a partire da 1. */
+  get day() {
+    return Math.floor(this.elapsed / this.level.dayLength + 1e-6) + 1;
+  }
+
+  /** Quanto del giorno in corso è passato, da 0 a 1. */
+  get dayProgress() {
+    return (this.elapsed / this.level.dayLength) % 1;
+  }
+
+  /**
+   * Cosa costerebbe costruire il tratto disegnato, già troncato ai tratti disponibili.
+   * @param {Point[]} points
+   * @returns {RoadPlan}
+   */
+  planRoad(points) {
+    return planRoad(this.graph, points, this.roadBudget * this.level.roads.segmentLength);
+  }
+
+  /**
+   * Tratti di strada che un piano consuma (ogni pezzo iniziato conta intero).
+   * @param {RoadPlan} plan
+   */
+  roadCost(plan) {
+    return Math.ceil(plan.length / this.level.roads.segmentLength - 1e-6);
+  }
+
+  /**
+   * Costruisce il tratto disegnato, fin dove bastano i tratti disponibili.
+   * @param {Point[]} points
+   * @param {number} snapRadius
+   */
+  buildRoad(points, snapRadius) {
+    const plan = this.planRoad(points);
+    if (plan.runs.length === 0) return;
+    buildPlannedRoad(this.graph, plan, snapRadius);
+    this.roadBudget -= this.roadCost(plan);
+  }
+
   /** true quando il livello è fallito: da lì la simulazione è ferma. */
   get failed() {
     return this.failedStation !== null;
@@ -102,6 +149,12 @@ export class Simulation {
   step(dt) {
     if (this.failed) return;
     this.elapsed += dt;
+
+    const day = this.day;
+    if (day > this.rewardedDay) {
+      this.roadBudget += (day - this.rewardedDay) * this.level.roads.perDay;
+      this.rewardedDay = day;
+    }
 
     this.growthTimer -= dt;
     if (this.growthTimer <= 0) this.grow();

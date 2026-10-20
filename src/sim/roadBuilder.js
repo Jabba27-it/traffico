@@ -18,6 +18,85 @@ const DEAD_END_RADIUS = ROAD_WIDTH;
 const STATION_SNAP = STATION_RADIUS + 8;
 
 /**
+ * @typedef {Object} RoadPlan
+ * @property {Point[][]} runs  i pezzi di strada nuova da costruire
+ * @property {number} length   lunghezza totale della strada nuova
+ * @property {{index: number, x: number, y: number} | null} cut
+ *   dove il tratto disegnato è stato troncato per mancanza di strade:
+ *   il punto di taglio cade fra points[index - 1] e points[index]
+ */
+
+/**
+ * Divide il tratto disegnato in pezzi di strada nuova, saltando le parti che
+ * passano sopra strade o stazioni esistenti (quelle non costano nulla), e lo
+ * tronca quando la strada nuova supera `maxLength`.
+ * @param {RoadGraph} graph
+ * @param {Point[]} points
+ * @param {number} maxLength
+ * @returns {RoadPlan}
+ */
+export function planRoad(graph, points, maxLength) {
+  const onRoad = points.map(
+    (p) => graph.findEdgeNear(p.x, p.y, ROAD_WIDTH / 2) !== null || graph.findNodeNear(p.x, p.y, STATION_RADIUS, true) !== null,
+  );
+
+  // Ogni pezzo è una sequenza di punti fuori strada, più il punto su strada
+  // subito prima e subito dopo, che lo agganciano alla rete esistente.
+  /** @type {number[][]} */
+  const runs = [];
+  /** @type {number[] | null} */
+  let current = null;
+  for (let i = 0; i < points.length; i++) {
+    if (!onRoad[i]) {
+      if (!current) current = i > 0 ? [i - 1] : [];
+      current.push(i);
+    } else if (current) {
+      current.push(i);
+      runs.push(current);
+      current = null;
+    }
+  }
+  if (current) runs.push(current);
+
+  /** @type {Point[][]} */
+  const result = [];
+  let length = 0;
+  let cut = null;
+  for (const run of runs) {
+    /** @type {Point[]} */
+    const pts = [points[run[0]]];
+    for (let k = 1; k < run.length; k++) {
+      const a = points[run[k - 1]];
+      const b = points[run[k]];
+      const d = distance(a, b);
+      if (length + d <= maxLength) {
+        pts.push(b);
+        length += d;
+        continue;
+      }
+      const t = (maxLength - length) / d;
+      cut = { index: run[k], x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+      if (t > 0) pts.push({ x: cut.x, y: cut.y });
+      length = maxLength;
+      break;
+    }
+    if (pts.length >= 2) result.push(pts);
+    if (cut) break;
+  }
+  return { runs: result, length, cut };
+}
+
+/**
+ * Costruisce un tratto disegnato già diviso da `planRoad`.
+ * @param {RoadGraph} graph
+ * @param {RoadPlan} plan
+ * @param {number} snapRadius
+ */
+export function buildPlannedRoad(graph, plan, snapRadius) {
+  for (const run of plan.runs) buildRoad(graph, run, snapRadius);
+}
+
+/**
  * @param {RoadGraph} graph
  * @param {Point[]} points
  * @param {number} snapRadius  distanza entro cui un estremo si aggancia a una strada

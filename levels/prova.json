@@ -9,7 +9,9 @@
   ],
   "crescita": { "ogni": 25, "massimo": 14, "distanzaMinima": 80 },
   "congestione": { "capienza": 6, "tolleranza": 20 },
+  "tempo": { "giorno": 20 },
+  "strade": { "iniziali": 25, "perGiorno": 3, "lunghezzaTratto": 40 },
   "zone": [
-    { "x": 30, "y": 90, "larghezza": 340, "altezza": 680 }
+    { "x": 30, "y": 90, "larghezza": 340, "altezza": 630 }
   ]
 }

@@ -33,6 +33,13 @@ import { SHAPES } from './stations.js';
  */
 
 /**
+ * @typedef {Object} Roads
+ * @property {number} initial        tratti di strada disponibili all'inizio
+ * @property {number} perDay         tratti in più a ogni nuovo giorno
+ * @property {number} segmentLength  lunghezza di un tratto in unità di mondo
+ */
+
+/**
  * @typedef {Object} Level
  * @property {string} name
  * @property {{width: number, height: number}} world
@@ -41,6 +48,8 @@ import { SHAPES } from './stations.js';
  * @property {Growth | null} growth  null se la città non cresce
  * @property {Zone[]} zones
  * @property {Congestion} congestion
+ * @property {number} dayLength  secondi di gioco in un giorno
+ * @property {Roads} roads
  */
 
 /**
@@ -99,8 +108,21 @@ export function parseLevel(json) {
     tolerance: isNum(c.tolleranza) && c.tolleranza > 0 ? c.tolleranza : 20,
   };
 
+  const t = json.tempo ?? {};
+  const dayLength = isNum(t.giorno) && t.giorno > 0 ? t.giorno : 20;
+
+  // Senza la voce "strade" i tratti sono illimitati.
+  const r = json.strade;
+  const roads = {
+    initial: isNum(r?.iniziali) ? r.iniziali : Infinity,
+    perDay: isNum(r?.perGiorno) ? r.perGiorno : 0,
+    segmentLength: isNum(r?.lunghezzaTratto) && r.lunghezzaTratto > 0 ? r.lunghezzaTratto : 40,
+  };
+
   return {
     congestion,
+    dayLength,
+    roads,
     name: String(json.nome ?? 'Senza nome'),
     world: { width: world.larghezza, height: world.altezza },
     shapes,
