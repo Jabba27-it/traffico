@@ -69,12 +69,13 @@ export function pickNewStation(random, level, stations, area, graph, allowed = (
   return { shape, x: best.x, y: best.y, ...(name ? { name } : {}) };
 }
 
-/** Un quartiere più lontano di così non dà il nome: meglio il più vicino libero. */
-const DISTRICT_REACH = 160;
+/** Passo con cui si controlla che fra la stazione e il quartiere non ci sia acqua. */
+const LAND_STEP = 6;
 
 /**
- * Il nome del quartiere dove nasce la stazione: il più vicino non ancora usato,
- * se è abbastanza vicino; altrimenti il più vicino in assoluto, numerato
+ * Il nome del quartiere dove nasce la stazione: il più vicino raggiungibile
+ * senza attraversare l'acqua (così un nome non passa il fiume né va su
+ * un'altra isola). Se c'è già una stazione con quel nome si numera
  * (es. "Prati 2"). null se il livello non ha quartieri.
  * @param {Level} level
  * @param {Station[]} stations
@@ -83,14 +84,28 @@ const DISTRICT_REACH = 160;
  */
 function districtName(level, stations, p) {
   if (level.districts.length === 0) return null;
-  const used = new Set(stations.map((s) => s.name));
   const byDistance = [...level.districts].sort((a, b) => distance(a, p) - distance(b, p));
-  const free = byDistance.find((d) => !used.has(d.name));
-  if (free && distance(free, p) <= DISTRICT_REACH) return free.name;
-  const nearest = byDistance[0].name;
+  const nearest = (byDistance.find((d) => sameLand(level, p, d)) ?? byDistance[0]).name;
+  const used = new Set(stations.map((s) => s.name));
+  if (!used.has(nearest)) return nearest;
   let n = 2;
   while (used.has(`${nearest} ${n}`)) n++;
-  return used.has(nearest) ? `${nearest} ${n}` : nearest;
+  return `${nearest} ${n}`;
+}
+
+/**
+ * true se si va in linea retta da a a b senza toccare l'acqua.
+ * @param {Level} level
+ * @param {Point} a
+ * @param {Point} b
+ */
+function sameLand(level, a, b) {
+  const steps = Math.ceil(distance(a, b) / LAND_STEP);
+  for (let i = 1; i < steps; i++) {
+    const t = i / steps;
+    if (distanceToWater(level.waters, { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }) < 0) return false;
+  }
+  return true;
 }
 
 /**
