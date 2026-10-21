@@ -15,6 +15,7 @@ import { closestPointOnSegment, distance } from './geometry.js';
  * @typedef {Object} Sea
  * @property {'sea'} kind
  * @property {Point[]} points  il contorno dell'area, chiuso da solo
+ * @property {boolean} beach   true se la riva è una spiaggia (false per porti e baie)
  */
 
 /** @typedef {River | Sea} Water */
@@ -111,26 +112,70 @@ function seaDistance(w, p) {
   return inside ? -edge : edge;
 }
 
+/** Lato delle celle con cui si divide la mappa in terre separate dall'acqua. */
+const LAND_CELL = 10;
+
 /**
- * Da che parte del primo fiume sta p: 1 o -1 (0 se il livello non ha fiumi).
- * Serve a tenere le stazioni di una stessa forma sulla stessa riva.
- * @param {Water[]} waters
- * @param {Point} p
+ * @typedef {Object} LandMap  la mappa divisa in terre: ogni isola o riva ha un numero
+ * @property {number} cols
+ * @property {number} rows
+ * @property {Int32Array} labels  numero della terra di ogni cella, -1 per l'acqua
  */
-export function riverSide(waters, p) {
-  const river = waters.find((w) => w.kind === 'river');
-  if (!river) return 0;
-  let best = Infinity;
-  let side = 0;
-  for (let i = 1; i < river.points.length; i++) {
-    const a = river.points[i - 1];
-    const b = river.points[i];
-    const c = closestPointOnSegment(p, a, b);
-    const d = distance(c, p);
-    if (d < best) {
-      best = d;
-      side = Math.sign((b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x)) || 1;
+
+/**
+ * Divide il mondo in terre: celle di terra che si toccano (non in diagonale,
+ * così un fiume stretto separa comunque) hanno lo stesso numero.
+ * @param {Water[]} waters
+ * @param {{width: number, height: number}} world
+ * @returns {LandMap}
+ */
+export function landMap(waters, world) {
+  const cols = Math.ceil(world.width / LAND_CELL);
+  const rows = Math.ceil(world.height / LAND_CELL);
+  const labels = new Int32Array(cols * rows);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const p = { x: (c + 0.5) * LAND_CELL, y: (r + 0.5) * LAND_CELL };
+      labels[r * cols + c] = distanceToWater(waters, p) < 0 ? -1 : -2;
     }
   }
-  return side;
+  let next = 0;
+  for (let start = 0; start < labels.length; start++) {
+    if (labels[start] !== -2) continue;
+    const stack = [start];
+    labels[start] = next;
+    while (stack.length) {
+      const i = /** @type {number} */ (stack.pop());
+      const c = i % cols;
+      const neighbours = [c > 0 ? i - 1 : -1, c < cols - 1 ? i + 1 : -1, i - cols, i + cols];
+      for (const j of neighbours) {
+        if (j < 0 || j >= labels.length || labels[j] !== -2) continue;
+        labels[j] = next;
+        stack.push(j);
+      }
+    }
+    next++;
+  }
+  return { cols, rows, labels };
+}
+
+/**
+ * Il numero della terra su cui sta p (-1 in acqua). Un punto sulla riva prende
+ * la terra della cella di terra più vicina.
+ * @param {LandMap} map
+ * @param {Point} p
+ */
+export function landOf(map, p) {
+  const c0 = Math.max(0, Math.min(map.cols - 1, Math.floor(p.x / LAND_CELL)));
+  const r0 = Math.max(0, Math.min(map.rows - 1, Math.floor(p.y / LAND_CELL)));
+  for (let d = 0; d <= 3; d++) {
+    for (let r = r0 - d; r <= r0 + d; r++) {
+      for (let c = c0 - d; c <= c0 + d; c++) {
+        if (r < 0 || c < 0 || r >= map.rows || c >= map.cols) continue;
+        const label = map.labels[r * map.cols + c];
+        if (label >= 0) return label;
+      }
+    }
+  }
+  return -1;
 }

@@ -278,7 +278,7 @@ export function drawWater(ctx, waters) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   for (const w of waters) {
-    if (w.kind !== 'sea') continue;
+    if (w.kind !== 'sea' || !w.beach) continue;
     ctx.beginPath();
     traceSmoothClosed(ctx, w.points);
     ctx.lineWidth = 22;

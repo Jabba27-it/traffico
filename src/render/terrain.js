@@ -174,6 +174,31 @@ function drawMonument(ctx, m) {
       ctx.lineTo(x, y - s * 0.95);
       ctx.stroke();
       break;
+    case 'grattacielo': // visto dall'alto: tre piani che si restringono e l'antenna
+      for (const k of [1, 0.66, 0.33]) ctx.rect(x - s * k, y - s * k, s * k * 2, s * k * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x, y, 1.4, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case 'stadio': // tribune ovali e il diamante del campo
+      ctx.ellipse(x, y, s, s * 0.75, 0, 0, Math.PI * 2);
+      ctx.moveTo(x, y - s * 0.45);
+      ctx.lineTo(x + s * 0.45, y);
+      ctx.lineTo(x, y + s * 0.45);
+      ctx.lineTo(x - s * 0.45, y);
+      ctx.closePath();
+      ctx.stroke();
+      break;
+    case 'statua': // la corona a raggi
+      ctx.arc(x, y + s * 0.2, s * 0.35, 0, Math.PI * 2);
+      for (let k = 0; k < 7; k++) {
+        const a = Math.PI + (k * Math.PI) / 6;
+        ctx.moveTo(x + Math.cos(a) * s * 0.45, y + s * 0.2 + Math.sin(a) * s * 0.45);
+        ctx.lineTo(x + Math.cos(a) * s * 1.05, y + s * 0.2 + Math.sin(a) * s * 1.05);
+      }
+      ctx.stroke();
+      break;
     default: // colonne sotto un frontone
       ctx.moveTo(x - s, y - s * 0.35);
       ctx.lineTo(x, y - s * 0.85);

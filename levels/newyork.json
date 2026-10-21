@@ -1,0 +1,1017 @@
+{
+  "nome": "New York",
+  "mondo": {
+    "larghezza": 920,
+    "altezza": 1840
+  },
+  "forme": [
+    "cerchio",
+    "quadrato",
+    "triangolo",
+    "pentagono",
+    "esagono",
+    "stella",
+    "rombo",
+    "croce"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 300,
+      "y": 500,
+      "larghezza": 420
+    },
+    {
+      "giorno": 3,
+      "x": 300,
+      "y": 500,
+      "larghezza": 420
+    },
+    {
+      "giorno": 9,
+      "x": 200,
+      "y": 300,
+      "larghezza": 620
+    },
+    {
+      "giorno": 16,
+      "x": 80,
+      "y": 100,
+      "larghezza": 820
+    },
+    {
+      "giorno": 23,
+      "x": 0,
+      "y": 0,
+      "larghezza": 920
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 447,
+      "y": 721,
+      "nome": "Times Square"
+    },
+    {
+      "forma": "quadrato",
+      "x": 478,
+      "y": 881,
+      "nome": "Union Square"
+    },
+    {
+      "forma": "triangolo",
+      "x": 670,
+      "y": 791,
+      "nome": "Long Island City"
+    }
+  ],
+  "acqua": [
+    {
+      "tipo": "fiume",
+      "larghezza": 72,
+      "punti": [
+        [
+          297,
+          1238
+        ],
+        [
+          309,
+          1184
+        ],
+        [
+          292,
+          1125
+        ],
+        [
+          292,
+          1069
+        ],
+        [
+          296,
+          1014
+        ],
+        [
+          305,
+          960
+        ],
+        [
+          314,
+          906
+        ],
+        [
+          324,
+          852
+        ],
+        [
+          334,
+          798
+        ],
+        [
+          344,
+          745
+        ],
+        [
+          358,
+          692
+        ],
+        [
+          372,
+          639
+        ],
+        [
+          386,
+          586
+        ],
+        [
+          400,
+          533
+        ],
+        [
+          415,
+          481
+        ],
+        [
+          430,
+          428
+        ],
+        [
+          445,
+          375
+        ],
+        [
+          467,
+          324
+        ],
+        [
+          488,
+          273
+        ],
+        [
+          509,
+          221
+        ],
+        [
+          530,
+          170
+        ],
+        [
+          549,
+          118
+        ],
+        [
+          561,
+          65
+        ],
+        [
+          573,
+          12
+        ],
+        [
+          584,
+          -42
+        ]
+      ]
+    },
+    {
+      "tipo": "fiume",
+      "larghezza": 44,
+      "punti": [
+        [
+          424,
+          1255
+        ],
+        [
+          436,
+          1203
+        ],
+        [
+          480,
+          1158
+        ],
+        [
+          499,
+          1108
+        ],
+        [
+          518,
+          1058
+        ],
+        [
+          532,
+          1007
+        ],
+        [
+          545,
+          956
+        ],
+        [
+          558,
+          904
+        ],
+        [
+          571,
+          853
+        ],
+        [
+          585,
+          802
+        ],
+        [
+          594,
+          750
+        ],
+        [
+          603,
+          697
+        ],
+        [
+          612,
+          645
+        ],
+        [
+          621,
+          593
+        ],
+        [
+          629,
+          540
+        ],
+        [
+          699,
+          515
+        ],
+        [
+          800,
+          500
+        ],
+        [
+          930,
+          470
+        ]
+      ]
+    },
+    {
+      "tipo": "fiume",
+      "larghezza": 30,
+      "punti": [
+        [
+          622,
+          539
+        ],
+        [
+          630,
+          491
+        ],
+        [
+          637,
+          443
+        ],
+        [
+          641,
+          394
+        ],
+        [
+          643,
+          345
+        ],
+        [
+          645,
+          296
+        ],
+        [
+          647,
+          247
+        ],
+        [
+          650,
+          198
+        ],
+        [
+          652,
+          149
+        ],
+        [
+          627,
+          100
+        ],
+        [
+          605,
+          62
+        ],
+        [
+          566,
+          42
+        ]
+      ]
+    },
+    {
+      "tipo": "fiume",
+      "larghezza": 30,
+      "punti": [
+        [
+          285,
+          1468
+        ],
+        [
+          200,
+          1462
+        ],
+        [
+          100,
+          1450
+        ],
+        [
+          -20,
+          1445
+        ]
+      ]
+    },
+    {
+      "tipo": "fiume",
+      "larghezza": 34,
+      "punti": [
+        [
+          380,
+          1540
+        ],
+        [
+          378,
+          1590
+        ],
+        [
+          392,
+          1650
+        ]
+      ]
+    },
+    {
+      "tipo": "mare",
+      "spiaggia": false,
+      "punti": [
+        [
+          250,
+          1190
+        ],
+        [
+          330,
+          1232
+        ],
+        [
+          395,
+          1252
+        ],
+        [
+          460,
+          1232
+        ],
+        [
+          492,
+          1300
+        ],
+        [
+          470,
+          1400
+        ],
+        [
+          430,
+          1500
+        ],
+        [
+          395,
+          1545
+        ],
+        [
+          355,
+          1530
+        ],
+        [
+          320,
+          1490
+        ],
+        [
+          290,
+          1470
+        ],
+        [
+          258,
+          1430
+        ],
+        [
+          236,
+          1330
+        ],
+        [
+          236,
+          1250
+        ]
+      ]
+    },
+    {
+      "tipo": "mare",
+      "punti": [
+        [
+          388,
+          1640
+        ],
+        [
+          440,
+          1690
+        ],
+        [
+          520,
+          1728
+        ],
+        [
+          650,
+          1742
+        ],
+        [
+          760,
+          1736
+        ],
+        [
+          940,
+          1715
+        ],
+        [
+          1100,
+          1715
+        ],
+        [
+          1100,
+          2100
+        ],
+        [
+          -200,
+          2100
+        ],
+        [
+          -200,
+          1900
+        ],
+        [
+          80,
+          1835
+        ],
+        [
+          230,
+          1745
+        ],
+        [
+          330,
+          1660
+        ],
+        [
+          365,
+          1630
+        ]
+      ]
+    }
+  ],
+  "terreno": {
+    "ville": [
+      {
+        "nome": "Central Park",
+        "punti": [
+          [
+            472,
+            656
+          ],
+          [
+            478,
+            628
+          ],
+          [
+            485,
+            601
+          ],
+          [
+            491,
+            573
+          ],
+          [
+            497,
+            546
+          ],
+          [
+            503,
+            518
+          ],
+          [
+            509,
+            491
+          ],
+          [
+            514,
+            488
+          ],
+          [
+            552,
+            496
+          ],
+          [
+            555,
+            501
+          ],
+          [
+            549,
+            529
+          ],
+          [
+            543,
+            556
+          ],
+          [
+            537,
+            584
+          ],
+          [
+            531,
+            611
+          ],
+          [
+            525,
+            638
+          ],
+          [
+            519,
+            666
+          ],
+          [
+            514,
+            669
+          ],
+          [
+            476,
+            661
+          ]
+        ]
+      },
+      {
+        "nome": "Prospect Park",
+        "punti": [
+          [
+            560,
+            1350
+          ],
+          [
+            610,
+            1335
+          ],
+          [
+            640,
+            1380
+          ],
+          [
+            620,
+            1440
+          ],
+          [
+            570,
+            1445
+          ],
+          [
+            545,
+            1400
+          ]
+        ]
+      },
+      {
+        "nome": "Flushing Meadows",
+        "punti": [
+          [
+            830,
+            800
+          ],
+          [
+            880,
+            790
+          ],
+          [
+            895,
+            860
+          ],
+          [
+            870,
+            930
+          ],
+          [
+            830,
+            920
+          ],
+          [
+            815,
+            860
+          ]
+        ]
+      },
+      {
+        "nome": "Van Cortlandt Park",
+        "punti": [
+          [
+            680,
+            30
+          ],
+          [
+            760,
+            25
+          ],
+          [
+            775,
+            90
+          ],
+          [
+            740,
+            130
+          ],
+          [
+            690,
+            120
+          ]
+        ]
+      }
+    ],
+    "colli": [
+      {
+        "nome": "Washington Heights",
+        "x": 582,
+        "y": 266,
+        "raggio": 45
+      },
+      {
+        "nome": "Palisades",
+        "x": 381,
+        "y": 310,
+        "raggio": 60
+      },
+      {
+        "nome": "Todt Hill",
+        "x": 190,
+        "y": 1620,
+        "raggio": 60
+      }
+    ],
+    "monumenti": [
+      {
+        "nome": "Empire State Building",
+        "icona": "grattacielo",
+        "x": 477,
+        "y": 793,
+        "raggio": 11
+      },
+      {
+        "nome": "One World Trade Center",
+        "icona": "grattacielo",
+        "x": 374,
+        "y": 1101,
+        "raggio": 11
+      },
+      {
+        "nome": "Statua della Libertà",
+        "icona": "statua",
+        "x": 305,
+        "y": 1290,
+        "raggio": 12
+      },
+      {
+        "nome": "Yankee Stadium",
+        "icona": "stadio",
+        "x": 699,
+        "y": 424,
+        "raggio": 18
+      },
+      {
+        "nome": "Brooklyn Museum",
+        "icona": "colonne",
+        "x": 668,
+        "y": 1370,
+        "raggio": 12
+      }
+    ]
+  },
+  "quartieri": [
+    {
+      "nome": "Financial District",
+      "x": 389,
+      "y": 1148
+    },
+    {
+      "nome": "Tribeca",
+      "x": 365,
+      "y": 1077
+    },
+    {
+      "nome": "SoHo",
+      "x": 414,
+      "y": 1032
+    },
+    {
+      "nome": "Lower East Side",
+      "x": 469,
+      "y": 1056
+    },
+    {
+      "nome": "Greenwich Village",
+      "x": 394,
+      "y": 962
+    },
+    {
+      "nome": "East Village",
+      "x": 480,
+      "y": 981
+    },
+    {
+      "nome": "Chelsea",
+      "x": 394,
+      "y": 874
+    },
+    {
+      "nome": "Gramercy",
+      "x": 505,
+      "y": 876
+    },
+    {
+      "nome": "Hell's Kitchen",
+      "x": 405,
+      "y": 766
+    },
+    {
+      "nome": "Murray Hill",
+      "x": 520,
+      "y": 814
+    },
+    {
+      "nome": "Midtown",
+      "x": 504,
+      "y": 711
+    },
+    {
+      "nome": "Upper West Side",
+      "x": 450,
+      "y": 578
+    },
+    {
+      "nome": "Upper East Side",
+      "x": 570,
+      "y": 604
+    },
+    {
+      "nome": "Morningside Heights",
+      "x": 491,
+      "y": 444
+    },
+    {
+      "nome": "Harlem",
+      "x": 555,
+      "y": 425
+    },
+    {
+      "nome": "East Harlem",
+      "x": 591,
+      "y": 499
+    },
+    {
+      "nome": "Washington Heights",
+      "x": 578,
+      "y": 287
+    },
+    {
+      "nome": "Inwood",
+      "x": 601,
+      "y": 182
+    },
+    {
+      "nome": "Jersey City",
+      "x": 185,
+      "y": 1081
+    },
+    {
+      "nome": "Hoboken",
+      "x": 247,
+      "y": 853
+    },
+    {
+      "nome": "Weehawken",
+      "x": 275,
+      "y": 705
+    },
+    {
+      "nome": "Union City",
+      "x": 263,
+      "y": 559
+    },
+    {
+      "nome": "Fort Lee",
+      "x": 411,
+      "y": 250
+    },
+    {
+      "nome": "Bayonne",
+      "x": 190,
+      "y": 1360
+    },
+    {
+      "nome": "DUMBO",
+      "x": 528,
+      "y": 1178
+    },
+    {
+      "nome": "Williamsburg",
+      "x": 613,
+      "y": 1021
+    },
+    {
+      "nome": "Greenpoint",
+      "x": 632,
+      "y": 904
+    },
+    {
+      "nome": "Brooklyn Heights",
+      "x": 505,
+      "y": 1235
+    },
+    {
+      "nome": "Red Hook",
+      "x": 525,
+      "y": 1300
+    },
+    {
+      "nome": "Bushwick",
+      "x": 720,
+      "y": 1060
+    },
+    {
+      "nome": "Bedford-Stuyvesant",
+      "x": 650,
+      "y": 1180
+    },
+    {
+      "nome": "Park Slope",
+      "x": 530,
+      "y": 1385
+    },
+    {
+      "nome": "Sunset Park",
+      "x": 495,
+      "y": 1460
+    },
+    {
+      "nome": "Bay Ridge",
+      "x": 445,
+      "y": 1570
+    },
+    {
+      "nome": "Flatbush",
+      "x": 650,
+      "y": 1480
+    },
+    {
+      "nome": "Coney Island",
+      "x": 560,
+      "y": 1690
+    },
+    {
+      "nome": "Brighton Beach",
+      "x": 700,
+      "y": 1695
+    },
+    {
+      "nome": "Canarsie",
+      "x": 850,
+      "y": 1480
+    },
+    {
+      "nome": "East New York",
+      "x": 860,
+      "y": 1250
+    },
+    {
+      "nome": "Astoria",
+      "x": 700,
+      "y": 610
+    },
+    {
+      "nome": "Sunnyside",
+      "x": 760,
+      "y": 790
+    },
+    {
+      "nome": "Jackson Heights",
+      "x": 820,
+      "y": 690
+    },
+    {
+      "nome": "Flushing",
+      "x": 895,
+      "y": 740
+    },
+    {
+      "nome": "Ridgewood",
+      "x": 770,
+      "y": 980
+    },
+    {
+      "nome": "Forest Hills",
+      "x": 880,
+      "y": 990
+    },
+    {
+      "nome": "Mott Haven",
+      "x": 690,
+      "y": 472
+    },
+    {
+      "nome": "Hunts Point",
+      "x": 820,
+      "y": 420
+    },
+    {
+      "nome": "Fordham",
+      "x": 770,
+      "y": 250
+    },
+    {
+      "nome": "Highbridge",
+      "x": 690,
+      "y": 330
+    },
+    {
+      "nome": "Riverdale",
+      "x": 655,
+      "y": 35
+    },
+    {
+      "nome": "Pelham Bay",
+      "x": 890,
+      "y": 280
+    },
+    {
+      "nome": "St. George",
+      "x": 285,
+      "y": 1505
+    },
+    {
+      "nome": "Stapleton",
+      "x": 320,
+      "y": 1570
+    },
+    {
+      "nome": "New Springville",
+      "x": 130,
+      "y": 1640
+    },
+    {
+      "nome": "Great Kills",
+      "x": 240,
+      "y": 1700
+    },
+    {
+      "nome": "Tottenville",
+      "x": 50,
+      "y": 1790
+    }
+  ],
+  "ponti": {
+    "iniziali": 3
+  },
+  "cavalcavia": {
+    "iniziali": 1
+  },
+  "crescita": {
+    "ogniMin": 45,
+    "ogniMax": 60,
+    "massimo": 12,
+    "distanzaMinima": 100,
+    "difficolta": 0.8
+  },
+  "congestione": {
+    "capienza": 6,
+    "tolleranza": 20
+  },
+  "tempo": {
+    "giorno": 20
+  },
+  "veicoli": {
+    "ogniMin": 7,
+    "ogniMax": 9
+  },
+  "strade": {
+    "iniziali": 25,
+    "perGiorno": 5,
+    "lunghezzaTratto": 40
+  },
+  "premi": {
+    "strade": 20,
+    "capienza": 3,
+    "ponti": 1,
+    "cavalcavia": 1
+  },
+  "stelle": {
+    "viaggi": 140,
+    "giorni": 12,
+    "traffico": {
+      "soglia": 12
+    }
+  }
+}

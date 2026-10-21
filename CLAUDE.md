@@ -9,7 +9,7 @@ Puzzle per telefono, a livelli: ogni livello è una città ispirata a una città
 ## Regole decise
 
 - Ogni stazione ha una forma e genera veicoli di una forma diversa dalla propria. Ogni veicolo deve raggiungere una stazione della sua forma, sul percorso più rapido. Le stazioni non si attraversano: le usano solo i veicoli che ne partono o che ci arrivano (possono avere più strade in entrata e in uscita).
-- Le stazioni nate a caso prendono il nome del quartiere in cui compaiono (lista "quartieri" nel livello); i luoghi fissi hanno il loro nome.
+- Le stazioni nate a caso prendono il nome del quartiere più vicino raggiungibile senza attraversare l'acqua (lista "quartieri" nel livello), numerato se già usato ("Prati 2"); i luoghi fissi hanno il loro nome.
 - I veicoli in attesa restano in coda nella stazione d'origine; la coda si vede come una fila di forme grigie sopra la stazione.
 - I veicoli sono fisici (auto, furgoni, autobus visti dall'alto, col colore e la forma della destinazione): ognuno nella sua corsia, mantiene la distanza, rallenta in curva e agli incroci svolta seguendo una curva. Agli incroci e nelle stazioni attraversate passa chi arriva prima, purché la sua curva non incroci quella di chi è dentro e ci sia spazio per uscire. Le strade lente si velano di un rosso tenue.
 - Strade e incroci si disegnano col dito, nessun menu: la forma disegnata decide il tipo di incrocio (a raso, rotatoria, cavalcavia, semaforo).
@@ -28,7 +28,7 @@ Puzzle per telefono, a livelli: ogni livello è una città ispirata a una città
 - Efficienza dei viaggi (tempo minimo in linea d'aria / tempo reale) negli obiettivi, a fine partita e come possibile condizione di stella.
 - Tre stelle per livello: 1 = viaggi minimi, 2 = giorni sopravvissuti, 3 = traffico lento medio (quota del tempo in strada sotto il 30% della velocità massima) sotto una soglia; la terza conta solo quando sono comparse tutte le stazioni del livello ("massimo" della crescita) e si può riperdere fino a fine partita. Soglie tarate col bot: viaggi sopra la media, giorni e traffico un po' sotto la media. Prese tutte e tre, il livello è completato e la partita finisce (in futuro: modalità sandbox).
 - Quando nasce una stazione compare un pop-up con forma e nome, che si chiude con un tocco.
-- Dieci forme di stazione (cerchio, quadrato, triangolo, pentagono, esagono, stella, rombo, croce, mezzaluna, goccia); ogni livello sceglie quali usare. Nei livelli con un fiume le stazioni di una forma nascono di preferenza sulla stessa riva, così per arrivare a destinazione bisogna attraversare.
+- Dieci forme di stazione (cerchio, quadrato, triangolo, pentagono, esagono, stella, rombo, croce, mezzaluna, goccia); ogni livello sceglie quali usare. Nei livelli con l'acqua le stazioni di una forma nascono di preferenza sulla stessa terra (riva o isola), così per arrivare a destinazione bisogna attraversare.
 - Telefono in verticale. Gesti: trascina = strada, pressione lunga = rimuovi, due dita = spostamento e zoom facoltativo.
 
 ## Scelte tecniche

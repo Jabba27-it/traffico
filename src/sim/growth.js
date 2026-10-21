@@ -5,7 +5,7 @@
 
 import { distance } from './geometry.js';
 import { STATION_RADIUS } from './stations.js';
-import { distanceToWater, riverSide } from './water.js';
+import { distanceToWater, landMap, landOf } from './water.js';
 import { obstacleAt } from './terrain.js';
 
 /** @typedef {import('./level.js').Level} Level */
@@ -19,7 +19,7 @@ import { obstacleAt } from './terrain.js';
 const ATTEMPTS = 24;
 /** Spazio minimo fra il bordo di una stazione e la riva. */
 const WATER_MARGIN = 16;
-/** Peso di "sta dalla stessa parte del fiume delle altre stazioni della sua forma". */
+/** Peso di "sta sulla stessa terra (riva o isola) delle altre stazioni della sua forma". */
 const SAME_SIDE_BONUS = 0.6;
 /** Peso di "è lontana dalle strade già costruite". */
 const ROAD_WEIGHT = 0.5;
@@ -69,8 +69,21 @@ export function pickNewStation(random, level, stations, area, graph, allowed = (
   return { shape, x: best.x, y: best.y, ...(name ? { name } : {}) };
 }
 
-/** Passo con cui si controlla che fra la stazione e il quartiere non ci sia acqua. */
-const LAND_STEP = 6;
+/** @type {WeakMap<Level, import('./water.js').LandMap>} terre di ogni livello, calcolate una volta */
+const lands = new WeakMap();
+
+/**
+ * Le terre del livello (rive e isole), calcolate la prima volta che servono.
+ * @param {Level} level
+ */
+function landsOf(level) {
+  let map = lands.get(level);
+  if (!map) {
+    map = landMap(level.waters, level.world);
+    lands.set(level, map);
+  }
+  return map;
+}
 
 /**
  * Il nome del quartiere dove nasce la stazione: il più vicino raggiungibile
@@ -94,25 +107,22 @@ function districtName(level, stations, p) {
 }
 
 /**
- * true se si va in linea retta da a a b senza toccare l'acqua.
+ * true se a e b stanno sulla stessa terra: si va dall'uno all'altro senza attraversare l'acqua.
  * @param {Level} level
  * @param {Point} a
  * @param {Point} b
  */
 function sameLand(level, a, b) {
-  const steps = Math.ceil(distance(a, b) / LAND_STEP);
-  for (let i = 1; i < steps; i++) {
-    const t = i / steps;
-    if (distanceToWater(level.waters, { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }) < 0) return false;
-  }
-  return true;
+  if (level.waters.length === 0) return true;
+  const map = landsOf(level);
+  return landOf(map, a) === landOf(map, b);
 }
 
 /**
  * Quanto è difficile collegare una stazione nuova in p: lontana dalla stazione
- * della stessa forma più vicina e lontana dalle strade. Nei livelli con un fiume
- * le stazioni di una forma stanno di preferenza dalla stessa parte: così ogni
- * riva ha le sue forme e per arrivare a destinazione bisogna attraversare.
+ * della stessa forma più vicina e lontana dalle strade. Nei livelli con l'acqua
+ * le stazioni di una forma stanno di preferenza sulla stessa terra (riva o isola):
+ * così ogni terra ha le sue forme e per arrivare a destinazione bisogna attraversare.
  * @param {Point} p
  * @param {Station[]} twins     le stazioni della stessa forma
  * @param {Station[]} stations  tutte le stazioni
@@ -126,9 +136,12 @@ function hardness(p, twins, stations, roadNodes, level, scale) {
   const nearest = nearestOf(pool, p);
   if (nearest) score += distance(nearest, p) / scale;
   if (twins.length > 0) {
-    const side = riverSide(level.waters, p);
-    const twinSide = Math.sign(twins.reduce((a, t) => a + riverSide(level.waters, t), 0));
-    if (side !== 0 && side === twinSide) score += SAME_SIDE_BONUS;
+    // Bonus se almeno metà delle stazioni gemelle sta sulla stessa terra (riva o isola).
+    if (level.waters.length > 0) {
+      const land = landOf(landsOf(level), p);
+      const together = twins.filter((t) => landOf(landsOf(level), t) === land).length;
+      if (together * 2 >= twins.length) score += SAME_SIDE_BONUS;
+    }
   }
   const road = nearestOf(roadNodes, p);
   if (road) score += (ROAD_WEIGHT * distance(road, p)) / scale;
