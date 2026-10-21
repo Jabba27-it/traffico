@@ -26,7 +26,8 @@ Puzzle per telefono, a livelli: ogni livello è una città ispirata a una città
 - Terreno (voce "terreno" del livello): nelle ville e sui monumenti non si costruisce e non nascono stazioni, bisogna passare attorno; sui colli i veicoli rallentano (i mezzi pesanti di più); le mura sono solo decorazione; sulla mappa si scrivono i nomi di ville e monumenti, quelli dei quartieri vanno solo alle stazioni.
 - Stile grafico "carta di Roma": toni caldi (travertino, terracotta, verde pino) ma colori piatti e ben leggibili; tutti i colori in src/render/style.js.
 - Efficienza dei viaggi (tempo minimo in linea d'aria / tempo reale) negli obiettivi, a fine partita e come possibile condizione di stella.
-- Tre stelle per livello: 1 = viaggi minimi, 2 = giorni sopravvissuti, 3 = condizione speciale della città. Prese tutte e tre, il livello è completato e la partita finisce (in futuro: modalità sandbox).
+- Tre stelle per livello: 1 = viaggi minimi, 2 = giorni sopravvissuti, 3 = traffico lento medio (quota del tempo in strada sotto il 30% della velocità massima) sotto una soglia; la terza conta solo quando sono comparse tutte le stazioni del livello ("massimo" della crescita) e si può riperdere fino a fine partita. Soglie tarate col bot: viaggi sopra la media, giorni e traffico un po' sotto la media. Prese tutte e tre, il livello è completato e la partita finisce (in futuro: modalità sandbox).
+- Quando nasce una stazione compare un pop-up con forma e nome, che si chiude con un tocco.
 - Dieci forme di stazione (cerchio, quadrato, triangolo, pentagono, esagono, stella, rombo, croce, mezzaluna, goccia); ogni livello sceglie quali usare. Nei livelli con un fiume le stazioni di una forma nascono di preferenza sulla stessa riva, così per arrivare a destinazione bisogna attraversare.
 - Telefono in verticale. Gesti: trascina = strada, pressione lunga = rimuovi, due dita = spostamento e zoom facoltativo.
 

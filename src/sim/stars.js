@@ -7,6 +7,7 @@
  * @property {number} trips
  * @property {number} daysSurvived  giorni interi trascorsi
  * @property {number | null} slowTraffic  traffico lento medio in percentuale
+ * @property {number} stations     stazioni comparse finora
  */
 
 /**
@@ -49,9 +50,9 @@ export function starGoals(goals, s) {
  */
 function trafficGoal(goal, s) {
   const label = `Traffico lento sotto il ${goal.max}%`;
-  // Conta solo dopo un po' di viaggi: all'inizio le strade sono vuote e la media non dice niente.
-  if (s.trips < goal.min || s.slowTraffic === null) {
-    return { label, progress: `si misura dopo ${goal.min} viaggi`, reached: false, lasting: false };
+  // Conta solo a città completa: con poche stazioni le strade sono vuote e sarebbe troppo facile.
+  if (s.stations < goal.stations || s.slowTraffic === null) {
+    return { label, progress: `si misura con tutte le ${goal.stations} stazioni (ora ${s.stations})`, reached: false, lasting: false };
   }
   return {
     label,

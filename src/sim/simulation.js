@@ -162,6 +162,7 @@ export class Simulation {
       trips: this.trips,
       daysSurvived: Math.floor(this.elapsed / this.level.dayLength + 1e-6),
       slowTraffic: this.slowTraffic,
+      stations: this.stations.length,
     });
   }
 
