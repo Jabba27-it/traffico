@@ -5,6 +5,7 @@
 
 import { ROAD_WIDTH } from './graph.js';
 import { STATION_RADIUS } from './stations.js';
+import { emptyTerrain, hillAt } from './terrain.js';
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
 /** @typedef {{x: number, y: number}} Point */
@@ -33,14 +34,19 @@ const CURVE_SAMPLES = 20;
  * @property {boolean} guarded  per le curve: serve il permesso per entrarci (incroci e stazioni)
  * @property {boolean} elevated sale o scende dal cavalcavia: lì si va più piano
  * @property {boolean} fast     corsia di superstrada: lì si va più veloci
+ * @property {number} hill      quanto è ripido (0 in pianura, 1 in cima a un colle): lì si va più piano
  * @property {number} from      per le curve: il nodo da cui si arriva
  * @property {number} to        per le curve: il nodo verso cui si va
  */
 
 export class LaneGeometry {
-  /** @param {RoadGraph} graph */
-  constructor(graph) {
+  /**
+   * @param {RoadGraph} graph
+   * @param {import('./terrain.js').Terrain} [terrain]  per sapere dove ci sono i colli
+   */
+  constructor(graph, terrain = emptyTerrain()) {
     this.graph = graph;
+    this.terrain = terrain;
     this.version = -1;
     /** @type {Map<string, Piece>} */
     this.cache = new Map();
@@ -107,6 +113,7 @@ export class LaneGeometry {
     const piece = makePiece(key, 'lane', [start, end], -1, 0, false);
     piece.elevated = Boolean(pa.overpass?.upper || pb.overpass?.upper);
     piece.fast = this.graph.getEdge(a, b)?.kind === 'super';
+    piece.hill = hillAt(this.terrain, { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 });
     this.cache.set(key, piece);
     return piece;
   }
@@ -264,7 +271,7 @@ function makePiece(key, kind, points, nodeId, angle, guarded) {
   for (let i = 1; i < points.length; i++) {
     lengths.push(lengths[i - 1] + Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y));
   }
-  return { key, kind, points, lengths, length: lengths[lengths.length - 1], node: nodeId, angle, guarded, elevated: false, fast: false, from: -1, to: -1 };
+  return { key, kind, points, lengths, length: lengths[lengths.length - 1], node: nodeId, angle, guarded, elevated: false, fast: false, hill: 0, from: -1, to: -1 };
 }
 
 /**

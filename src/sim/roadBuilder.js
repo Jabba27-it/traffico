@@ -6,6 +6,7 @@ import { closestPointOnSegment, distance, segmentIntersection } from './geometry
 import { STATION_RADIUS } from './stations.js';
 import { ROAD_WIDTH } from './graph.js';
 import { isInWater, lengthInWater, touchesSea, widestWaterAlong } from './water.js';
+import { obstacleAt } from './terrain.js';
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('./graph.js').RoadNode} RoadNode */
@@ -22,8 +23,9 @@ const STATION_SNAP = STATION_RADIUS + 8;
  * Perché il tratto disegnato è stato troncato:
  * 'roads' tratti finiti, 'bridges' ponti finiti, 'long' ponte troppo lungo,
  * 'water' il tratto finisce in acqua, 'sea' il tratto entra nel mare,
- * 'outside' il tratto esce dalla parte visibile della città.
- * @typedef {'roads' | 'bridges' | 'long' | 'water' | 'sea' | 'outside'} CutReason
+ * 'outside' il tratto esce dalla parte visibile della città,
+ * 'villa' e 'monument' il tratto entra in una villa o su un monumento.
+ * @typedef {'roads' | 'bridges' | 'long' | 'water' | 'sea' | 'outside' | 'villa' | 'monument'} CutReason
  */
 
 /**
@@ -42,6 +44,7 @@ const STATION_SNAP = STATION_RADIUS + 8;
  * @property {number} bridges    ponti disponibili
  * @property {Water[]} waters
  * @property {{x: number, y: number, width: number, height: number}} bounds  dove si può costruire
+ * @property {import('./terrain.js').Terrain} terrain  ville e monumenti, dove non si costruisce
  */
 
 /** @typedef {import('./water.js').Water} Water */
@@ -62,15 +65,23 @@ export function planRoad(graph, points, limits) {
   );
   const wet = points.map((p) => isInWater(limits.waters, p));
 
-  // Il tratto si ferma al primo punto fuori dalla parte visibile della città.
+  // Il tratto si ferma al primo punto fuori dalla parte visibile della città,
+  // o dentro una villa o un monumento (controllando anche a metà di ogni pezzo,
+  // perché un monumento piccolo potrebbe cadere fra due punti).
   const b = limits.bounds;
-  const outsideAt = points.findIndex((p) => p.x < b.x || p.y < b.y || p.x > b.x + b.width || p.y > b.y + b.height);
-  const usable = outsideAt === -1 ? points.length : outsideAt;
+  const blockedAt = (/** @type {Point} */ p, /** @type {number} */ i) => {
+    if (p.x < b.x || p.y < b.y || p.x > b.x + b.width || p.y > b.y + b.height) return 'outside';
+    const mid = i > 0 ? { x: (p.x + points[i - 1].x) / 2, y: (p.y + points[i - 1].y) / 2 } : p;
+    return obstacleAt(limits.terrain, p, ROAD_WIDTH / 2) ?? obstacleAt(limits.terrain, mid, ROAD_WIDTH / 2);
+  };
+  const firstBlocked = points.findIndex((p, i) => blockedAt(p, i) !== null);
+  const usable = firstBlocked === -1 ? points.length : firstBlocked;
   /** @type {{index: number, x: number, y: number, reason: CutReason} | null} */
   let waterCut = null;
-  if (outsideAt !== -1) {
-    const last = points[Math.max(0, outsideAt - 1)];
-    waterCut = { index: Math.max(1, outsideAt), x: last.x, y: last.y, reason: 'outside' };
+  if (firstBlocked !== -1) {
+    const last = points[Math.max(0, firstBlocked - 1)];
+    const reason = /** @type {CutReason} */ (blockedAt(points[firstBlocked], firstBlocked));
+    waterCut = { index: Math.max(1, firstBlocked), x: last.x, y: last.y, reason };
   }
 
   // Attraversamenti dell'acqua, nell'ordine del tratto.

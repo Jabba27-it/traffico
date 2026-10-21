@@ -28,6 +28,9 @@ const SHARPEST_CURVE = 0.3;
 const MAX_LATERAL = 90;
 /** Sulle superstrade si va più veloci della velocità massima normale. */
 const SUPER_SPEED = 1.35;
+/** Quanto si perde in cima a un colle, in frazione della velocità: automobili e mezzi pesanti. */
+const HILL_CAR = 0.3;
+const HILL_HEAVY = 0.6;
 /** Velocità sul cavalcavia, in frazione della massima: automobili e mezzi pesanti. */
 const RAMP_CAR = 0.85;
 const RAMP_HEAVY = 0.65;
@@ -184,6 +187,12 @@ export class Traffic {
       // Velocità della strada: sulle superstrade più alta. Prima di lasciarle si frena.
       const roadSpeed = v.type.maxSpeed * (piece.fast ? SUPER_SPEED : 1);
       limit = Math.min(limit, Math.sqrt(roadSpeed * roadSpeed + 2 * BRAKE * ahead));
+
+      // Colli: in salita le auto rallentano un po', i mezzi pesanti molto di più.
+      if (piece.hill > 0) {
+        const slope = v.type.maxSpeed * (1 - piece.hill * (v.type.name === 'auto' ? HILL_CAR : HILL_HEAVY));
+        limit = Math.min(limit, Math.sqrt(slope * slope + 2 * BRAKE * ahead));
+      }
 
       // Salita e discesa del cavalcavia: le auto rallentano poco, i mezzi pesanti di più.
       if (piece.elevated) {

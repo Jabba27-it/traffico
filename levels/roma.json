@@ -33,6 +33,32 @@
       "punti": [[0, 1500], [120, 1580], [220, 1680], [300, 1840], [0, 1840]]
     }
   ],
+  "terreno": {
+    "ville": [
+      { "nome": "Villa Borghese", "punti": [[555, 330], [640, 320], [690, 360], [680, 430], [610, 450], [560, 410]] },
+      { "nome": "Villa Ada", "punti": [[640, 150], [720, 140], [760, 190], [730, 230], [660, 225]] },
+      { "nome": "Villa Pamphili", "punti": [[150, 700], [250, 690], [290, 740], [260, 800], [170, 800], [130, 750]] },
+      { "nome": "Appia Antica", "punti": [[720, 1150], [770, 1140], [830, 1300], [840, 1420], [790, 1430], [760, 1300]] },
+      { "nome": "Pineta di Castel Fusano", "punti": [[380, 1740], [480, 1720], [560, 1760], [540, 1820], [400, 1825]] }
+    ],
+    "colli": [
+      { "nome": "Monte Mario", "x": 185, "y": 330, "raggio": 75 },
+      { "nome": "Gianicolo", "x": 350, "y": 720, "raggio": 55 },
+      { "nome": "Aventino", "x": 535, "y": 915, "raggio": 38 },
+      { "nome": "Celio", "x": 690, "y": 890, "raggio": 32 }
+    ],
+    "monumenti": [
+      { "nome": "Castel Sant'Angelo", "icona": "castello", "x": 330, "y": 560, "raggio": 16 },
+      { "nome": "Pantheon", "icona": "colonne", "x": 530, "y": 610, "raggio": 12 },
+      { "nome": "Altare della Patria", "icona": "altare", "x": 565, "y": 690, "raggio": 15 },
+      { "nome": "Circo Massimo", "icona": "circo", "x": 580, "y": 900, "raggio": 26 },
+      { "nome": "Terme di Caracalla", "icona": "terme", "x": 650, "y": 975, "raggio": 20 }
+    ],
+    "mura": [
+      [480, 400], [600, 370], [700, 440], [730, 600], [745, 760], [720, 900], [660, 1010], [560, 1030],
+      [480, 980], [430, 900], [360, 840], [380, 760], [440, 700], [430, 560], [450, 470]
+    ]
+  },
   "quartieri": [
     { "nome": "Primavalle",     "x": 100, "y": 270 },
     { "nome": "Balduina",       "x": 260, "y": 250 },

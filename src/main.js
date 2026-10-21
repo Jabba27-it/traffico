@@ -8,6 +8,7 @@ import { drawRoads, drawLaneMarks, drawOverpasses, drawPreview, drawRemoval, dra
 import { currentPiece } from './sim/vehicles.js';
 import { drawJunctionMarks, drawRoundaboutIslands } from './render/junctions.js';
 import { STYLE } from './render/style.js';
+import { drawGround, drawDistrictNames } from './render/terrain.js';
 import { drawStations, drawSelectable } from './render/stations.js';
 import { STATION_RADIUS } from './sim/stations.js';
 import { drawVehicles } from './render/vehicles.js';
@@ -272,6 +273,7 @@ async function start() {
     useWorldSpace(view);
     ctx.fillStyle = BACKGROUND;
     ctx.fillRect(0, 0, level.world.width, level.world.height);
+    drawGround(ctx, level.terrain);
     drawWater(ctx, level.waters);
     drawOutsideVeil(ctx, level.world, visible);
     drawRoads(ctx, graph, sim.traffic.congestion);
@@ -292,7 +294,9 @@ async function start() {
     drawOverpasses(ctx, graph);
     drawVehicles(ctx, elevated);
     drawCongestion(ctx, sim.stations, level.congestion.tolerance, now / 1000);
-    drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed, framed.width / level.view[0].width);
+    const labelScale = framed.width / level.view[0].width;
+    drawDistrictNames(ctx, level.districts, new Set(sim.stations.map((s) => s.name ?? '')), labelScale);
+    drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed, labelScale);
     if (choosingStation) drawSelectable(ctx, sim.stations, now / 1000);
     requestAnimationFrame(frame);
   }

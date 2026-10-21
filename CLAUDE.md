@@ -23,6 +23,8 @@ Puzzle per telefono, a livelli: ogni livello è una città ispirata a una città
 - Incroci: la strada più dritta è la principale e ha la precedenza; chi arriva dalle laterali si immette quando sulla principale non arriva nessuno. Tocco breve su un incrocio: incrocio → semaforo (verde più lungo alla principale) → cavalcavia (solo sulle croci) → incrocio.
 - Cavalcavia: le due strade si scavalcano, niente precedenze né svolte; sopra si va più piano, i mezzi pesanti di più. Risorsa limitata, fra i premi settimanali; ogni settimana si propongono 3 carte a caso fra quelle possibili.
 - Rotatoria: si disegna un cerchio intorno a un incrocio; anello a senso unico antiorario, chi è dentro ha la precedenza; costa i tratti dell'anello; tocco al centro per tornare incrocio.
+- Terreno (voce "terreno" del livello): nelle ville e sui monumenti non si costruisce e non nascono stazioni, bisogna passare attorno; sui colli i veicoli rallentano (i mezzi pesanti di più); le mura e i nomi dei quartieri sono solo decorazione.
+- Stile grafico "carta di Roma": toni caldi (travertino, terracotta, verde pino) ma colori piatti e ben leggibili; tutti i colori in src/render/style.js.
 - Efficienza dei viaggi (tempo minimo in linea d'aria / tempo reale) negli obiettivi, a fine partita e come possibile condizione di stella.
 - Tre stelle per livello: 1 = viaggi minimi, 2 = giorni sopravvissuti, 3 = condizione speciale della città.
 - Telefono in verticale. Gesti: trascina = strada, pressione lunga = rimuovi, due dita = spostamento e zoom facoltativo.

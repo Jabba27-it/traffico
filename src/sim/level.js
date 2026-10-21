@@ -1,6 +1,7 @@
 // Lettura e controllo di un file di livello (vedi levels/*.json).
 
 import { SHAPES } from './stations.js';
+import { emptyTerrain } from './terrain.js';
 
 /** @typedef {import('./stations.js').Shape} Shape */
 
@@ -95,6 +96,7 @@ import { SHAPES } from './stations.js';
  * @property {import('./water.js').Water[]} waters
  * @property {number} bridges  ponti disponibili all'inizio
  * @property {Stars | null} stars
+ * @property {import('./terrain.js').Terrain} terrain  ville, colli, monumenti e mura
  * @property {number} overpasses  cavalcavia disponibili all'inizio
  * @property {{min: number, max: number}} spawn  secondi fra un veicolo nuovo e il successivo, per stazione * @property {{name: string, x: number, y: number}[]} districts
  *   quartieri: una stazione nata a caso prende il nome del quartiere più vicino
@@ -252,7 +254,10 @@ export function parseLevel(json) {
   const spawnMin = isNum(vh.ogniMin) && vh.ogniMin > 0 ? vh.ogniMin : 6;
   const spawn = { min: spawnMin, max: isNum(vh.ogniMax) && vh.ogniMax >= spawnMin ? vh.ogniMax : spawnMin + 2 };
 
+  const terrain = parseTerrain(json.terreno);
+
   return {
+    terrain,
     overpasses,
     spawn,
     districts,
@@ -271,6 +276,37 @@ export function parseLevel(json) {
     growth,
     zones,
   };
+}
+
+/**
+ * La voce "terreno" del livello: ville, colli, monumenti, mura. Tutto facoltativo.
+ * @param {any} t
+ * @returns {import('./terrain.js').Terrain}
+ */
+function parseTerrain(t) {
+  const terrain = emptyTerrain();
+  if (t === undefined) return terrain;
+  const points = (/** @type {any} */ list, /** @type {string} */ where, /** @type {number} */ min) => {
+    const ok = Array.isArray(list) && list.length >= min && list.every((/** @type {any} */ q) => Array.isArray(q) && isNum(q[0]) && isNum(q[1]));
+    if (!ok) throw new Error(`${where}: servono almeno ${min} punti [x, y]`);
+    return list.map((/** @type {number[]} */ q) => ({ x: q[0], y: q[1] }));
+  };
+  const circle = (/** @type {any} */ c, /** @type {string} */ where) => {
+    if (!isNum(c?.x) || !isNum(c.y) || !isNum(c.raggio)) throw new Error(`${where}: servono "x", "y", "raggio"`);
+  };
+  (t.ville ?? []).forEach((/** @type {any} */ v, /** @type {number} */ i) => {
+    terrain.villas.push({ name: String(v?.nome ?? ''), points: points(v?.punti, `Villa ${i + 1}`, 3) });
+  });
+  (t.colli ?? []).forEach((/** @type {any} */ c, /** @type {number} */ i) => {
+    circle(c, `Colle ${i + 1}`);
+    terrain.hills.push({ name: String(c.nome ?? ''), x: c.x, y: c.y, radius: c.raggio });
+  });
+  (t.monumenti ?? []).forEach((/** @type {any} */ m, /** @type {number} */ i) => {
+    circle(m, `Monumento ${i + 1}`);
+    terrain.monuments.push({ name: String(m.nome ?? ''), icon: String(m.icona ?? 'colonne'), x: m.x, y: m.y, radius: m.raggio });
+  });
+  if (t.mura !== undefined) terrain.walls = points(t.mura, 'Mura', 3);
+  return terrain;
 }
 
 /**

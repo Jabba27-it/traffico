@@ -83,7 +83,7 @@ export class Simulation {
     /** @type {Vehicle[]} */
     this.vehicles = [];
     this.nextVehicleId = 1;
-    this.lanes = new LaneGeometry(graph);
+    this.lanes = new LaneGeometry(graph, level.terrain);
     this.traffic = new Traffic(this.lanes);
     /** Secondi di gioco trascorsi. */
     this.elapsed = 0;
@@ -262,6 +262,7 @@ export class Simulation {
       bridges: this.bridgeBudget,
       waters: this.level.waters,
       bounds: this.view,
+      terrain: this.level.terrain,
     });
   }
 
