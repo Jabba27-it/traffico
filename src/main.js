@@ -260,7 +260,8 @@ async function start() {
     if (sim.announcement && sim.announcement !== lastAnnouncement) {
       lastAnnouncement = sim.announcement;
       showToast(document.body, sim.announcement.text);
-    }    const results = {
+    }
+    const results = {
       score: sim.score,
       seconds: sim.seconds,
       trips: sim.trips,
@@ -269,7 +270,9 @@ async function start() {
       roads: sim.roadBudget,
       bridges: sim.bridgeBudget,
       overpasses: sim.overpassBudget,
-      stars: sim.starsEarned,      efficiency: sim.efficiency,
+      stars: sim.starsEarned,
+      efficiency: sim.efficiency,
+      slowTraffic: sim.slowTraffic,
     };
     hud.update(results);
     if ((sim.failed || sim.completed) && !gameOverShown) {

@@ -10,7 +10,9 @@
  * @property {number} roads        tratti di strada disponibili
  * @property {number} bridges      ponti disponibili
  * @property {number} overpasses   cavalcavia disponibili
- * @property {boolean[]} stars     stelle guadagnate * @property {number | null} [efficiency]  efficienza dei viaggi in percentuale
+ * @property {boolean[]} stars     stelle guadagnate
+ * @property {number | null} [efficiency]  efficienza dei viaggi in percentuale
+ * @property {number | null} [slowTraffic]  traffico lento medio in percentuale
  */
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];

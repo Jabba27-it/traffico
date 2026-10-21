@@ -97,7 +97,7 @@
   ],
   "ponti": { "iniziali": 2 },
   "cavalcavia": { "iniziali": 1 },
-  "crescita": { "ogni": 35, "massimo": 22, "distanzaMinima": 100, "difficolta": 0.8 },
+  "crescita": { "ogniMin": 45, "ogniMax": 60, "massimo": 22, "distanzaMinima": 100, "difficolta": 0.8 },
   "congestione": { "capienza": 6, "tolleranza": 20 },
   "tempo": { "giorno": 20 },
   "veicoli": { "ogniMin": 7, "ogniMax": 9 },
@@ -106,6 +106,6 @@
   "stelle": {
     "viaggi": 200,
     "giorni": 13,
-    "speciale": { "tipo": "collegaLuoghi", "testo": "Tutte le strade portano a Roma" }
+    "traffico": { "soglia": 9, "minimo": 100 }
   }
 }

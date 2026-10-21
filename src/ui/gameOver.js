@@ -41,6 +41,7 @@ export function showGameOver(parent, values, best, actions, completed = false) {
     ['Giorni', String(values.day - 1)],
     ['Viaggi', String(values.trips)],
     ['Efficienza', values.efficiency == null ? '–' : `${values.efficiency}%`],
+    ['Traffico lento', values.slowTraffic == null ? '–' : `${values.slowTraffic}%`],
   ]) {
     const item = document.createElement('div');
     const v = document.createElement('div');

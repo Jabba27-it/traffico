@@ -35,7 +35,8 @@ import { emptyTerrain } from './terrain.js';
 
 /**
  * @typedef {Object} Growth
- * @property {number} interval     secondi fra una stazione nuova e la successiva
+ * @property {number} intervalMin  secondi fra una stazione nuova e la successiva: minimo...
+ * @property {number} intervalMax  ...e massimo, si sceglie a caso fra i due
  * @property {number} max          numero massimo di stazioni nel livello
  * @property {number} minDistance  distanza minima fra due stazioni
  * @property {number} difficulty   0 = posizioni a caso, 1 = sempre il punto più difficile da collegare
@@ -63,21 +64,16 @@ import { emptyTerrain } from './terrain.js';
  */
 
 /**
- * @typedef {Object} SpecialGoal  la condizione speciale della terza stella
- * @property {'collegaLuoghi' | 'reteUnica' | 'efficienza'} kind
- *   collegaLuoghi = tutti i luoghi con nome nella stessa rete;
- *   reteUnica = tutte le stazioni nella stessa rete, quando sono almeno `min`;
- *   efficienza = efficienza dei viaggi almeno `value`%, dopo almeno `min` viaggi
- * @property {string} text  come si presenta al giocatore
- * @property {number} min
- * @property {number} value
+ * @typedef {Object} TrafficGoal  terza stella: poco traffico lento
+ * @property {number} max  traffico lento medio massimo, in percentuale
+ * @property {number} min  viaggi completati prima che la misura conti
  */
 
 /**
  * @typedef {Object} Stars  obiettivi delle tre stelle
  * @property {number} trips  prima stella: viaggi completati
  * @property {number} days   seconda stella: giorni sopravvissuti
- * @property {SpecialGoal | null} special  terza stella
+ * @property {TrafficGoal} traffic  terza stella
  */
 
 /**
@@ -171,9 +167,15 @@ export function parseLevel(json) {
   let zones = [];
   if (json.crescita !== undefined) {
     const c = json.crescita;
-    if (!isNum(c?.ogni) || c.ogni <= 0) throw new Error('"crescita" deve avere "ogni" (secondi, maggiore di 0)');
+    // "ogni" = intervallo fisso; "ogniMin" e "ogniMax" = intervallo a caso fra i due.
+    const min = isNum(c?.ogniMin) ? c.ogniMin : c?.ogni;
+    const max = isNum(c?.ogniMax) ? c.ogniMax : c?.ogni;
+    if (!isNum(min) || !isNum(max) || min <= 0 || max < min) {
+      throw new Error('"crescita" deve avere "ogni", oppure "ogniMin" e "ogniMax" (secondi, maggiori di 0)');
+    }
     growth = {
-      interval: c.ogni,
+      intervalMin: min,
+      intervalMax: max,
       max: isNum(c.massimo) ? c.massimo : Infinity,
       minDistance: isNum(c.distanzaMinima) ? c.distanzaMinima : 80,
       difficulty: isNum(c.difficolta) ? Math.max(0, Math.min(1, c.difficolta)) : 0.7,
@@ -237,21 +239,10 @@ export function parseLevel(json) {
   if (json.stelle !== undefined) {
     const st = json.stelle;
     if (!isNum(st?.viaggi) || !isNum(st.giorni)) throw new Error('"stelle" deve avere "viaggi" e "giorni"');
-    let special = null;
-    if (st.speciale !== undefined) {
-      const kind = st.speciale?.tipo;
-      if (kind !== 'collegaLuoghi' && kind !== 'reteUnica' && kind !== 'efficienza') {
-        throw new Error('"stelle.speciale.tipo" deve essere "collegaLuoghi", "reteUnica" o "efficienza"');
-      }
-      const defaults = { collegaLuoghi: 'Collega tutti i luoghi', reteUnica: 'Tutte le stazioni in una rete', efficienza: 'Viaggi efficienti' };
-      special = {
-        kind,
-        text: String(st.speciale.testo ?? defaults[kind]),
-        min: isNum(st.speciale.minimo) ? st.speciale.minimo : kind === 'efficienza' ? 50 : 0,
-        value: isNum(st.speciale.valore) ? st.speciale.valore : 60,
-      };
-    }
-    stars = { trips: st.viaggi, days: st.giorni, special };
+    const t = st.traffico;
+    if (!isNum(t?.soglia)) throw new Error('"stelle.traffico" deve avere "soglia" (percentuale di traffico lento)');
+    const traffic = { max: t.soglia, min: isNum(t.minimo) ? t.minimo : 100 };
+    stars = { trips: st.viaggi, days: st.giorni, traffic };
   }
 
   /** @type {{name: string, x: number, y: number}[]} */

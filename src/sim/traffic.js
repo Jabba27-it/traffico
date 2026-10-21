@@ -35,7 +35,7 @@ const HILL_HEAVY = 0.6;
 const RAMP_CAR = 0.85;
 const RAMP_HEAVY = 0.65;
 /** Un veicolo è "fermo nel traffico" sotto questa frazione della sua velocità massima. */
-const SLOW = 0.3;
+export const SLOW = 0.3;
 /**
  * Durata del verde del semaforo: più lungo per la strada principale, che ha
  * più traffico. Fra una fase e l'altra, un momento di tutto rosso.

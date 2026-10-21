@@ -5,7 +5,7 @@ import { createRandom } from './random.js';
 import { shortestPaths, pathTo } from './pathfinding.js';
 import { pointOnVehicle, randomVehicleType } from './vehicles.js';
 import { LaneGeometry, projectOnLane } from './lanes.js';
-import { Traffic } from './traffic.js';
+import { Traffic, SLOW } from './traffic.js';
 import { closestPointOnSegment, distance } from './geometry.js';
 import { STATION_RADIUS, createStation } from './stations.js';
 import { pickNewStation } from './growth.js';
@@ -100,12 +100,18 @@ export class Simulation {
     /** Per l'efficienza: somma dei tempi minimi e dei tempi reali dei viaggi. */
     this.idealTime = 0;
     this.actualTime = 0;
+    /**
+     * Per la terza stella: secondi-veicolo passati in strada, e quanti di questi
+     * andando lenti (sotto la stessa soglia che vela di rosso le strade).
+     */
+    this.roadTime = 0;
+    this.slowTime = 0;
     /** @type {Map<number, number>} secondi al prossimo veicolo in coda, per stazione */
     this.spawnTimers = new Map();
     /** @type {Map<number, number>} secondi alla prossima partenza possibile, per stazione */
     this.departTimers = new Map();
     /** Secondi alla prossima stazione nuova. */
-    this.growthTimer = level.growth ? level.growth.interval : Infinity;
+    this.growthTimer = level.growth ? this.nextGrowthDelay() : Infinity;
     /** @type {Station | null} la stazione rimasta sovraccarica troppo a lungo */
     this.failedStation = null;
     /** Tratti di strada ancora disponibili. */
@@ -134,8 +140,10 @@ export class Simulation {
     /** Tappa della vista da cui si sta partendo, per gli avvisi. */
     this.viewSegment = segmentAt(level.view, 1);
     /** @type {{text: string, at: number} | null} l'ultimo avviso "la città si allarga" */
-    this.announcement = null;    /** Stelle già guadagnate in questa partita. */
+    this.announcement = null;
+    /** Stelle guadagnate in questa partita. */
     this.starsEarned = [false, false, false];
+    this.starsAnnounced = [false, false, false];
     /** true quando sono state prese tutte le stelle: la partita è vinta e finisce. */
     this.completed = false;
     /** @type {{index: number, label: string} | null} l'ultima stella guadagnata */
@@ -152,20 +160,24 @@ export class Simulation {
     return starGoals(this.level.stars, {
       trips: this.trips,
       daysSurvived: Math.floor(this.elapsed / this.level.dayLength + 1e-6),
-      stations: this.stations,
-      hiddenNamed: this.hiddenStations.filter((d) => d.landmark).length,
-      graph: this.graph,
-      efficiency: this.efficiency,
+      slowTraffic: this.slowTraffic,
     });
   }
 
-  /** Controlla se è stata raggiunta una stella nuova. Una stella presa resta presa. */
+  /**
+   * Aggiorna le stelle. Quelle "durature" restano prese; quella del traffico
+   * vale finché la media resta sotto la soglia, e conta com'è a fine partita.
+   */
   updateStars() {
     const goals = this.starGoals();
     goals.forEach((goal, i) => {
-      if (!goal.reached || this.starsEarned[i]) return;
-      this.starsEarned[i] = true;
-      this.lastStar = { index: i, label: goal.label };
+      const was = this.starsEarned[i];
+      this.starsEarned[i] = goal.lasting ? was || goal.reached : goal.reached;
+      // L'avviso solo la prima volta, anche se la stella va e viene.
+      if (this.starsEarned[i] && !was && !this.starsAnnounced[i]) {
+        this.starsAnnounced[i] = true;
+        this.lastStar = { index: i, label: goal.label };
+      }
     });
     // Tutte le stelle prese: il livello è completato e la partita finisce.
     if (goals.length > 0 && goals.every((_, i) => this.starsEarned[i])) this.completed = true;
@@ -217,7 +229,7 @@ export class Simulation {
     const def = pickNewStation(this.random, this.level, this.stations, area, this.graph, (p) => !this.isReserved(p));
     if (def) {
       this.addStation(def, this.elapsed);
-      this.growthTimer = growth.interval;
+      this.growthTimer = this.nextGrowthDelay();
     } else {
       this.growthTimer = GROWTH_RETRY;
     }
@@ -243,6 +255,15 @@ export class Simulation {
    */
   get efficiency() {
     return this.actualTime > 0 ? Math.round((100 * this.idealTime) / this.actualTime) : null;
+  }
+
+  /**
+   * Traffico lento medio in percentuale: quota del tempo passato in strada dai
+   * veicoli andando sotto il 30% della loro velocità massima. null finché
+   * nessuno è partito.
+   */
+  get slowTraffic() {
+    return this.roadTime > 0 ? Math.round((100 * this.slowTime) / this.roadTime) : null;
   }
 
   /** Secondi interi trascorsi (la tolleranza assorbe gli arrotondamenti dei passi). */
@@ -570,6 +591,10 @@ export class Simulation {
     }
 
     const arrived = new Set(this.traffic.step(this.vehicles, dt));
+    for (const v of this.vehicles) {
+      this.roadTime += dt;
+      if (v.speed < v.type.maxSpeed * SLOW) this.slowTime += dt;
+    }
     if (arrived.size > 0) {
       this.trips += arrived.size;
       this.vehicles = this.vehicles.filter((v) => !arrived.has(v));
@@ -861,6 +886,12 @@ export class Simulation {
       }
     }
     return target;
+  }
+
+  /** Secondi alla prossima stazione nuova, a caso nell'intervallo del livello. */
+  nextGrowthDelay() {
+    const { intervalMin: min, intervalMax: max } = /** @type {import('./level.js').Growth} */ (this.level.growth);
+    return min + this.random() * (max - min);
   }
 
   nextSpawnDelay() {

@@ -26,7 +26,7 @@ export function showGoals(parent, goals, efficiency = null) {
     label.textContent = g.label;
     const progress = document.createElement('div');
     progress.className = 'goals-progress';
-    progress.textContent = g.reached ? 'fatto' : g.progress;
+    progress.textContent = g.reached && g.lasting ? 'fatto' : g.progress;
     text.append(label, progress);
     row.append(star, text);
     box.appendChild(row);
