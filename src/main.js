@@ -21,6 +21,7 @@ import { showGameOver } from './ui/gameOver.js';
 import { createSpeedControls } from './ui/speed.js';
 import { showRewardChoice, showStationPrompt, REWARD_ICONS } from './ui/reward.js';
 import { showToast } from './ui/toast.js';
+import { showStationPopup } from './ui/stationPopup.js';
 import { showGoals } from './ui/goals.js';
 import { showMenu, parseIndex } from './ui/menu.js';
 import { saveRecord } from './ui/records.js';
@@ -152,8 +153,9 @@ async function start() {
   let pending = 0;
   let gameOverShown = false;
   let rewardShown = false;
-  /** @type {{text: string, at: number} | null} */
-  let lastAnnouncement = null;  /** Dopo aver scelto "migliora una stazione", finché non se ne tocca una. */
+  /** Stazioni già annunciate: quelle presenti all'inizio non hanno pop-up. */
+  let knownStations = sim.stations.length;
+  /** Dopo aver scelto "migliora una stazione", finché non se ne tocca una. */
   let choosingStation = false;
   /** @type {() => void} */
   let hidePrompt = () => {};
@@ -257,9 +259,10 @@ async function start() {
       while (cards.length > REWARD_CHOICES) cards.splice(Math.floor(Math.random() * cards.length), 1);
       showRewardChoice(document.body, sim.rewardedWeeks, cards);
     }
-    if (sim.announcement && sim.announcement !== lastAnnouncement) {
-      lastAnnouncement = sim.announcement;
-      showToast(document.body, sim.announcement.text);
+    // Nel tutorial le stazioni nuove le presenta già il riquadro delle istruzioni.
+    if (sim.stations.length > knownStations) {
+      if (!tutorial) showStationPopup(document.body, sim.stations[sim.stations.length - 1]);
+      knownStations = sim.stations.length;
     }
     const results = {
       score: sim.score,

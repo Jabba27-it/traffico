@@ -143,6 +143,28 @@
       opacity: 0;
       transition: opacity 0.4s, transform 0.4s;
     }
+    .station-popup {
+      position: fixed;
+      top: calc(env(safe-area-inset-top) + 108px);
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px 8px 10px;
+      border-radius: 14px;
+      background: var(--card);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+      color: var(--ink);
+      font-family: system-ui, sans-serif;
+      white-space: nowrap;
+      cursor: pointer;
+      animation: station-popup-in 0.25s ease-out;
+    }
+    @keyframes station-popup-in { from { opacity: 0; transform: translate(-50%, -8px); } }
+    .station-popup-label { font-size: 11px; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.04em; }
+    .station-popup-name { font-size: 15px; font-weight: 700; }
+    .station-popup-close { margin-left: 6px; font-size: 13px; opacity: 0.5; }
     .toast.visible { opacity: 1; transform: translate(-50%, 0); }
     .speed button {
       width: 40px;
