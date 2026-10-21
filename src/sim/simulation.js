@@ -16,7 +16,8 @@ import { isInWater } from './water.js';
 import { viewAt, segmentAt, insetRect, rectContains } from './view.js';
 import { starGoals } from './stars.js';
 import { buildOverpass, overpassPairs, removeOverpass } from './overpass.js';
-import { circledJunction, buildRoundabout, removeRoundabout, ringCost, RING_RADIUS } from './roundabout.js';
+import { drawnCircle, buildRoundabout, removeRoundabout, ringCost, ringPoints } from './roundabout.js';
+import { obstacleAt } from './terrain.js';
 
 /** @typedef {import('./roadEditing.js').RoadPiece} RoadPiece */
 /** @typedef {import('./graph.js').RoadEdge} RoadEdge */
@@ -128,6 +129,8 @@ export class Simulation {
     /** @type {{text: string, at: number} | null} l'ultimo avviso "la città si allarga" */
     this.announcement = null;    /** Stelle già guadagnate in questa partita. */
     this.starsEarned = [false, false, false];
+    /** true quando sono state prese tutte le stelle: la partita è vinta e finisce. */
+    this.completed = false;
     /** @type {{index: number, label: string} | null} l'ultima stella guadagnata */
     this.lastStar = null;
     this.starTimer = 0;
@@ -151,11 +154,14 @@ export class Simulation {
 
   /** Controlla se è stata raggiunta una stella nuova. Una stella presa resta presa. */
   updateStars() {
-    this.starGoals().forEach((goal, i) => {
+    const goals = this.starGoals();
+    goals.forEach((goal, i) => {
       if (!goal.reached || this.starsEarned[i]) return;
       this.starsEarned[i] = true;
       this.lastStar = { index: i, label: goal.label };
     });
+    // Tutte le stelle prese: il livello è completato e la partita finisce.
+    if (goals.length > 0 && goals.every((_, i) => this.starsEarned[i])) this.completed = true;
   }
 
   /**
@@ -282,9 +288,9 @@ export class Simulation {
    * @returns {string | null}  esito da mostrare, se ce n'è uno
    */
   buildRoad(points, snapRadius) {
-    // Un cerchio disegnato intorno a un incrocio lo trasforma in rotatoria.
-    const circled = circledJunction(this.graph, points);
-    if (circled) return this.makeRoundabout(circled);
+    // Un cerchio disegnato diventa una rotonda, nel verso in cui è stato disegnato.
+    const circle = drawnCircle(points);
+    if (circle) return this.makeRoundabout(circle);
 
     const plan = this.planRoad(points);
     if (plan.runs.length === 0) return null;
@@ -320,14 +326,20 @@ export class Simulation {
   }
 
   /**
-   * @param {RoadNode} center  l'incrocio da trasformare
+   * @param {import('./roundabout.js').DrawnCircle} circle
    * @returns {string}  esito, per l'avviso
    */
-  makeRoundabout(center) {
-    const cost = ringCost(this.level.roads.segmentLength);
+  makeRoundabout(circle) {
+    if (this.stations.some((st) => Math.hypot(st.x - circle.x, st.y - circle.y) < circle.radius + STATION_RADIUS)) return 'roundabout-station';
+    const view = this.view;
+    const blocked = ringPoints(circle).some(
+      (p) => isInWater(this.level.waters, p) || obstacleAt(this.level.terrain, p, 6) !== null || !rectContains(view, p),
+    );
+    if (blocked) return 'roundabout-blocked';
+    const cost = ringCost(circle.radius, this.level.roads.segmentLength);
     if (this.roadBudget < cost) return 'roundabout-too-expensive';
     this.roadBudget -= cost;
-    const r = buildRoundabout(this.graph, center, this.nextRoundaboutId++, cost);
+    const r = buildRoundabout(this.graph, circle, this.nextRoundaboutId++, cost);
     this.roundabouts.set(r.id, r);
     this.updateRoutes();
     return 'roundabout';
@@ -341,7 +353,7 @@ export class Simulation {
    */
   tapRoundabout(x, y) {
     for (const r of this.roundabouts.values()) {
-      if (Math.hypot(r.x - x, r.y - y) > RING_RADIUS * 0.7) continue;
+      if (Math.hypot(r.x - x, r.y - y) > r.radius * 0.7) continue;
       removeRoundabout(this.graph, r);
       this.roundabouts.delete(r.id);
       this.roadBudget += r.cost;
@@ -356,9 +368,9 @@ export class Simulation {
     return this.failedStation !== null;
   }
 
-  /** true se il tempo scorre: né livello fallito né premio in attesa di scelta. */
+  /** true se il tempo scorre: né livello finito (perso o completato) né premio in attesa di scelta. */
   get running() {
-    return !this.failed && !this.rewardPending;
+    return !this.failed && !this.completed && !this.rewardPending;
   }
 
   /** Premio di fine settimana: cavalcavia in più. */

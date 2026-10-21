@@ -161,10 +161,11 @@ export class LaneGeometry {
         y: u * u * p0.y + 2 * u * t * p1.y + t * t * p2.y,
       });
     }
-    // Chi è già sull'anello di una rotatoria non chiede permessi: ha la precedenza,
-    // sia per proseguire sia per uscire. Lo chiede solo chi entra.
-    const onRing = this.graph.getEdge(a, b)?.ring !== undefined;
-    const piece = makePiece(key, 'turn', points, b, angle, this.isJunction(b) && !onRing);
+    // Chi prosegue sull'anello di una rotonda non chiede permessi. Chi esce e chi
+    // entra sì: chi esce ha comunque la precedenza (arriva dall'anello), ma il
+    // permesso evita che tagli la strada a chi sta entrando.
+    const alongRing = this.graph.getEdge(a, b)?.ring !== undefined && this.graph.getEdge(b, c)?.ring !== undefined;
+    const piece = makePiece(key, 'turn', points, b, angle, this.isJunction(b) && !alongRing);
     piece.elevated = Boolean(node(this.graph, b).overpass?.upper);
     // Una curva fra due tratti di superstrada fa parte della superstrada.
     piece.fast = inLane.fast && outLane.fast;

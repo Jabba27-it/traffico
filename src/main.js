@@ -8,7 +8,7 @@ import { drawRoads, drawLaneMarks, drawOverpasses, drawPreview, drawRemoval, dra
 import { currentPiece } from './sim/vehicles.js';
 import { drawJunctionMarks, drawRoundaboutIslands } from './render/junctions.js';
 import { STYLE } from './render/style.js';
-import { drawGround, drawDistrictNames } from './render/terrain.js';
+import { drawGround, drawTerrainNames } from './render/terrain.js';
 import { drawStations, drawSelectable } from './render/stations.js';
 import { STATION_RADIUS } from './sim/stations.js';
 import { drawVehicles } from './render/vehicles.js';
@@ -47,6 +47,8 @@ const TAP_MESSAGES = {
   roundabout: 'Rotatoria',
   'roundabout-removed': 'Rotatoria tolta: torna incrocio',
   'roundabout-too-expensive': 'Per la rotatoria servono più tratti',
+  'roundabout-station': 'La rotonda non può contenere una stazione',
+  'roundabout-blocked': 'Qui la rotonda non ci sta (acqua, ville, monumenti o fuori città)',
 };
 /** Quante carte premio si propongono a fine settimana (scelte a caso fra quelle possibili). */
 const REWARD_CHOICES = 3;
@@ -257,10 +259,10 @@ async function start() {
       stars: sim.starsEarned,      efficiency: sim.efficiency,
     };
     hud.update(results);
-    if (sim.failed && !gameOverShown) {
+    if ((sim.failed || sim.completed) && !gameOverShown) {
       gameOverShown = true;
       const best = level.stars ? saveRecord(/** @type {string} */ (LEVEL_NAME), sim.score, sim.starsEarned) : null;
-      showGameOver(document.body, results, best, { onRetry: () => location.reload(), onMenu: goToMenu });
+      showGameOver(document.body, results, best, { onRetry: () => location.reload(), onMenu: goToMenu }, sim.completed);
     }
 
     const { ctx } = view;
@@ -295,7 +297,7 @@ async function start() {
     drawVehicles(ctx, elevated);
     drawCongestion(ctx, sim.stations, level.congestion.tolerance, now / 1000);
     const labelScale = framed.width / level.view[0].width;
-    drawDistrictNames(ctx, level.districts, new Set(sim.stations.map((s) => s.name ?? '')), labelScale);
+    drawTerrainNames(ctx, level.terrain, labelScale);
     drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed, labelScale);
     if (choosingStation) drawSelectable(ctx, sim.stations, now / 1000);
     requestAnimationFrame(frame);

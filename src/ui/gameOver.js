@@ -1,4 +1,4 @@
-// Schermata di fine partita: "Livello fallito", stelle, risultati, record,
+// Schermata di fine partita: "Livello fallito" o "Livello completato!", stelle, risultati, record,
 // e i pulsanti Riprova e Menu.
 
 import { starsHtml } from './hud.js';
@@ -11,8 +11,9 @@ import { starsHtml } from './hud.js';
  * @param {HudValues} values
  * @param {{ record: LevelRecord, newBest: boolean } | null} best  null se il livello non ha stelle
  * @param {{ onRetry: () => void, onMenu: () => void }} actions
+ * @param {boolean} [completed]  true se la partita finisce perché il livello è completato
  */
-export function showGameOver(parent, values, best, actions) {
+export function showGameOver(parent, values, best, actions, completed = false) {
   const overlay = document.createElement('div');
   overlay.className = 'game-over';
 
@@ -20,9 +21,10 @@ export function showGameOver(parent, values, best, actions) {
   box.className = 'game-over-box';
 
   const title = document.createElement('h1');
-  title.textContent = 'Livello fallito';
+  title.textContent = completed ? 'Livello completato!' : 'Livello fallito';
   const reason = document.createElement('p');
-  reason.textContent = 'Una stazione è rimasta sovraccarica troppo a lungo.';
+  reason.textContent = completed ? 'Hai preso tutte e tre le stelle.' : 'Una stazione è rimasta sovraccarica troppo a lungo.';
+  if (completed) overlay.classList.add('completed');
   box.append(title, reason);
 
   if (best) {
@@ -60,7 +62,7 @@ export function showGameOver(parent, values, best, actions) {
   }
 
   const retry = document.createElement('button');
-  retry.textContent = 'Riprova';
+  retry.textContent = completed ? 'Gioca ancora' : 'Riprova';
   retry.addEventListener('click', actions.onRetry);
   const menu = document.createElement('button');
   menu.textContent = 'Menu';

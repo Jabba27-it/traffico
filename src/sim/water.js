@@ -110,3 +110,27 @@ function seaDistance(w, p) {
   }
   return inside ? -edge : edge;
 }
+
+/**
+ * Da che parte del primo fiume sta p: 1 o -1 (0 se il livello non ha fiumi).
+ * Serve a tenere le stazioni di una stessa forma sulla stessa riva.
+ * @param {Water[]} waters
+ * @param {Point} p
+ */
+export function riverSide(waters, p) {
+  const river = waters.find((w) => w.kind === 'river');
+  if (!river) return 0;
+  let best = Infinity;
+  let side = 0;
+  for (let i = 1; i < river.points.length; i++) {
+    const a = river.points[i - 1];
+    const b = river.points[i];
+    const c = closestPointOnSegment(p, a, b);
+    const d = distance(c, p);
+    if (d < best) {
+      best = d;
+      side = Math.sign((b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x)) || 1;
+    }
+  }
+  return side;
+}

@@ -1,7 +1,7 @@
 {
   "nome": "Roma",
   "mondo": { "larghezza": 920, "altezza": 1840 },
-  "forme": ["cerchio", "quadrato", "triangolo", "pentagono", "esagono", "stella"],
+  "forme": ["cerchio", "quadrato", "triangolo", "pentagono", "esagono", "stella", "rombo", "croce", "mezzaluna", "goccia"],
   "vista": [
     { "giorno": 1,  "x": 200, "y": 150, "larghezza": 520 },
     { "giorno": 3,  "x": 200, "y": 150, "larghezza": 520 },
@@ -30,7 +30,7 @@
     },
     {
       "tipo": "mare",
-      "punti": [[0, 1500], [120, 1580], [220, 1680], [300, 1840], [0, 1840]]
+      "punti": [[-500, 1380], [0, 1500], [120, 1580], [220, 1680], [300, 1840], [360, 2400], [-500, 2400]]
     }
   ],
   "terreno": {
@@ -97,14 +97,14 @@
   ],
   "ponti": { "iniziali": 2 },
   "cavalcavia": { "iniziali": 1 },
-  "crescita": { "ogni": 40, "massimo": 16, "distanzaMinima": 110, "difficolta": 0.8 },
+  "crescita": { "ogni": 35, "massimo": 22, "distanzaMinima": 100, "difficolta": 0.8 },
   "congestione": { "capienza": 6, "tolleranza": 20 },
   "tempo": { "giorno": 20 },
   "veicoli": { "ogniMin": 7, "ogniMax": 9 },
-  "strade": { "iniziali": 25, "perGiorno": 7, "lunghezzaTratto": 40 },
+  "strade": { "iniziali": 25, "perGiorno": 5, "lunghezzaTratto": 40 },
   "premi": { "strade": 20, "capienza": 3, "ponti": 1, "cavalcavia": 1 },
   "stelle": {
-    "viaggi": 180,
+    "viaggi": 200,
     "giorni": 13,
     "speciale": { "tipo": "collegaLuoghi", "testo": "Tutte le strade portano a Roma" }
   }

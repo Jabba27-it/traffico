@@ -13,6 +13,10 @@ export const SHAPE_COLORS = {
   pentagono: '#4d9a5b',
   esagono: '#8a5bb5',
   stella: '#d6487f',
+  rombo: '#1f9e9a',
+  croce: '#9c6b3d',
+  mezzaluna: '#3d4e8a',
+  goccia: '#8fae2f',
 };
 
 const OUTLINE = '#ffffff';
@@ -161,6 +165,43 @@ export function traceShape(ctx, shape, x, y, r) {
       break;
     case 'stella':
       star(ctx, x, y + r * 0.08, r * 1.1, r * 0.5, 5);
+      break;
+    case 'rombo':
+      ctx.moveTo(x, y - r * 1.05);
+      ctx.lineTo(x + r * 0.8, y);
+      ctx.lineTo(x, y + r * 1.05);
+      ctx.lineTo(x - r * 0.8, y);
+      ctx.closePath();
+      break;
+    case 'croce': {
+      const a = r * 0.36;
+      const b = r * 0.95;
+      ctx.moveTo(x - a, y - b);
+      ctx.lineTo(x + a, y - b);
+      ctx.lineTo(x + a, y - a);
+      ctx.lineTo(x + b, y - a);
+      ctx.lineTo(x + b, y + a);
+      ctx.lineTo(x + a, y + a);
+      ctx.lineTo(x + a, y + b);
+      ctx.lineTo(x - a, y + b);
+      ctx.lineTo(x - a, y + a);
+      ctx.lineTo(x - b, y + a);
+      ctx.lineTo(x - b, y - a);
+      ctx.lineTo(x - a, y - a);
+      ctx.closePath();
+      break;
+    }
+    case 'mezzaluna':
+      // Un cerchio a cui ne manca un altro, spostato a destra.
+      ctx.arc(x - r * 0.1, y, r * 0.95, Math.PI * 0.32, Math.PI * 1.68);
+      ctx.arc(x + r * 0.38, y - r * 0.02, r * 0.72, Math.PI * 1.25, Math.PI * 0.75, true);
+      ctx.closePath();
+      break;
+    case 'goccia':
+      ctx.moveTo(x, y - r * 1.05);
+      ctx.bezierCurveTo(x + r * 0.95, y - r * 0.15, x + r * 0.8, y + r * 0.85, x, y + r * 0.85);
+      ctx.bezierCurveTo(x - r * 0.8, y + r * 0.85, x - r * 0.95, y - r * 0.15, x, y - r * 1.05);
+      ctx.closePath();
       break;
   }
 }

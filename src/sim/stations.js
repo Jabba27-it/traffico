@@ -6,10 +6,10 @@ import { closestPointOnSegment, distance } from './geometry.js';
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('./level.js').StationDef} StationDef */
 
-/** @typedef {'cerchio' | 'quadrato' | 'triangolo' | 'pentagono' | 'esagono' | 'stella'} Shape */
+/** @typedef {'cerchio' | 'quadrato' | 'triangolo' | 'pentagono' | 'esagono' | 'stella' | 'rombo' | 'croce' | 'mezzaluna' | 'goccia'} Shape */
 
 /** @type {readonly Shape[]} */
-export const SHAPES = ['cerchio', 'quadrato', 'triangolo', 'pentagono', 'esagono', 'stella'];
+export const SHAPES = ['cerchio', 'quadrato', 'triangolo', 'pentagono', 'esagono', 'stella', 'rombo', 'croce', 'mezzaluna', 'goccia'];
 
 /** Raggio dell'area occupata da una stazione: nessuna strada la scavalca. */
 export const STATION_RADIUS = 18;

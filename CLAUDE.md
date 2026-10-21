@@ -22,11 +22,12 @@ Puzzle per telefono, a livelli: ogni livello è una città ispirata a una città
 - Tocco breve su una strada: doppio senso → senso unico → senso unico al contrario → superstrada (più veloce, con la precedenza, costa altrettanti tratti) → doppio senso.
 - Incroci: la strada più dritta è la principale e ha la precedenza; chi arriva dalle laterali si immette quando sulla principale non arriva nessuno. Tocco breve su un incrocio: incrocio → semaforo (verde più lungo alla principale) → cavalcavia (solo sulle croci) → incrocio.
 - Cavalcavia: le due strade si scavalcano, niente precedenze né svolte; sopra si va più piano, i mezzi pesanti di più. Risorsa limitata, fra i premi settimanali; ogni settimana si propongono 3 carte a caso fra quelle possibili.
-- Rotatoria: si disegna un cerchio intorno a un incrocio; anello a senso unico antiorario, chi è dentro ha la precedenza; costa i tratti dell'anello; tocco al centro per tornare incrocio.
-- Terreno (voce "terreno" del livello): nelle ville e sui monumenti non si costruisce e non nascono stazioni, bisogna passare attorno; sui colli i veicoli rallentano (i mezzi pesanti di più); le mura e i nomi dei quartieri sono solo decorazione.
+- Rotatoria: si disegna un cerchio (dove si vuole) e diventa una rotonda percorsa nel verso in cui è stato disegnato; le strade che entrano nel cerchio si attaccano all'anello; chi è dentro ha la precedenza; costa i tratti dell'anello; tocco al centro per toglierla. Guidando a destra conviene il senso antiorario.
+- Terreno (voce "terreno" del livello): nelle ville e sui monumenti non si costruisce e non nascono stazioni, bisogna passare attorno; sui colli i veicoli rallentano (i mezzi pesanti di più); le mura sono solo decorazione; sulla mappa si scrivono i nomi di ville e monumenti, quelli dei quartieri vanno solo alle stazioni.
 - Stile grafico "carta di Roma": toni caldi (travertino, terracotta, verde pino) ma colori piatti e ben leggibili; tutti i colori in src/render/style.js.
 - Efficienza dei viaggi (tempo minimo in linea d'aria / tempo reale) negli obiettivi, a fine partita e come possibile condizione di stella.
-- Tre stelle per livello: 1 = viaggi minimi, 2 = giorni sopravvissuti, 3 = condizione speciale della città.
+- Tre stelle per livello: 1 = viaggi minimi, 2 = giorni sopravvissuti, 3 = condizione speciale della città. Prese tutte e tre, il livello è completato e la partita finisce (in futuro: modalità sandbox).
+- Dieci forme di stazione (cerchio, quadrato, triangolo, pentagono, esagono, stella, rombo, croce, mezzaluna, goccia); ogni livello sceglie quali usare. Nei livelli con un fiume le stazioni di una forma nascono di preferenza sulla stessa riva, così per arrivare a destinazione bisogna attraversare.
 - Telefono in verticale. Gesti: trascina = strada, pressione lunga = rimuovi, due dita = spostamento e zoom facoltativo.
 
 ## Scelte tecniche

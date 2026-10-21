@@ -2,7 +2,6 @@
 // sulle strade laterali, così si vede chi deve aspettare.
 
 import { ROAD_WIDTH } from '../sim/graph.js';
-import { RING_RADIUS } from '../sim/roundabout.js';
 
 const ISLAND = '#a9cf9c';
 
@@ -20,12 +19,12 @@ const MARK_DISTANCE = 19;
 /**
  * L'isola verde al centro delle rotatorie.
  * @param {CanvasRenderingContext2D} ctx
- * @param {Iterable<{x: number, y: number}>} roundabouts
+ * @param {Iterable<{x: number, y: number, radius: number}>} roundabouts
  */
 export function drawRoundaboutIslands(ctx, roundabouts) {
   for (const r of roundabouts) {
     ctx.beginPath();
-    ctx.arc(r.x, r.y, RING_RADIUS - ROAD_WIDTH / 2 + 1, 0, Math.PI * 2);
+    ctx.arc(r.x, r.y, r.radius - ROAD_WIDTH / 2 + 1, 0, Math.PI * 2);
     ctx.fillStyle = ISLAND;
     ctx.fill();
     ctx.lineWidth = 1.5;

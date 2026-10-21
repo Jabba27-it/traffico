@@ -5,7 +5,7 @@
 
 import { distance } from './geometry.js';
 import { STATION_RADIUS } from './stations.js';
-import { distanceToWater, isInWater } from './water.js';
+import { distanceToWater, riverSide } from './water.js';
 import { obstacleAt } from './terrain.js';
 
 /** @typedef {import('./level.js').Level} Level */
@@ -19,8 +19,8 @@ import { obstacleAt } from './terrain.js';
 const ATTEMPTS = 24;
 /** Spazio minimo fra il bordo di una stazione e la riva. */
 const WATER_MARGIN = 16;
-/** Peso di "c'è acqua fra la stazione nuova e la sua gemella più vicina". */
-const WATER_BONUS = 0.4;
+/** Peso di "sta dalla stessa parte del fiume delle altre stazioni della sua forma". */
+const SAME_SIDE_BONUS = 0.6;
 /** Peso di "è lontana dalle strade già costruite". */
 const ROAD_WEIGHT = 0.5;
 
@@ -95,7 +95,9 @@ function districtName(level, stations, p) {
 
 /**
  * Quanto è difficile collegare una stazione nuova in p: lontana dalla stazione
- * della stessa forma più vicina, con l'acqua in mezzo, lontana dalle strade.
+ * della stessa forma più vicina e lontana dalle strade. Nei livelli con un fiume
+ * le stazioni di una forma stanno di preferenza dalla stessa parte: così ogni
+ * riva ha le sue forme e per arrivare a destinazione bisogna attraversare.
  * @param {Point} p
  * @param {Station[]} twins     le stazioni della stessa forma
  * @param {Station[]} stations  tutte le stazioni
@@ -107,9 +109,11 @@ function hardness(p, twins, stations, roadNodes, level, scale) {
   let score = 0;
   const pool = twins.length > 0 ? twins : stations;
   const nearest = nearestOf(pool, p);
-  if (nearest) {
-    score += distance(nearest, p) / scale;
-    if (crossesWater(level, p, nearest)) score += WATER_BONUS;
+  if (nearest) score += distance(nearest, p) / scale;
+  if (twins.length > 0) {
+    const side = riverSide(level.waters, p);
+    const twinSide = Math.sign(twins.reduce((a, t) => a + riverSide(level.waters, t), 0));
+    if (side !== 0 && side === twinSide) score += SAME_SIDE_BONUS;
   }
   const road = nearestOf(roadNodes, p);
   if (road) score += (ROAD_WEIGHT * distance(road, p)) / scale;
@@ -133,21 +137,6 @@ function nearestOf(points, p) {
     }
   }
   return best;
-}
-
-/**
- * true se il segmento a-b passa sopra l'acqua.
- * @param {Level} level
- * @param {Point} a
- * @param {Point} b
- */
-function crossesWater(level, a, b) {
-  const STEPS = 16;
-  for (let k = 1; k < STEPS; k++) {
-    const t = k / STEPS;
-    if (isInWater(level.waters, { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t })) return true;
-  }
-  return false;
 }
 
 /**

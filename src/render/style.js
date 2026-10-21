@@ -15,7 +15,8 @@ export const STYLE = {
   monument: '#dcc6a4',
   monumentEdge: '#a8825c',
   monumentIcon: '#8a6744',
-  districtLabel: 'rgba(130, 112, 88, 0.55)',
+  parkLabel: '#5f7a43',
+  monumentLabel: '#7a5a3a',
 
   // Acqua
   water: '#9ccbd3',

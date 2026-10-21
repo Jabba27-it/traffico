@@ -1,5 +1,5 @@
 // Disegno del terreno: colli sfumati, ville con gli alberi, mura tratteggiate,
-// monumenti con una piccola icona e i nomi dei quartieri sulla mappa.
+// monumenti con una piccola icona, e i nomi di ville e monumenti.
 
 import { STYLE } from './style.js';
 import { traceSmoothClosed } from './roads.js';
@@ -32,22 +32,34 @@ export function drawGround(ctx, terrain) {
 }
 
 /**
- * I nomi dei quartieri, chiari e piccoli, sopra le strade ma sotto le stazioni.
- * Quelli che sono già il nome di una stazione non si ripetono.
+ * I nomi delle ville (al centro) e dei monumenti (sotto l'icona), sempre della
+ * stessa grandezza sullo schermo anche quando la vista si allarga.
  * @param {CanvasRenderingContext2D} ctx
- * @param {{name: string, x: number, y: number}[]} districts
- * @param {Set<string>} taken  nomi già scritti sotto una stazione
- * @param {number} scale  ingrandimento, per tenerli leggibili quando la vista si allarga
+ * @param {Terrain} terrain
+ * @param {number} scale
  */
-export function drawDistrictNames(ctx, districts, taken, scale) {
-  ctx.font = `600 ${9.5 * scale}px system-ui, sans-serif`;
+export function drawTerrainNames(ctx, terrain, scale) {
   ctx.textAlign = 'center';
+  ctx.lineWidth = 3 * scale;
+  ctx.strokeStyle = 'rgba(239, 229, 211, 0.85)';
+  ctx.font = `italic 600 ${10 * scale}px system-ui, sans-serif`;
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = STYLE.districtLabel;
-  for (const d of districts) {
-    if (taken.has(d.name)) continue;
-    // Lettere spaziate, come sulle vecchie piante di città.
-    ctx.fillText(d.name.toUpperCase().split('').join(' '), d.x, d.y);
+  ctx.fillStyle = STYLE.parkLabel;
+  for (const v of terrain.villas) {
+    if (!v.name) continue;
+    const cx = v.points.reduce((a, p) => a + p.x, 0) / v.points.length;
+    const cy = v.points.reduce((a, p) => a + p.y, 0) / v.points.length;
+    ctx.strokeText(v.name, cx, cy);
+    ctx.fillText(v.name, cx, cy);
+  }
+  ctx.font = `600 ${9 * scale}px system-ui, sans-serif`;
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = STYLE.monumentLabel;
+  for (const m of terrain.monuments) {
+    if (!m.name) continue;
+    const y = m.y + (m.icon === 'circo' ? m.radius * 0.5 : m.radius) + 3;
+    ctx.strokeText(m.name, m.x, y);
+    ctx.fillText(m.name, m.x, y);
   }
 }
 

@@ -1,39 +1,49 @@
-// Rotatorie: si disegna un cerchio intorno a un incrocio e l'incrocio diventa un
-// anello a senso unico, percorso in senso antiorario. Chi è sull'anello ha la
-// precedenza (l'anello è la strada principale di ogni suo nodo), chi entra si immette.
+// Rotatorie: un cerchio disegnato col dito diventa una rotonda, percorsa nel
+// verso in cui è stato disegnato. Le strade che arrivano dentro il cerchio si
+// accorciano e si attaccano all'anello. Chi è sull'anello ha la precedenza
+// (l'anello è la strada principale di ogni suo nodo), chi entra si immette.
 
-import { distance } from './geometry.js';
+import { closestPointOnSegment, distance } from './geometry.js';
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('./graph.js').RoadNode} RoadNode */
 /** @typedef {import('./graph.js').RoadEdge} RoadEdge */
 /** @typedef {{x: number, y: number}} Point */
 
-/** Raggio dell'anello. */
-export const RING_RADIUS = 36;
-/** Nodi dell'anello: più sono, più la rotatoria è rotonda. */
-const RING_NODES = 10;
-/** Il cerchio disegnato deve chiudersi entro questa distanza... */
+/** Raggio minimo e massimo dell'anello: il cerchio disegnato viene portato fra i due. */
+export const MIN_RING_RADIUS = 28;
+const MAX_RING_RADIUS = 60;
+/** Distanza fra due nodi dell'anello, circa. */
+const RING_STEP = 22;
+/** Il cerchio disegnato deve chiudersi entro questa distanza. */
 const CLOSE_DISTANCE = 40;
-/** ...e il suo centro deve cadere così vicino a un incrocio. */
-const CENTER_REACH = 35;
+/** Una strada che finisce a meno di così dall'anello si accorcia ancora. */
+const SPOKE_MIN = 10;
 
 /**
  * @typedef {Object} Roundabout
  * @property {number} id
  * @property {number} x
  * @property {number} y
+ * @property {number} radius
  * @property {number[]} ring   nodi dell'anello
  * @property {number} cost     tratti pagati per l'anello
  */
 
 /**
- * Se il tratto disegnato è un cerchio intorno a un incrocio, quell'incrocio.
- * @param {RoadGraph} graph
- * @param {Point[]} points
- * @returns {RoadNode | null}
+ * @typedef {Object} DrawnCircle
+ * @property {number} x
+ * @property {number} y
+ * @property {number} radius     già portato fra il minimo e il massimo
+ * @property {boolean} clockwise verso in cui è stato disegnato (visto sullo schermo)
  */
-export function circledJunction(graph, points) {
+
+/**
+ * Se il tratto disegnato è un cerchio, il suo centro, raggio e verso.
+ * @param {Point[]} points
+ * @returns {DrawnCircle | null}
+ */
+export function drawnCircle(points) {
   if (points.length < 6) return null;
   let length = 0;
   for (let i = 1; i < points.length; i++) length += distance(points[i - 1], points[i]);
@@ -42,93 +52,116 @@ export function circledJunction(graph, points) {
     x: points.reduce((s, p) => s + p.x, 0) / points.length,
     y: points.reduce((s, p) => s + p.y, 0) / points.length,
   };
-  // Deve essere davvero un giro intorno al centro, non uno scarabocchio.
+  // Deve essere davvero un giro intorno al centro, non uno scarabocchio:
+  // tutti i punti più o meno alla stessa distanza dal centro.
   const radii = points.map((p) => distance(p, center));
   const mean = radii.reduce((a, b) => a + b, 0) / radii.length;
-  if (mean < 12 || mean > 90) return null;
-
-  let best = null;
-  let bestD = CENTER_REACH;
-  for (const n of graph.nodes.values()) {
-    if (n.stationId !== undefined || n.overpass) continue;
-    const degree = [...graph.edges.values()].filter((e) => e.a === n.id || e.b === n.id).length;
-    if (degree < 3) continue;
-    const d = distance(n, center);
-    if (d < bestD) {
-      bestD = d;
-      best = n;
-    }
+  const spread = Math.sqrt(radii.reduce((a, r) => a + (r - mean) ** 2, 0) / radii.length);
+  if (mean < 15 || mean > 90 || spread > mean * 0.35) return null;
+  // Con l'asse y verso il basso, area con segno positiva = giro in senso orario sullo schermo.
+  let area = 0;
+  for (let i = 0; i < points.length; i++) {
+    const a = points[i];
+    const b = points[(i + 1) % points.length];
+    area += a.x * b.y - b.x * a.y;
   }
-  return best;
-}
-
-/** Tratti che costa l'anello. */
-export function ringCost(segmentLength) {
-  return Math.ceil((2 * Math.PI * RING_RADIUS) / segmentLength - 1e-6);
+  return { ...center, radius: Math.max(MIN_RING_RADIUS, Math.min(MAX_RING_RADIUS, mean)), clockwise: area > 0 };
 }
 
 /**
- * Trasforma l'incrocio in rotatoria.
+ * Tratti che costa un anello del raggio dato.
+ * @param {number} radius
+ * @param {number} segmentLength
+ */
+export function ringCost(radius, segmentLength) {
+  return Math.ceil((2 * Math.PI * radius) / segmentLength - 1e-6);
+}
+
+/** I punti dell'anello, per controllare che non cadano in acqua o su un ostacolo. */
+export function ringPoints(/** @type {DrawnCircle} */ c) {
+  const n = Math.max(8, Math.round((2 * Math.PI * c.radius) / RING_STEP));
+  return Array.from({ length: n }, (_, k) => {
+    const a = (k * 2 * Math.PI) / n;
+    return { x: c.x + Math.cos(a) * c.radius, y: c.y + Math.sin(a) * c.radius };
+  });
+}
+
+/**
+ * Costruisce la rotonda: l'anello a senso unico nel verso disegnato, e le strade
+ * che entravano nel cerchio accorciate fino all'anello.
  * @param {RoadGraph} graph
- * @param {RoadNode} center
- * @param {number} id     identificativo della rotatoria
+ * @param {DrawnCircle} c
+ * @param {number} id     identificativo della rotonda
  * @param {number} cost   tratti pagati, divisi fra gli archi dell'anello
  * @returns {Roundabout}
  */
-export function buildRoundabout(graph, center, id, cost) {
-  /** @type {RoadNode[]} */
-  const ring = [];
-  for (let k = 0; k < RING_NODES; k++) {
-    const angle = (k * 2 * Math.PI) / RING_NODES;
-    ring.push(graph.addNode(center.x + Math.cos(angle) * RING_RADIUS, center.y + Math.sin(angle) * RING_RADIUS));
+export function buildRoundabout(graph, c, id, cost) {
+  const R = c.radius;
+  // Le strade lunghe che attraversano il cerchio senza un nodo dentro si spezzano
+  // nel punto più vicino al centro, così hanno anche loro un pezzo dentro.
+  for (const e of [...graph.edges.values()]) {
+    const a = /** @type {RoadNode} */ (graph.nodes.get(e.a));
+    const b = /** @type {RoadNode} */ (graph.nodes.get(e.b));
+    if (distance(a, c) <= R || distance(b, c) <= R) continue;
+    const p = closestPointOnSegment(c, a, b);
+    if (distance(p, c) < R) graph.splitEdge(e.id, p.x, p.y);
   }
-  // Senso antiorario visto dall'alto: con l'asse y verso il basso, angolo che diminuisce.
-  for (let k = 0; k < RING_NODES; k++) {
-    const e = graph.addEdge(ring[k].id, ring[(k + RING_NODES - 1) % RING_NODES].id);
+
+  const inside = new Set([...graph.nodes.values()].filter((n) => n.stationId === undefined && distance(n, c) <= R).map((n) => n.id));
+  const ring = ringPoints(c).map((p) => graph.addNode(p.x, p.y));
+  const n = ring.length;
+  for (let k = 0; k < n; k++) {
+    const next = c.clockwise ? (k + 1) % n : (k + n - 1) % n;
+    const e = graph.addEdge(ring[k].id, ring[next].id);
     if (e) {
       e.oneWay = true;
       e.ring = id;
-      e.cost = cost / RING_NODES;
+      e.cost = cost / n;
     }
   }
-  // Ogni strada che entrava nell'incrocio si accorcia fino a fuori dall'anello e
-  // si attacca al nodo dell'anello più vicino ancora libero.
+
   /** @type {Set<number>} */
   const used = new Set();
-  for (const first of [...graph.edges.values()]) {
-    if (first.a !== center.id && first.b !== center.id) continue;
-    const towardCenter = first.oneWay && first.b === center.id;
-    const away = first.oneWay && first.a === center.id;
-    let cost = 0;
-    let prev = center.id;
-    let edge = first;
-    let outer = /** @type {RoadNode} */ (graph.nodes.get(edge.a === center.id ? edge.b : edge.a));
-    // Si tolgono i pezzi di strada che finirebbero dentro l'anello.
-    for (;;) {
-      cost += edge.cost ?? 0;
-      graph.removeEdge(edge.id);
-      if (prev !== center.id) graph.nodes.delete(prev);
-      if (distance(outer, center) >= RING_RADIUS + 10 || outer.stationId !== undefined) break;
-      const next = [...graph.edges.values()].filter((e) => e.a === outer.id || e.b === outer.id);
-      if (next.length !== 1) break;
-      prev = outer.id;
-      edge = next[0];
-      outer = /** @type {RoadNode} */ (graph.nodes.get(edge.a === outer.id ? edge.b : edge.a));
+  for (const e of [...graph.edges.values()]) {
+    if (e.ring !== undefined) continue;
+    const inA = inside.has(e.a);
+    const inB = inside.has(e.b);
+    if (inA && inB) {
+      graph.removeEdge(e.id);
+      continue;
+    }
+    if (!inA && !inB) continue;
+    // Una strada che entra nel cerchio: si accorcia e si attacca all'anello.
+    const toward = e.oneWay && inB; // senso unico che va verso il centro
+    const away = e.oneWay && inA; // senso unico che esce dal centro
+    let cost = e.cost ?? 0;
+    graph.removeEdge(e.id);
+    let outer = /** @type {RoadNode} */ (graph.nodes.get(inA ? e.b : e.a));
+    // Se l'estremità esterna è appena fuori dall'anello, si arretra ancora un po'.
+    while (distance(outer, c) < R + SPOKE_MIN && outer.stationId === undefined) {
+      const rest = [...graph.edges.values()].filter((x) => x.ring === undefined && (x.a === outer.id || x.b === outer.id));
+      if (rest.length !== 1) break;
+      cost += rest[0].cost ?? 0;
+      graph.removeEdge(rest[0].id);
+      const prev = outer;
+      outer = /** @type {RoadNode} */ (graph.nodes.get(rest[0].a === outer.id ? rest[0].b : rest[0].a));
+      graph.nodes.delete(prev.id);
     }
     const target = [...ring].sort((p, q) => distance(p, outer) - distance(q, outer)).find((p) => !used.has(p.id)) ?? ring[0];
     used.add(target.id);
-    const spoke = towardCenter ? graph.addEdge(outer.id, target.id) : away ? graph.addEdge(target.id, outer.id) : graph.addEdge(outer.id, target.id);
+    const spoke = toward ? graph.addEdge(outer.id, target.id) : away ? graph.addEdge(target.id, outer.id) : graph.addEdge(outer.id, target.id);
     if (spoke) {
       if (cost) spoke.cost = cost;
-      graph.copyRoadKind(first, spoke);
+      graph.copyRoadKind(e, spoke);
     }
   }
-  graph.nodes.delete(center.id);
-  return { id, x: center.x, y: center.y, ring: ring.map((n) => n.id), cost };
+  for (const id of inside) graph.nodes.delete(id);
+  return { id, x: c.x, y: c.y, radius: R, ring: ring.map((p) => p.id), cost };
 }
 
 /**
- * Riporta la rotatoria a incrocio: l'anello sparisce e le strade tornano a un nodo centrale.
+ * Toglie la rotonda: l'anello sparisce e le strade che ci arrivavano si
+ * riuniscono in un incrocio al centro.
  * @param {RoadGraph} graph
  * @param {Roundabout} r
  */
@@ -149,4 +182,6 @@ export function removeRoundabout(graph, r) {
     }
   }
   for (const id of r.ring) graph.nodes.delete(id);
+  // Senza strade, il centro non serve.
+  if (![...graph.edges.values()].some((e) => e.a === center.id || e.b === center.id)) graph.nodes.delete(center.id);
 }
