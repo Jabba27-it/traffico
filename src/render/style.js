@@ -40,5 +40,6 @@ export const STYLE = {
 
   // Scritte sulla mappa
   label: '#3d3833',
+  hint: '#b8542f',
   blockedText: '#b23a26',
 };

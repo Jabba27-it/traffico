@@ -8,6 +8,8 @@ import { drawRoads, drawLaneMarks, drawOverpasses, drawPreview, drawRemoval, dra
 import { currentPiece } from './sim/vehicles.js';
 import { drawJunctionMarks, drawRoundaboutIslands } from './render/junctions.js';
 import { STYLE } from './render/style.js';
+import { drawHint } from './render/hint.js';
+import { createTutorial } from './ui/tutorial.js';
 import { drawGround, drawTerrainNames } from './render/terrain.js';
 import { drawStations, drawSelectable } from './render/stations.js';
 import { STATION_RADIUS } from './sim/stations.js';
@@ -121,6 +123,16 @@ async function start() {
     onStarsTap: () => showGoals(document.body, sim.starGoals(), sim.efficiency),
   });
   const speed = createSpeedControls(document.body);
+  const tutorial = level.tutorial
+    ? createTutorial(document.body, sim, level.tutorial, {
+        zoom: () => camera.zoom,
+        sample: densify,
+        onFinish: (where) => {
+          if (where === 'roma') location.search = '?livello=roma';
+          else goToMenu();
+        },
+      })
+    : null;
   /** true mentre si chiede se uscire: il gioco resta fermo. */
   let askingToLeave = false;
   const menuButton = document.createElement('button');
@@ -182,6 +194,7 @@ async function start() {
   /** @param {number} now */
   function frame(now) {
     updateReserved();
+    tutorial?.update();
     // A velocità doppia scorre il doppio del tempo di gioco, sempre a passi fissi.
     pending += Math.min((now - lastTime) / 1000, MAX_FRAME_TIME) * speed.speed();
     lastTime = now;
@@ -299,6 +312,8 @@ async function start() {
     const labelScale = framed.width / level.view[0].width;
     drawTerrainNames(ctx, level.terrain, labelScale);
     drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed, labelScale);
+    const hint = tutorial?.hint();
+    if (hint) drawHint(ctx, hint, now / 1000, labelScale);
     if (choosingStation) drawSelectable(ctx, sim.stations, now / 1000);
     requestAnimationFrame(frame);
   }
@@ -307,6 +322,22 @@ async function start() {
     lastTime = now;
     frame(now);
   });
+}
+
+/**
+ * Aggiunge punti lungo una spezzata, uno ogni 24 unità circa, come un tratto
+ * disegnato col dito.
+ * @param {{x: number, y: number}[]} points
+ */
+function densify(points) {
+  const out = [points[0]];
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1];
+    const b = points[i];
+    const n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 24));
+    for (let k = 1; k <= n; k++) out.push({ x: a.x + ((b.x - a.x) * k) / n, y: a.y + ((b.y - a.y) * k) / n });
+  }
+  return out;
 }
 
 function goToMenu() {

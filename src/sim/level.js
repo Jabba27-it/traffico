@@ -81,6 +81,21 @@ import { emptyTerrain } from './terrain.js';
  */
 
 /**
+ * Un passo del tutorial.
+ * @typedef {Object} TutorialStep
+ * @property {string} title
+ * @property {string} text
+ * @property {'avanti' | 'collega' | 'viaggi' | 'rimuovi' | 'tipoStrada' | 'incrocio' | 'rotonda' | 'zoom' | 'fine'} goal
+ * @property {number} count          per 'viaggi': quanti; per 'collega': le due stazioni (indici in `stations` del passo o del livello)
+ * @property {StationDef[]} addStations  stazioni che compaiono all'inizio del passo
+ * @property {{x: number, y: number}[] | null} road  strada già costruita all'inizio del passo (per l'esercizio di rimozione)
+ * @property {{x: number, y: number} | null} hint    dove indicare con un cerchio che pulsa
+ */
+
+/** Gli obiettivi possibili di un passo del tutorial. */
+const TUTORIAL_GOALS = ['avanti', 'collega', 'viaggi', 'rimuovi', 'tipoStrada', 'incrocio', 'rotonda', 'zoom', 'fine'];
+
+/**
  * @typedef {Object} Level
  * @property {string} name
  * @property {{width: number, height: number}} world
@@ -97,6 +112,7 @@ import { emptyTerrain } from './terrain.js';
  * @property {number} bridges  ponti disponibili all'inizio
  * @property {Stars | null} stars
  * @property {import('./terrain.js').Terrain} terrain  ville, colli, monumenti e mura
+ * @property {TutorialStep[] | null} tutorial  passi guidati (solo nel livello tutorial)
  * @property {number} overpasses  cavalcavia disponibili all'inizio
  * @property {{min: number, max: number}} spawn  secondi fra un veicolo nuovo e il successivo, per stazione * @property {{name: string, x: number, y: number}[]} districts
  *   quartieri: una stazione nata a caso prende il nome del quartiere più vicino
@@ -255,8 +271,10 @@ export function parseLevel(json) {
   const spawn = { min: spawnMin, max: isNum(vh.ogniMax) && vh.ogniMax >= spawnMin ? vh.ogniMax : spawnMin + 2 };
 
   const terrain = parseTerrain(json.terreno);
+  const tutorial = json.tutorial === undefined ? null : parseTutorial(json.tutorial);
 
   return {
+    tutorial,
     terrain,
     overpasses,
     spawn,
@@ -276,6 +294,31 @@ export function parseLevel(json) {
     growth,
     zones,
   };
+}
+
+/**
+ * La voce "tutorial" del livello: la lista dei passi.
+ * @param {any} list
+ * @returns {TutorialStep[]}
+ */
+function parseTutorial(list) {
+  if (!Array.isArray(list) || list.length === 0) throw new Error('"tutorial" deve essere una lista di passi');
+  const point = (/** @type {any} */ q) => (Array.isArray(q) && isNum(q[0]) && isNum(q[1]) ? { x: q[0], y: q[1] } : null);
+  return list.map((/** @type {any} */ t, /** @type {number} */ i) => {
+    if (!TUTORIAL_GOALS.includes(t?.obiettivo)) throw new Error(`Tutorial, passo ${i + 1}: "obiettivo" deve essere uno fra ${TUTORIAL_GOALS.join(', ')}`);
+    return {
+      title: String(t.titolo ?? ''),
+      text: String(t.testo ?? ''),
+      goal: t.obiettivo,
+      count: isNum(t.quanti) ? t.quanti : 1,
+      addStations: (t.stazioni ?? []).map((/** @type {any} */ s, /** @type {number} */ k) => {
+        checkShape(s?.forma, `Tutorial, passo ${i + 1}, stazione ${k + 1}`);
+        return { shape: s.forma, x: s.x, y: s.y, ...(typeof s.nome === 'string' ? { name: s.nome } : {}) };
+      }),
+      road: Array.isArray(t.strada) ? t.strada.map(point).filter(Boolean) : null,
+      hint: point(t.punta),
+    };
+  });
 }
 
 /**

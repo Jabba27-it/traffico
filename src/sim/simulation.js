@@ -90,6 +90,13 @@ export class Simulation {
     this.elapsed = 0;
     /** Veicoli arrivati a destinazione. */
     this.trips = 0;
+    /** @type {Map<number, number>} viaggi completati da ogni stazione di partenza */
+    this.tripsFrom = new Map();
+    /**
+     * Quante volte il giocatore ha fatto ciascuna azione: serve al tutorial per
+     * capire quando un esercizio è stato fatto.
+     */
+    this.events = { removed: 0, roadType: 0, junction: 0, roundabout: 0 };
     /** Per l'efficienza: somma dei tempi minimi e dei tempi reali dei viaggi. */
     this.idealTime = 0;
     this.actualTime = 0;
@@ -222,6 +229,7 @@ export class Simulation {
    * @param {Vehicle} v
    */
   recordTrip(v) {
+    this.tripsFrom.set(v.fromStationId, (this.tripsFrom.get(v.fromStationId) ?? 0) + 1);
     const from = this.stations.find((s) => s.id === v.fromStationId);
     const to = this.stations.find((s) => s.id === v.toStationId);
     if (!from || !to) return;
@@ -290,7 +298,11 @@ export class Simulation {
   buildRoad(points, snapRadius) {
     // Un cerchio disegnato diventa una rotonda, nel verso in cui è stato disegnato.
     const circle = drawnCircle(points);
-    if (circle) return this.makeRoundabout(circle);
+    if (circle) {
+      const result = this.makeRoundabout(circle);
+      if (result === 'roundabout') this.events.roundabout++;
+      return result;
+    }
 
     const plan = this.planRoad(points);
     if (plan.runs.length === 0) return null;
@@ -392,9 +404,14 @@ export class Simulation {
     const roundabout = this.tapRoundabout(x, y);
     if (roundabout) return roundabout;
     const junction = this.toggleOverpass(x, y, radius);
-    if (junction) return junction;
+    if (junction) {
+      this.events.junction++;
+      return junction;
+    }
     const piece = this.findRoadPiece(x, y, radius);
-    return piece ? this.cycleRoadType(piece) : null;
+    if (!piece) return null;
+    this.events.roadType++;
+    return this.cycleRoadType(piece);
   }
 
   /**
@@ -800,6 +817,7 @@ export class Simulation {
    * @param {RoadPiece} piece
    */
   removeRoad(piece) {
+    this.events.removed++;
     // Togliere un pezzo d'anello rompe la rotatoria: resta una strada a senso unico.
     for (const id of piece.edgeIds) {
       const ring = this.graph.edges.get(id)?.ring;

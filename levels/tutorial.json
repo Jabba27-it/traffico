@@ -1,0 +1,87 @@
+{
+  "nome": "Tutorial",
+  "mondo": { "larghezza": 520, "altezza": 1040 },
+  "forme": ["cerchio", "quadrato", "triangolo"],
+  "stazioni": [
+    { "forma": "cerchio",  "x": 120, "y": 330 },
+    { "forma": "quadrato", "x": 400, "y": 330 }
+  ],
+  "congestione": { "capienza": 6, "tolleranza": 1000000 },
+  "tempo": { "giorno": 120 },
+  "veicoli": { "ogniMin": 4, "ogniMax": 6 },
+  "strade": { "iniziali": 80, "perGiorno": 5, "lunghezzaTratto": 40 },
+  "premi": { "strade": 20, "capienza": 3, "cavalcavia": 1 },
+  "cavalcavia": { "iniziali": 1 },
+  "tutorial": [
+    {
+      "titolo": "Benvenuto in città",
+      "testo": "Ogni stazione ha una forma. I veicoli partono da una stazione e vogliono arrivare a una stazione della forma disegnata sul loro tetto.",
+      "obiettivo": "avanti"
+    },
+    {
+      "titolo": "Disegna una strada",
+      "testo": "Trascina il dito dal cerchio al quadrato per collegarli.",
+      "obiettivo": "collega",
+      "punta": [260, 330]
+    },
+    {
+      "titolo": "I veicoli",
+      "testo": "Il cerchio manda veicoli verso il quadrato e viceversa. Chi aspetta di partire resta in coda: le forme grigie sopra la stazione.",
+      "obiettivo": "viaggi",
+      "quanti": 3
+    },
+    {
+      "titolo": "Code e congestione",
+      "testo": "L'anello intorno a una stazione passa dal verde al rosso quando la coda si allunga. Se resta piena troppo a lungo, la partita è persa: qui nel tutorial no.",
+      "obiettivo": "avanti"
+    },
+    {
+      "titolo": "Togli una strada",
+      "testo": "Questa strada non serve. Tieni il dito fermo sopra di lei finché diventa rossa, poi alza il dito: i tratti ti vengono restituiti.",
+      "obiettivo": "rimuovi",
+      "strada": [[150, 640], [370, 640]],
+      "punta": [260, 640]
+    },
+    {
+      "titolo": "Incroci e precedenze",
+      "testo": "È comparso un triangolo. Collegalo alla strada che c'è già: nasce un incrocio, e chi arriva dalla laterale dà la precedenza.",
+      "obiettivo": "viaggi",
+      "quanti": 1,
+      "stazioni": [{ "forma": "triangolo", "x": 260, "y": 600 }],
+      "punta": [260, 460]
+    },
+    {
+      "titolo": "Sensi unici e superstrade",
+      "testo": "Dai un tocco breve su una strada: diventa a senso unico. Altri tocchi la girano, la fanno superstrada (più veloce) e la riportano normale.",
+      "obiettivo": "tipoStrada",
+      "punta": [190, 330]
+    },
+    {
+      "titolo": "Semafori e cavalcavia",
+      "testo": "Ora tocca l'incrocio: diventa un semaforo. Sugli incroci a croce, un altro tocco lo trasforma in cavalcavia.",
+      "obiettivo": "incrocio",
+      "punta": [260, 330]
+    },
+    {
+      "titolo": "Rotonde",
+      "testo": "Disegna un cerchio intorno all'incrocio: diventa una rotonda, nel verso in cui l'hai disegnato. Guidando a destra conviene il senso antiorario.",
+      "obiettivo": "rotonda",
+      "punta": [260, 330]
+    },
+    {
+      "titolo": "Risorse e premi",
+      "testo": "In alto vedi i tratti di strada, i ponti e i cavalcavia rimasti: ne arrivano altri ogni giorno. A fine settimana scegli un premio.",
+      "obiettivo": "avanti"
+    },
+    {
+      "titolo": "Avvicinati",
+      "testo": "Allarga due dita sullo schermo per fare zoom, e muovile insieme per spostarti.",
+      "obiettivo": "zoom"
+    },
+    {
+      "titolo": "Sei pronto!",
+      "testo": "Hai visto tutto quello che serve. A Roma le stazioni compaiono da sole e il Tevere si attraversa solo con i ponti: buona fortuna!",
+      "obiettivo": "fine"
+    }
+  ]
+}
