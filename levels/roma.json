@@ -113,7 +113,7 @@
   "premi": { "strade": 20, "capienza": 3, "ponti": 1, "cavalcavia": 1 },
   "stelle": {
     "viaggi": 160,
-    "giorni": 17,
+    "giorni": 19,
     "traffico": { "soglia": 40 }
   }
 }
