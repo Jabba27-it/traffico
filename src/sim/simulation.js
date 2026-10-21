@@ -13,7 +13,7 @@ import { updateCongestion } from './congestion.js';
 import { planRoad, buildPlannedRoad } from './roadBuilder.js';
 import { findRoadPiece, removeRoadPiece, removeIsolatedNodes, edgeLength, orderedChain, pieceType, setPieceType } from './roadEditing.js';
 import { isInWater } from './water.js';
-import { viewAt, segmentAt, insetRect, rectContains } from './view.js';
+import { viewAt, insetRect, rectContains } from './view.js';
 import { starGoals } from './stars.js';
 import { buildOverpass, overpassPairs, removeOverpass } from './overpass.js';
 import { drawnCircle, buildRoundabout, removeRoundabout, ringCost, ringPoints } from './roundabout.js';
@@ -116,6 +116,11 @@ export class Simulation {
     this.failedStation = null;
     /** Tratti di strada ancora disponibili. */
     this.roadBudget = level.roads.initial;
+    /**
+     * Frazione di tratto già restituita ma non ancora intera: togliendo pezzi
+     * piccoli (es. archi di una rotonda) i decimali si sommano invece di perdersi.
+     */
+    this.roadCredit = 0;
     /** Ponti ancora disponibili. */
     this.bridgeBudget = level.bridges;
     /** Cavalcavia ancora disponibili. */
@@ -137,10 +142,6 @@ export class Simulation {
     this.revealStations(-Infinity);
     /** Versione del grafo su cui sono calcolati i percorsi dei veicoli in viaggio. */
     this.routedVersion = graph.version;
-    /** Tappa della vista da cui si sta partendo, per gli avvisi. */
-    this.viewSegment = segmentAt(level.view, 1);
-    /** @type {{text: string, at: number} | null} l'ultimo avviso "la città si allarga" */
-    this.announcement = null;
     /** Stelle guadagnate in questa partita. */
     this.starsEarned = [false, false, false];
     this.starsAnnounced = [false, false, false];
@@ -372,7 +373,10 @@ export class Simulation {
     const cost = ringCost(circle.radius, this.level.roads.segmentLength);
     if (this.roadBudget < cost) return 'roundabout-too-expensive';
     this.roadBudget -= cost;
+    const before = this.paidInRoads();
     const r = buildRoundabout(this.graph, circle, this.nextRoundaboutId++, cost);
+    // I pezzi di strada rimasti dentro il cerchio spariscono: la rotonda ne tiene i tratti.
+    r.inner = before + cost - this.paidInRoads();
     this.roundabouts.set(r.id, r);
     this.updateRoutes();
     return 'roundabout';
@@ -387,9 +391,18 @@ export class Simulation {
   tapRoundabout(x, y) {
     for (const r of this.roundabouts.values()) {
       if (Math.hypot(r.x - x, r.y - y) > r.radius * 0.7) continue;
-      removeRoundabout(this.graph, r);
+      const before = this.paidInRoads();
+      const spokes = removeRoundabout(this.graph, r);
       this.roundabouts.delete(r.id);
-      this.roadBudget += r.cost;
+      this.refund(before - this.paidInRoads());
+      // Le strade tornano fino al centro: riprendono i tratti dei pezzi che erano dentro.
+      const lengths = spokes.map((id) => edgeLength(this.graph, id));
+      const total = lengths.reduce((a, b) => a + b, 0);
+      if (total > 0) spokes.forEach((id, i) => {
+        const e = /** @type {RoadEdge} */ (this.graph.edges.get(id));
+        e.cost = (e.cost ?? 0) + ((r.inner ?? 0) * lengths[i]) / total;
+      });
+      else this.refund(r.inner ?? 0);
       this.updateRoutes();
       return 'roundabout-removed';
     }
@@ -454,7 +467,7 @@ export class Simulation {
         paid += edge.superPaid ?? 0;
         delete edge.superPaid;
       }
-      this.roadBudget += Math.floor(paid + 1e-6);
+      this.refund(paid);
     }
     let result = next;
     if (next === 'super') {
@@ -559,14 +572,7 @@ export class Simulation {
       return;
     }
 
-    // La vista si allarga: avviso quando si parte verso una nuova zona,
-    // e le stazioni fisse raggiunte compaiono.
-    const segment = segmentAt(this.level.view, this.elapsed / this.level.dayLength + 1);
-    if (segment !== this.viewSegment) {
-      this.viewSegment = segment;
-      const next = this.level.view[segment + 1];
-      if (next?.name) this.announcement = { text: `La città si allarga: ${next.name}`, at: this.elapsed };
-    }
+    // La vista si allarga: le stazioni fisse raggiunte compaiono.
     this.revealStations(this.elapsed);
 
     this.growthTimer -= dt;
@@ -830,11 +836,35 @@ export class Simulation {
 
   /**
    * Tratti restituiti rimuovendo un pezzo di strada: quanto era stato pagato
-   * per i suoi archi, arrotondato per difetto.
+   * per i suoi archi, più i decimali avanzati dalle rimozioni precedenti e,
+   * se il pezzo rompe una rotonda, i tratti che questa custodiva.
    * @param {RoadPiece} piece
    */
   refundOf(piece) {
-    return Math.floor(piece.cost + 1e-6);
+    const rings = new Set(piece.edgeIds.map((id) => this.graph.edges.get(id)?.ring).filter((r) => r !== undefined));
+    let inner = 0;
+    for (const id of rings) inner += this.roundabouts.get(/** @type {number} */ (id))?.inner ?? 0;
+    return Math.floor(piece.cost + inner + this.roadCredit + 1e-6);
+  }
+
+  /**
+   * Restituisce tratti, anche frazioni: la parte intera subito, il resto si
+   * mette da parte per la prossima volta.
+   * @param {number} amount
+   */
+  refund(amount) {
+    if (amount <= 0) return;
+    const total = amount + this.roadCredit;
+    const whole = Math.floor(total + 1e-6);
+    this.roadBudget += whole;
+    this.roadCredit = Math.max(0, total - whole);
+  }
+
+  /** Tratti pagati per tutte le strade della mappa (costruzione e superstrade). */
+  paidInRoads() {
+    let paid = 0;
+    for (const e of this.graph.edges.values()) paid += (e.cost ?? 0) + (e.superPaid ?? 0);
+    return paid;
   }
 
   /**
@@ -846,11 +876,18 @@ export class Simulation {
     // Togliere un pezzo d'anello rompe la rotatoria: resta una strada a senso unico.
     for (const id of piece.edgeIds) {
       const ring = this.graph.edges.get(id)?.ring;
-      if (ring !== undefined) this.roundabouts.delete(ring);
+      if (ring === undefined || !this.roundabouts.has(ring)) continue;
+      // La rotonda si rompe e non tornerà incrocio: i tratti che custodiva tornano al giocatore.
+      this.refund(this.roundabouts.get(ring)?.inner ?? 0);
+      this.roundabouts.delete(ring);
     }
-    this.bridgeBudget += piece.bridges;
+    const bridgeIds = new Set(piece.edgeIds.map((id) => this.graph.edges.get(id)?.bridgeId).filter((b) => b !== undefined));
+    const before = this.paidInRoads();
     const touched = removeRoadPiece(this.graph, piece);
-    this.roadBudget += this.refundOf(piece);
+    this.refund(before - this.paidInRoads());
+    // Un ponte con un incrocio sopra è fatto di più pezzi: torna solo quando ne sparisce l'ultimo.
+    for (const e of this.graph.edges.values()) bridgeIds.delete(e.bridgeId);
+    this.bridgeBudget += bridgeIds.size;
     // Se una delle due strade di un cavalcavia sparisce, il cavalcavia non
     // serve più: torna nodo normale e si riprende.
     for (const id of touched) {

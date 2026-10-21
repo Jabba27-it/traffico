@@ -28,6 +28,8 @@ const SPOKE_MIN = 10;
  * @property {number} radius
  * @property {number[]} ring   nodi dell'anello
  * @property {number} cost     tratti pagati per l'anello
+ * @property {number} [inner]  tratti delle strade tolte dentro il cerchio: tornano
+ *   alle strade se la rotonda ridiventa incrocio, al giocatore se l'anello si smonta
  */
 
 /**
@@ -135,6 +137,8 @@ export function buildRoundabout(graph, c, id, cost) {
     const toward = e.oneWay && inB; // senso unico che va verso il centro
     const away = e.oneWay && inA; // senso unico che esce dal centro
     let cost = e.cost ?? 0;
+    let superPaid = e.superPaid ?? 0;
+    let bridgeId = e.bridgeId;
     graph.removeEdge(e.id);
     let outer = /** @type {RoadNode} */ (graph.nodes.get(inA ? e.b : e.a));
     // Se l'estremità esterna è appena fuori dall'anello, si arretra ancora un po'.
@@ -142,6 +146,8 @@ export function buildRoundabout(graph, c, id, cost) {
       const rest = [...graph.edges.values()].filter((x) => x.ring === undefined && (x.a === outer.id || x.b === outer.id));
       if (rest.length !== 1) break;
       cost += rest[0].cost ?? 0;
+      superPaid += rest[0].superPaid ?? 0;
+      bridgeId ??= rest[0].bridgeId;
       graph.removeEdge(rest[0].id);
       const prev = outer;
       outer = /** @type {RoadNode} */ (graph.nodes.get(rest[0].a === outer.id ? rest[0].b : rest[0].a));
@@ -152,6 +158,8 @@ export function buildRoundabout(graph, c, id, cost) {
     const spoke = toward ? graph.addEdge(outer.id, target.id) : away ? graph.addEdge(target.id, outer.id) : graph.addEdge(outer.id, target.id);
     if (spoke) {
       if (cost) spoke.cost = cost;
+      if (superPaid) spoke.superPaid = superPaid;
+      if (bridgeId !== undefined) spoke.bridgeId = bridgeId;
       graph.copyRoadKind(e, spoke);
     }
   }
@@ -164,8 +172,11 @@ export function buildRoundabout(graph, c, id, cost) {
  * riuniscono in un incrocio al centro.
  * @param {RoadGraph} graph
  * @param {Roundabout} r
+ * @returns {number[]}  gli archi che ora arrivano al centro
  */
 export function removeRoundabout(graph, r) {
+  /** @type {number[]} */
+  const spokes = [];
   const center = graph.addNode(r.x, r.y);
   const ring = new Set(r.ring);
   for (const e of [...graph.edges.values()]) {
@@ -177,11 +188,15 @@ export function removeRoundabout(graph, r) {
     graph.removeEdge(e.id);
     const moved = graph.addEdge(ring.has(e.a) ? center.id : e.a, ring.has(e.b) ? center.id : e.b);
     if (moved) {
+      spokes.push(moved.id);
       if (e.cost) moved.cost = e.cost;
+      if (e.superPaid) moved.superPaid = e.superPaid;
+      if (e.bridgeId !== undefined) moved.bridgeId = e.bridgeId;
       graph.copyRoadKind(e, moved);
     }
   }
   for (const id of r.ring) graph.nodes.delete(id);
   // Senza strade, il centro non serve.
   if (![...graph.edges.values()].some((e) => e.a === center.id || e.b === center.id)) graph.nodes.delete(center.id);
+  return spokes;
 }
