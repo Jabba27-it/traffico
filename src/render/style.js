@@ -38,6 +38,33 @@ export const STYLE = {
   removal: 'rgba(200, 70, 50, 0.85)',
   trafficTint: '214, 84, 60', // in rgba(..., opacità) secondo il traffico
 
+  // Ponti, cavalcavia e rotonde nello stile di ogni città (voce "stile" del livello)
+  island: '#a9cf9c',
+  islandEdge: 'rgba(255, 255, 255, 0.8)',
+  grass: '#a9c98a',
+  travertine: '#e3d3b4',
+  travertineDark: '#c9b48e',
+  terracotta: '#b5543a',
+  pine: '#4f7a3c',
+  pineLight: '#5f8a4a',
+  brooklynStone: '#a08468',
+  brooklynArch: '#5e4a3a',
+  brooklynCable: '#4a4038',
+  nySteel: '#5f7a6a',
+  nyPaving: '#cfc8bb',
+  nyColumn: '#f1ece2',
+  shadow: 'rgba(40, 30, 20, 0.25)',
+  harbourSteel: '#5a6b78',
+  harbourPylon: '#d8c7a6',
+  sandstone: '#d8b780',
+  jacaranda: ['#9b7fc9', '#b69be0', '#8468b8'],
+  white: '#f1ede5',
+  cable: 'rgba(255, 255, 255, 0.85)',
+  waveDark: '#3f3b38',
+  bosphorusRail: '#4f6f73',
+  bosphorusTower: '#cfd4d6',
+  turquoise: '#3fa6a3',
+
   // Scritte sulla mappa
   label: '#3d3833',
   hint: '#b8542f',

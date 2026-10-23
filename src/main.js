@@ -371,9 +371,9 @@ async function start() {
     drawWater(ctx, level.waters);
     drawMonuments(ctx, level.terrain);
     drawOutsideVeil(ctx, level.world, visible);
-    drawRoads(ctx, graph, sim.traffic.congestion);
+    drawRoads(ctx, graph, sim.traffic.congestion, level.look);
     drawLaneMarks(ctx, graph);
-    drawRoundaboutIslands(ctx, sim.roundabouts.values());
+    drawRoundaboutIslands(ctx, sim.roundabouts.values(), level.look);
     drawJunctionMarks(ctx, graph, sim.lanes, sim.traffic.signals);
     const preview = drawing.preview();
     if (preview.length >= 2) {
@@ -392,7 +392,7 @@ async function start() {
     // Chi passa sotto un cavalcavia sparisce sotto l'impalcato; chi passa sopra si vede sopra.
     const elevated = sim.vehicles.filter((v) => currentPiece(sim.lanes, v).elevated);
     drawVehicles(ctx, sim.vehicles.filter((v) => !elevated.includes(v)));
-    drawOverpasses(ctx, graph);
+    drawOverpasses(ctx, graph, level.look);
     drawVehicles(ctx, elevated);
     drawCongestion(ctx, sim.stations, level.congestion.tolerance, now / 1000);
     const labelScale = framed.width / level.view[0].width;

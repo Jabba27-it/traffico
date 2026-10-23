@@ -759,6 +759,11 @@
       "y": 42
     }
   ],
+  "stile": {
+    "ponte": "strallato",
+    "cavalcavia": "tropicale",
+    "rotonda": "onde"
+  },
   "ponti": {
     "iniziali": 1
   },

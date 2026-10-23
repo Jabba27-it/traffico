@@ -1589,6 +1589,11 @@
       "y": 45
     }
   ],
+  "stile": {
+    "ponte": "arco",
+    "cavalcavia": "arenaria",
+    "rotonda": "jacaranda"
+  },
   "ponti": {
     "iniziali": 2
   },

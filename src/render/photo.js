@@ -55,10 +55,10 @@ export function cityPhoto(level, sim, info) {
   drawGround(ctx, level.terrain);
   drawWater(ctx, level.waters);
   drawMonuments(ctx, level.terrain);
-  drawRoads(ctx, sim.graph, new Map());
+  drawRoads(ctx, sim.graph, new Map(), level.look);
   drawLaneMarks(ctx, sim.graph);
-  drawRoundaboutIslands(ctx, sim.roundabouts.values());
-  drawOverpasses(ctx, sim.graph);
+  drawRoundaboutIslands(ctx, sim.roundabouts.values(), level.look);
+  drawOverpasses(ctx, sim.graph, level.look);
   const stations = sim.stations.map((s) => ({ ...s, queue: [], returned: 0, bornAt: -Infinity }));
   const labels = area.width / level.view[0].width;
   drawTerrainNames(ctx, level.terrain, labels, stationAreas(ctx, stations, labels));

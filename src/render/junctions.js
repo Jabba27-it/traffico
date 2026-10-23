@@ -2,8 +2,7 @@
 // sulle strade laterali, così si vede chi deve aspettare.
 
 import { ROAD_WIDTH } from '../sim/graph.js';
-
-const ISLAND = '#a9cf9c';
+import { drawIsland } from './looks.js';
 
 /** @typedef {import('../sim/graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('../sim/lanes.js').LaneGeometry} LaneGeometry */
@@ -17,20 +16,13 @@ const YIELD_EDGE = 'rgba(214, 84, 70, 0.9)';
 const MARK_DISTANCE = 19;
 
 /**
- * L'isola verde al centro delle rotatorie.
+ * L'isola al centro delle rotatorie, nello stile della città.
  * @param {CanvasRenderingContext2D} ctx
- * @param {Iterable<{x: number, y: number, radius: number}>} roundabouts
+ * @param {Iterable<{id: number, x: number, y: number, radius: number}>} roundabouts
+ * @param {import('../sim/level.js').Look} [look]
  */
-export function drawRoundaboutIslands(ctx, roundabouts) {
-  for (const r of roundabouts) {
-    ctx.beginPath();
-    ctx.arc(r.x, r.y, r.radius - ROAD_WIDTH / 2 + 1, 0, Math.PI * 2);
-    ctx.fillStyle = ISLAND;
-    ctx.fill();
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.stroke();
-  }
+export function drawRoundaboutIslands(ctx, roundabouts, look) {
+  for (const r of roundabouts) drawIsland(ctx, r, look);
 }
 
 /**

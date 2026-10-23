@@ -4,6 +4,7 @@
 
 import { ROAD_WIDTH } from '../sim/graph.js';
 import { STYLE } from './style.js';
+import { bridgeColors, drawBridgeDetails, overpassRail, drawOverpassDetails } from './looks.js';
 
 /** @typedef {import('../sim/graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('../sim/graph.js').RoadEdge} RoadEdge */
@@ -143,8 +144,9 @@ function strokeChains(ctx, chains, width, color) {
  * @param {CanvasRenderingContext2D} ctx
  * @param {RoadGraph} graph
  * @param {Map<string, number>} [congestion]  traffico lento per coppia di nodi "a_b", 0..1
+ * @param {import('../sim/level.js').Look} [look]  stile dei ponti della città
  */
-export function drawRoads(ctx, graph, congestion) {
+export function drawRoads(ctx, graph, congestion, look) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   const chains = roadChains(graph);
@@ -154,10 +156,12 @@ export function drawRoads(ctx, graph, congestion) {
   strokeChains(ctx, supers, ROAD_WIDTH + 4, STYLE.superEdge);
   strokeChains(ctx, chains, ROAD_WIDTH, STYLE.road);
   strokeChains(ctx, supers, ROAD_WIDTH - 3, STYLE.superRoad);
-  // Ponti: impalcato più chiaro fra due parapetti scuri.
+  // Ponti: impalcato più chiaro fra due parapetti, poi i dettagli tipici della città.
+  const colors = bridgeColors(look);
   ctx.lineCap = 'butt';
-  strokeChains(ctx, bridges, ROAD_WIDTH + 6, STYLE.bridgeRail);
-  strokeChains(ctx, bridges, ROAD_WIDTH - 2, STYLE.bridgeDeck);
+  strokeChains(ctx, bridges, ROAD_WIDTH + 6, colors.rail);
+  strokeChains(ctx, bridges, ROAD_WIDTH - 2, colors.deck);
+  drawBridgeDetails(ctx, bridges.map((c) => c.points), look);
   ctx.lineCap = 'round';
   drawOneWayArrows(ctx, graph, [...graph.edges.values()].filter((e) => e.oneWay));
 
@@ -183,8 +187,9 @@ export function drawRoads(ctx, graph, congestion) {
  * impalcato. Va disegnata dopo i veicoli che passano sotto e prima di quelli sopra.
  * @param {CanvasRenderingContext2D} ctx
  * @param {RoadGraph} graph
+ * @param {import('../sim/level.js').Look} [look]  stile dei cavalcavia della città
  */
-export function drawOverpasses(ctx, graph) {
+export function drawOverpasses(ctx, graph, look) {
   /** @type {Chain[]} */
   const decks = [];
   for (const n of graph.nodes.values()) {
@@ -202,8 +207,11 @@ export function drawOverpasses(ctx, graph) {
   ctx.translate(2.5, 3.5);
   strokeChains(ctx, decks, ROAD_WIDTH + 6, STYLE.overpassShadow);
   ctx.restore();
-  strokeChains(ctx, decks, ROAD_WIDTH + 5, STYLE.bridgeRail);
+  const points = decks.map((d) => d.points);
+  drawOverpassDetails(ctx, points, look, 'under');
+  strokeChains(ctx, decks, ROAD_WIDTH + 5, overpassRail(look));
   strokeChains(ctx, decks, ROAD_WIDTH - 1, STYLE.overpassDeck);
+  drawOverpassDetails(ctx, points, look, 'over');
   ctx.lineCap = 'round';
   ctx.strokeStyle = STYLE.laneMark;
   ctx.lineWidth = 1;

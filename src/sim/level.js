@@ -113,6 +113,7 @@ const TUTORIAL_GOALS = ['avanti', 'collega', 'viaggi', 'rimuovi', 'tipoStrada', 
  * @property {import('./terrain.js').Terrain} terrain  ville, colli, monumenti e mura
  * @property {TutorialStep[] | null} tutorial  passi guidati (solo nel livello tutorial)
  * @property {number} overpasses  cavalcavia disponibili all'inizio
+ * @property {Look} look  aspetto di ponti, cavalcavia e rotonde, tipico della città
  * @property {{min: number, max: number, growth: number, growthMax: number}} spawn  secondi fra un veicolo nuovo e il successivo, per stazione;
  *   growth = quanti veicoli in più nascono ogni giorno che passa (0.02 = +2% al giorno),
  *   fino al massimo growthMax (0.5 = al più +50%)
@@ -298,6 +299,7 @@ export function parseLevel(json) {
     waters,
     bridges,
     bridgesPerLand: json.ponti?.minimoTerre !== false,
+    look: parseLook(json.stile),
     congestion,
     dayLength,
     roads,
@@ -380,4 +382,22 @@ function checkShape(shape, where) {
 /** @param {unknown} v */
 function isNum(v) {
   return typeof v === 'number' && Number.isFinite(v);
+}
+
+/**
+ * @typedef {Object} Look  nomi degli stili disegnati in src/render/looks.js
+ * @property {string} bridge
+ * @property {string} overpass
+ * @property {string} roundabout
+ */
+
+/**
+ * Voce "stile" del livello: {"ponte": "pietra", "cavalcavia": "terracotta", "rotonda": "pino"}.
+ * Quello che manca resta semplice.
+ * @param {any} s
+ * @returns {Look}
+ */
+function parseLook(s) {
+  const name = (/** @type {any} */ v) => (typeof v === 'string' && v ? v : 'semplice');
+  return { bridge: name(s?.ponte), overpass: name(s?.cavalcavia), roundabout: name(s?.rotonda) };
 }

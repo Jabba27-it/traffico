@@ -103,6 +103,11 @@
     { "nome": "Ponte Galeria",  "x": 150, "y": 1380 },
     { "nome": "Isola Sacra",    "x": 170, "y": 1560 }
   ],
+  "stile": {
+    "ponte": "pietra",
+    "cavalcavia": "terracotta",
+    "rotonda": "pino"
+  },
   "ponti": { "iniziali": 2 },
   "cavalcavia": { "iniziali": 1 },
   "crescita": { "ogniMin": 45, "ogniMax": 60, "massimo": 12, "distanzaMinima": 100, "difficolta": 0.8 },

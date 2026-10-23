@@ -660,6 +660,11 @@
       "y": 1517
     }
   ],
+  "stile": {
+    "ponte": "bosforo",
+    "cavalcavia": "maiolica",
+    "rotonda": "fontana"
+  },
   "ponti": {
     "iniziali": 2
   },
