@@ -12,7 +12,7 @@ import { pickNewStation } from './growth.js';
 import { updateCongestion } from './congestion.js';
 import { planRoad, buildPlannedRoad } from './roadBuilder.js';
 import { findRoadPiece, removeRoadPiece, removeIsolatedNodes, edgeLength, orderedChain, pieceType, setPieceType } from './roadEditing.js';
-import { isInWater } from './water.js';
+import { isInWater, lengthInWater } from './water.js';
 import { viewAt, insetRect, rectContains } from './view.js';
 import { starGoals } from './stars.js';
 import { buildOverpass, overpassPairs, removeOverpass } from './overpass.js';
@@ -34,13 +34,17 @@ const RESERVED_MARGIN = STATION_RADIUS + 40;
 const FIXED_STATION_MARGIN = STATION_RADIUS + 12;
 
 /**
+ * true se una parte qualsiasi dell'arco passa sull'acqua. Non basta guardare
+ * il punto di mezzo: un arco lungo (un dito veloce lascia punti radi) può
+ * attraversare un fiume stretto vicino a un suo estremo.
  * @param {RoadGraph} graph
+ * @param {import('./water.js').Water[]} waters
  * @param {RoadEdge} e
  */
-function edgeMidpoint(graph, e) {
+function edgeOverWater(graph, waters, e) {
   const a = /** @type {RoadNode} */ (graph.nodes.get(e.a));
   const b = /** @type {RoadNode} */ (graph.nodes.get(e.b));
-  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  return lengthInWater(waters, [a, b]) > 0;
 }
 
 /** @typedef {{x: number, y: number}} Point */
@@ -365,7 +369,7 @@ export class Simulation {
     if (total > 0) added.forEach((e, i) => (e.cost = (cost * lengths[i]) / total));
 
     // Gli archi nuovi in acqua sono ponti: ogni gruppo di archi collegati è un ponte.
-    const wet = added.filter((e) => isInWater(this.level.waters, edgeMidpoint(this.graph, e)));
+    const wet = added.filter((e) => edgeOverWater(this.graph, this.level.waters, e));
     for (const e of wet) {
       if (e.bridgeId !== undefined) continue;
       const id = this.nextBridgeId++;
