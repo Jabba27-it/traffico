@@ -42,6 +42,8 @@ Puzzle per telefono, a livelli: ogni livello è una città ispirata a una città
 - I livelli sono file JSON (geografia, ritmo di crescita, obiettivi): aggiungere una città non richiede codice nuovo.
 - Server locale per provare il gioco: `python server.py` dalla cartella del progetto (come `python -m http.server 8000`, ma senza cache, così il telefono vede sempre l'ultima versione). Dal telefono sulla stessa rete Wi‑Fi: `http://<IP del computer>:8000`.
 - Git per salvare le versioni: lo gestisci tu (Claude Code), l'utente non conosce i comandi. Spiega in una riga cosa hai salvato.
+- Il gioco è una PWA installabile: manifest.webmanifest, icone in icons/ (originali, disegnate con le forme del gioco), sw.js che salva una copia per giocare offline (prima la rete, poi la copia).
+- Pubblicazione su GitHub Pages con .github/workflows/pages.yml: a ogni push su main va online solo ciò che serve per giocare (index.html, manifest, sw.js, icons, src, levels); il flusso scrive la versione in sw.js e l'elenco dei file da salvare offline (precache.json), quindi aggiungere file non richiede di aggiornare elenchi a mano.
 
 ## Struttura cartelle (proposta)
 

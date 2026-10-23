@@ -1,0 +1,41 @@
+# Pubblica il gioco su GitHub Pages a ogni salvataggio sul ramo main.
+# Va online solo ciò che serve per giocare (niente CLAUDE.md, server.py...).
+name: Pubblica il gioco
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  pubblica:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepara i file del gioco
+        run: |
+          mkdir _site
+          cp -r index.html manifest.webmanifest sw.js icons src levels _site/
+          cd _site
+          # versione nel service worker: a ogni pubblicazione il telefono rinnova la sua copia
+          sed -i "s/__VERSIONE__/${GITHUB_SHA::8}/" sw.js
+          # elenco dei file da salvare sul telefono per giocare offline
+          { echo '["./"'; find . -type f | sed 's|^\./||' | sort | sed 's/.*/,"&"/'; echo ']'; } > precache.json
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4

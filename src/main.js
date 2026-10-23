@@ -30,6 +30,9 @@ import { askConfirm } from './ui/confirm.js';
 
 // Il livello si sceglie dall'indirizzo, es. ?livello=roma; senza livello si apre il menu.
 const LEVEL_PARAM = new URLSearchParams(location.search).get('livello');
+
+// Copia del gioco sul telefono, per giocare anche offline (funziona su https e in locale).
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 const LEVEL_NAME = LEVEL_PARAM && /^[a-z0-9_-]+$/.test(LEVEL_PARAM) ? LEVEL_PARAM : null;
 const LEVEL_URL = `levels/${LEVEL_NAME}.json`;
 const INDEX_URL = 'levels/indice.json';
