@@ -320,7 +320,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: clamp(6px, 1.3vh, 14px);
+      gap: clamp(4px, 1vh, 12px);
       overflow: hidden;
       padding: calc(env(safe-area-inset-top) + clamp(10px, 2.5vh, 32px)) clamp(10px, 4vw, 24px)
         calc(env(safe-area-inset-bottom) + clamp(10px, 2vh, 24px));
@@ -329,7 +329,7 @@
       color: var(--ink);
       text-align: center;
     }
-    .menu h1 { margin: 0; font-size: clamp(26px, 5.5vh, 48px); line-height: 1.05; letter-spacing: -0.02em; color: var(--accent); }
+    .menu h1 { margin: 0; font-size: clamp(22px, 4.5vh, 44px); line-height: 1.05; letter-spacing: -0.02em; color: var(--accent); }
     .menu > p { margin: 0; font-size: clamp(12px, 1.9vh, 17px); opacity: 0.7; }
     .menu-card {
       flex: 1 1 0;
@@ -340,30 +340,30 @@
       grid-template-columns: auto minmax(0, 1fr);
       align-content: center;
       column-gap: clamp(8px, 3vw, 16px);
-      row-gap: clamp(4px, 1vh, 10px);
-      padding: clamp(6px, 1.2vh, 14px) clamp(10px, 3.5vw, 18px);
+      row-gap: clamp(2px, 0.6vh, 8px);
+      padding: clamp(4px, 0.9vh, 12px) clamp(10px, 3.5vw, 18px);
       border-radius: clamp(12px, 2vh, 18px);
       background: var(--card);
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
       text-align: left;
     }
-    .menu-icon { grid-row: 1 / span 3; align-self: center; width: clamp(36px, 7.5vh, 72px); height: clamp(36px, 7.5vh, 72px); }
+    .menu-icon { grid-row: 1 / span 3; align-self: center; width: clamp(34px, 6.5vh, 68px); height: clamp(34px, 6.5vh, 68px); }
     .menu-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; }
-    .menu-name { font-size: clamp(15px, 2.5vh, 22px); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .menu-name { font-size: clamp(14px, 2.3vh, 22px); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .menu-stars { font-size: clamp(13px, 2.1vh, 19px); white-space: nowrap; }
-    .menu-record { min-height: 1.3em; line-height: 1.3; font-size: clamp(12px, 1.8vh, 16px); opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .menu-record { min-height: 1.25em; line-height: 1.25; font-size: clamp(11px, 1.6vh, 16px); opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .menu-card > .menu-head, .menu-card > .menu-record, .menu-card > .menu-modes { grid-column: 2; }
     .menu-modes { display: flex; gap: clamp(4px, 1.5vw, 8px); min-width: 0; }
     .menu-mode {
       flex: 1;
       min-width: 0;
-      padding: clamp(5px, 1.1vh, 12px) clamp(6px, 2vw, 12px);
+      padding: clamp(4px, 0.8vh, 11px) clamp(6px, 2vw, 12px);
       border: none;
       border-radius: clamp(8px, 1.4vh, 12px);
       background: var(--ink);
       color: var(--card);
       font: inherit;
-      font-size: clamp(13px, 2vh, 17px);
+      font-size: clamp(12px, 1.8vh, 17px);
       font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
@@ -376,7 +376,7 @@
     .menu-mode:not(.menu-mode-sandbox):not(:only-child) { flex: 0 0 auto; padding-left: clamp(10px, 3.5vw, 18px); padding-right: clamp(10px, 3.5vw, 18px); }
     .menu-mode:active { transform: scale(0.97); }
     /* Schermi molto bassi (telefono in orizzontale): via il sottotitolo */
-    @media (max-height: 520px) { .menu > p { display: none; } }
+    @media (max-height: 700px) { .menu > p { display: none; } }
     /* Telefono in orizzontale: le schede su due colonne, così restano alte abbastanza */
     @media (max-height: 520px) and (orientation: landscape) {
       .menu { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: minmax(0, 1fr); grid-template-rows: auto; align-content: stretch; }
