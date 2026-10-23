@@ -36,7 +36,7 @@ export function showMenu(parent, levels, onPick) {
 
   for (const level of levels) {
     const record = loadRecord(level.file);
-    const card = document.createElement('button');
+    const card = document.createElement('div');
     card.className = 'menu-card';
     const name = document.createElement('div');
     name.className = 'menu-name';
@@ -49,20 +49,24 @@ export function showMenu(parent, levels, onPick) {
     result.innerHTML = `${starsHtml(record.stars, record.platinum || undefined)} <span>${record.score > 0 ? `Record ${record.score}` : 'Mai giocato'}</span>`;
     card.append(name, description, result);
     if (level.icon) card.appendChild(monumentIcon(level.icon));
-    card.addEventListener('click', () => onPick(level.file, false));
+    // Due tasti separati: il livello con le stelle, e la sandbox che va avanti
+    // finché non si perde, col suo record.
+    const modes = document.createElement('div');
+    modes.className = 'menu-modes';
+    const play = document.createElement('button');
+    play.className = 'menu-mode';
+    play.innerHTML = level.sandbox ? 'Livello <small>con le stelle</small>' : 'Gioca';
+    play.addEventListener('click', () => onPick(level.file, false));
+    modes.appendChild(play);
     if (level.sandbox) {
-      // Sotto il livello, la sandbox: si gioca finché non si perde, col suo record.
       const best = loadRecord(level.file + SANDBOX_SUFFIX).score;
-      const sandbox = document.createElement('span');
-      sandbox.className = 'menu-sandbox';
-      sandbox.setAttribute('role', 'button');
+      const sandbox = document.createElement('button');
+      sandbox.className = 'menu-mode menu-mode-sandbox';
       sandbox.innerHTML = `Sandbox <small>${best > 0 ? `record ${best}` : 'senza fine'}</small>`;
-      sandbox.addEventListener('click', (e) => {
-        e.stopPropagation();
-        onPick(level.file, true);
-      });
-      card.appendChild(sandbox);
+      sandbox.addEventListener('click', () => onPick(level.file, true));
+      modes.appendChild(sandbox);
     }
+    card.appendChild(modes);
     root.appendChild(card);
   }
   parent.appendChild(root);

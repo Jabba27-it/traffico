@@ -278,6 +278,12 @@ async function start() {
       lastStar = sim.lastStar;
       playStar();
       showToast(document.body, `★ ${STAR_NAMES[lastStar.index]} stella: ${lastStar.label}`);
+      // Le stelle si salvano subito: restano anche se poi si esce dalla partita.
+      if (!SANDBOX) saveRecord(/** @type {string} */ (LEVEL_NAME), 0, sim.starsEarned, sim.platinum);
+      const min = level.stars?.platinum;
+      if (min != null && sim.starsEarned.every(Boolean) && !sim.completed) {
+        setTimeout(() => showToast(document.body, `Tre stelle! Continua per il platino: efficienza al ${min}%`), 2500);
+      }
     }
 
     if (sim.rewardPending && !rewardShown) {

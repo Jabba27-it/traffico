@@ -321,7 +321,6 @@ export function drawWater(ctx, waters) {
     }
   }
   drawWaves(ctx, waters);
-  drawCurrents(ctx, waters);
 }
 
 /** Distanza fra un'ondina e l'altra, e dalla riva, in unità di mondo. */
@@ -331,8 +330,8 @@ const WAVE_MARGIN = 16;
 const waveCache = new WeakMap();
 
 /**
- * Ondine sparse su mari, baie e laghi (non sui fiumi), per far capire che è
- * acqua aperta. Stanno su una griglia un po' mossa, lontano dalle rive.
+ * Ondine sparse sull'acqua: su mari, baie e laghi su una griglia un po' mossa,
+ * lontano dalle rive; sui fiumi in fila lungo il centro, uguali a quelle del mare.
  * @param {CanvasRenderingContext2D} ctx
  * @param {import('../sim/water.js').Water[]} waters
  */
@@ -341,7 +340,19 @@ function drawWaves(ctx, waters) {
   if (!spots) {
     spots = [];
     for (const w of waters) {
-      if (w.kind === 'river') continue;
+      if (w.kind === 'river') {
+        // Una ogni WAVE_STEP lungo il centro del fiume.
+        let carry = WAVE_STEP / 2;
+        for (let i = 1; i < w.points.length; i++) {
+          const a = w.points[i - 1];
+          const b = w.points[i];
+          const len = Math.hypot(b.x - a.x, b.y - a.y);
+          if (len === 0) continue;
+          for (let d = carry; d < len; d += WAVE_STEP) spots.push({ x: a.x + ((b.x - a.x) * d) / len, y: a.y + ((b.y - a.y) * d) / len });
+          carry = (((carry - len) % WAVE_STEP) + WAVE_STEP) % WAVE_STEP;
+        }
+        continue;
+      }
       const xs = w.points.map((p) => p.x);
       const ys = w.points.map((p) => p.y);
       const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
@@ -366,69 +377,6 @@ function drawWaves(ctx, waters) {
     ctx.moveTo(x - 7, y);
     ctx.quadraticCurveTo(x - 3.5, y - 3.5, x, y);
     ctx.quadraticCurveTo(x + 3.5, y + 3.5, x + 7, y);
-  }
-  ctx.stroke();
-}
-
-/** Distanza fra un segno di corrente e l'altro lungo il fiume, e lunghezza del segno. */
-const CURRENT_STEP = 40;
-const CURRENT_LENGTH = 11;
-/** @type {WeakMap<object, {x: number, y: number, dx: number, dy: number}[]>} i segni di ogni elenco d'acque */
-const currentCache = new WeakMap();
-
-/**
- * Il verso della corrente sui fiumi: brevi linee blu scure con una piccola
- * punta, a zig-zag ai due lati del centro. Il fiume scorre verso l'estremo che
- * finisce nel mare, in una baia o in un altro fiume (la foce).
- * @param {CanvasRenderingContext2D} ctx
- * @param {import('../sim/water.js').Water[]} waters
- */
-function drawCurrents(ctx, waters) {
-  let marks = currentCache.get(waters);
-  if (!marks) {
-    marks = [];
-    for (const w of waters) {
-      if (w.kind !== 'river' || w.points.length < 2) continue;
-      const others = waters.filter((o) => o !== w);
-      const first = w.points[0];
-      const last = w.points[w.points.length - 1];
-      const toFirst = others.length > 0 && distanceToWater(others, first) < distanceToWater(others, last);
-      const pts = toFirst ? [...w.points].reverse() : w.points;
-      let k = 0;
-      let carry = CURRENT_STEP / 2;
-      for (let i = 1; i < pts.length; i++) {
-        const a = pts[i - 1];
-        const b = pts[i];
-        const len = Math.hypot(b.x - a.x, b.y - a.y);
-        if (len === 0) continue;
-        const dx = (b.x - a.x) / len;
-        const dy = (b.y - a.y) / len;
-        for (let d = carry; d < len; d += CURRENT_STEP, k++) {
-          const side = (k % 2 ? 1 : -1) * w.width * 0.2;
-          marks.push({ x: a.x + dx * d - dy * side, y: a.y + dy * d + dx * side, dx, dy });
-        }
-        carry = (carry - len) % CURRENT_STEP;
-        if (carry < 0) carry += CURRENT_STEP;
-      }
-    }
-    currentCache.set(waters, marks);
-  }
-  if (marks.length === 0) return;
-  ctx.strokeStyle = STYLE.current;
-  ctx.lineWidth = 1.6;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.beginPath();
-  const h = CURRENT_LENGTH / 2;
-  for (const { x, y, dx, dy } of marks) {
-    const tipX = x + dx * h;
-    const tipY = y + dy * h;
-    ctx.moveTo(x - dx * h, y - dy * h);
-    ctx.lineTo(tipX, tipY);
-    // La punta, verso valle.
-    ctx.moveTo(tipX - dx * 3.5 - dy * 2.5, tipY - dy * 3.5 + dx * 2.5);
-    ctx.lineTo(tipX, tipY);
-    ctx.lineTo(tipX - dx * 3.5 + dy * 2.5, tipY - dy * 3.5 - dx * 2.5);
   }
   ctx.stroke();
 }

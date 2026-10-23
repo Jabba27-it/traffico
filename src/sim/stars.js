@@ -1,5 +1,5 @@
 // Le tre stelle del livello: viaggi, giorni sopravvissuti, poco traffico lento per un po' di fila.
-// Più la stella di platino: viaggi efficienti quando si prende la terza.
+// Più la stella di platino: viaggi efficienti, da prendere dopo la terza.
 
 /** @typedef {import('./level.js').Stars} Stars */
 
@@ -70,15 +70,15 @@ function trafficGoal(goal, s) {
 }
 
 /**
- * La stella di platino: alla fine, quando arriva la terza stella, l'efficienza
- * dei viaggi di tutta la partita deve essere almeno quella chiesta.
+ * La stella di platino: dopo le tre stelle si continua a giocare, e arriva
+ * quando l'efficienza dei viaggi di tutta la partita raggiunge quella chiesta.
  * @param {number} min  efficienza minima in percentuale
  * @param {StarState} s
  * @returns {StarGoal}
  */
 export function platinumGoal(min, s) {
   return {
-    label: `Platino: efficienza dei viaggi almeno ${min}% quando prendi la terza stella`,
+    label: `Platino: dopo le tre stelle, efficienza dei viaggi almeno ${min}%`,
     progress: s.efficiency === null ? 'si misura dal primo arrivo' : `ora ${s.efficiency}%`,
     reached: s.efficiency !== null && s.efficiency >= min,
     lasting: false,

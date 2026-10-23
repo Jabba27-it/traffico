@@ -162,7 +162,7 @@ export class Simulation {
     this.starsAnnounced = [false, false, false];
     /** true quando sono state prese tutte le stelle: la partita è vinta e finisce. */
     this.completed = false;
-    /** Stella di platino: si decide quando arriva la terza stella. */
+    /** Stella di platino: si prende dopo le tre stelle, quando l'efficienza arriva alla soglia. */
     this.platinum = false;
     /** @type {{index: number, label: string} | null} l'ultima stella guadagnata */
     this.lastStar = null;
@@ -215,11 +215,16 @@ export class Simulation {
         this.lastStar = { index: i, label: goal.label };
       }
     });
-    // Tutte le stelle prese: il livello è completato e la partita finisce.
-    // In quel momento si decide anche la stella di platino.
+    // Tutte e tre le stelle: se il livello ha il platino si continua a giocare
+    // finché l'efficienza arriva alla soglia (o finché non si perde); senza
+    // platino il livello è completato e la partita finisce.
     if (goals.length > 0 && goals.every((_, i) => this.starsEarned[i])) {
-      this.completed = true;
-      this.platinum = this.platinumGoal()?.reached ?? false;
+      const platinum = this.platinumGoal();
+      if (!platinum) this.completed = true;
+      else if (platinum.reached) {
+        this.platinum = true;
+        this.completed = true;
+      }
     }
   }
 

@@ -334,26 +334,30 @@
       color: var(--ink);
       font-family: inherit;
       text-align: left;
-      cursor: pointer;
     }
-    .menu-card:active { transform: scale(0.98); }
     .menu-card { position: relative; padding-right: 96px; }
-    .menu-icon { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); }
+    /* In alto a destra, così sotto c'è posto per i due tasti a tutta larghezza */
+    .menu-icon { position: absolute; right: 18px; top: 18px; }
     .menu-name { font-size: 20px; font-weight: 700; }
     .menu-description { margin: 2px 0 10px; font-size: 14px; opacity: 0.7; }
     .menu-record { font-size: 20px; }
     .menu-record span { margin-left: 8px; font-size: 14px; opacity: 0.7; vertical-align: 2px; }
-    .menu-sandbox {
-      display: inline-block;
-      margin-top: 12px;
-      padding: 7px 14px;
-      border-radius: 14px;
+    .menu-modes { display: flex; gap: 8px; margin-top: 14px; margin-right: -76px; }
+    .menu-mode {
+      flex: 1;
+      padding: 9px 10px;
+      border: none;
+      border-radius: 12px;
       background: var(--ink);
       color: var(--card);
-      font-size: 14px;
+      font: inherit;
+      font-size: 15px;
       font-weight: 600;
+      cursor: pointer;
     }
-    .menu-sandbox small { margin-left: 6px; font-weight: 400; opacity: 0.75; }
+    .menu-mode small { display: block; font-size: 12px; font-weight: 400; opacity: 0.75; }
+    .menu-mode-sandbox { background: #6f9fb8; }
+    .menu-mode:active { transform: scale(0.97); }
     .tutorial {
       position: fixed;
       left: 12px;

@@ -24,16 +24,18 @@ export function showGameOver(parent, values, best, actions, completed = false, c
   box.className = 'game-over-box';
 
   const title = document.createElement('h1');
-  title.textContent = completed ? 'Livello completato!' : sandbox ? 'Partita finita' : 'Livello fallito';
+  // Persa dopo le tre stelle: le stelle restano, è mancato solo il platino.
+  const threeStars = !sandbox && values.stars.length > 0 && values.stars.every(Boolean);
+  title.textContent = completed ? 'Livello completato!' : sandbox ? 'Partita finita' : threeStars ? 'Tre stelle prese' : 'Livello fallito';
   const reason = document.createElement('p');
   reason.textContent = completed
     ? values.platinum
       ? 'Hai preso tutte e tre le stelle, e anche quella di platino!'
-      : values.platinumMin != null
-        ? `Hai preso tutte e tre le stelle. Platino mancato: efficienza ${values.efficiency ?? 0}%, ne serviva ${values.platinumMin}%.`
-        : 'Hai preso tutte e tre le stelle.'
-    : `${culprit ? `La stazione ${culprit}` : 'Una stazione'} è rimasta sovraccarica troppo a lungo.`;
-  if (completed) overlay.classList.add('completed');
+      : 'Hai preso tutte e tre le stelle.'
+    : threeStars
+      ? `${culprit ? `La stazione ${culprit}` : 'Una stazione'} è rimasta sovraccarica troppo a lungo. Platino mancato: efficienza ${values.efficiency ?? 0}%, ne serviva ${values.platinumMin}%.`
+      : `${culprit ? `La stazione ${culprit}` : 'Una stazione'} è rimasta sovraccarica troppo a lungo.`;
+  if (completed || threeStars) overlay.classList.add('completed');
   box.append(title, reason);
 
   if (best && !sandbox) {
