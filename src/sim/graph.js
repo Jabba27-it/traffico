@@ -15,7 +15,6 @@ export const ROAD_WIDTH = 24;
  * @property {{partner: number, upper: boolean}} [overpass]
  *   presente se il nodo è metà di un cavalcavia: due nodi nello stesso punto,
  *   uno per la strada di sotto e uno per quella di sopra, che non si toccano
- * @property {boolean} [signal]  incrocio con semaforo
  */
 
 /**

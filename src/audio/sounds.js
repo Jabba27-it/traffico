@@ -153,9 +153,8 @@ export function playRemove() {
 
 /** @type {Record<string, number>} un clic di altezza diversa per ogni esito del tocco */
 const TAP_PITCH = {
-  normal: 700,
+  'not-a-cross': 700,
   'normal-no-overpass': 700,
-  signal: 1100,
   built: 500,
   removed: 500,
   two: 800,

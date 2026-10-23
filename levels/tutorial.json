@@ -10,7 +10,7 @@
   "tempo": { "giorno": 120 },
   "veicoli": { "ogniMin": 4, "ogniMax": 6 },
   "strade": { "iniziali": 80, "perGiorno": 5, "lunghezzaTratto": 40 },
-  "premi": { "strade": 20, "capienza": 3, "cavalcavia": 1 },
+  "premi": { "strade": 15, "capienza": 3, "cavalcavia": 1 },
   "cavalcavia": { "iniziali": 1 },
   "tutorial": [
     {
@@ -57,10 +57,11 @@
       "punta": [190, 330]
     },
     {
-      "titolo": "Semafori e cavalcavia",
-      "testo": "Ora tocca l'incrocio: diventa un semaforo. Sugli incroci a croce, un altro tocco lo trasforma in cavalcavia.",
+      "titolo": "Cavalcavia",
+      "testo": "Qui due strade si incrociano a croce. Tocca l'incrocio: diventa un cavalcavia e le strade si scavalcano, senza precedenze. Un altro tocco lo toglie.",
       "obiettivo": "incrocio",
-      "punta": [260, 330]
+      "strada": [[190, 250], [190, 410]],
+      "punta": [190, 330]
     },
     {
       "titolo": "Rotonde",

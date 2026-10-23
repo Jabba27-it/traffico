@@ -46,9 +46,8 @@ const MENU_ICON =
 const STAR_NAMES = ['Prima', 'Seconda', 'Terza'];
 /** @type {Record<string, string>} avvisi dopo un tocco breve sulla mappa */
 const TAP_MESSAGES = {
-  signal: 'Semaforo',
-  normal: 'Incrocio con precedenza alla strada principale',
-  'normal-no-overpass': 'Incrocio normale (per il cavalcavia servono scorte)',
+  'not-a-cross': 'Il cavalcavia si fa solo dove due strade si incrociano a croce',
+  'normal-no-overpass': 'Cavalcavia finiti: ne arrivano altri coi premi',
   built: 'Cavalcavia costruito',
   removed: 'Cavalcavia tolto: torna incrocio',
   two: 'Doppio senso',
@@ -374,7 +373,7 @@ async function start() {
     drawRoads(ctx, graph, sim.traffic.congestion, level.look);
     drawLaneMarks(ctx, graph);
     drawRoundaboutIslands(ctx, sim.roundabouts.values(), level.look);
-    drawJunctionMarks(ctx, graph, sim.lanes, sim.traffic.signals);
+    drawJunctionMarks(ctx, graph, sim.lanes);
     const preview = drawing.preview();
     if (preview.length >= 2) {
       const plan = sim.planRoad(preview);

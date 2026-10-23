@@ -45,7 +45,6 @@ export function buildOverpass(graph, node) {
   const upper = graph.addNode(node.x, node.y);
   upper.overpass = { partner: node.id, upper: true };
   node.overpass = { partner: upper.id, upper: false };
-  delete node.signal;
   for (const e of found.pairs[1]) moveEdgeEnd(graph, e, node.id, upper.id);
   return true;
 }

@@ -545,21 +545,14 @@ export class Simulation {
       bestD = d;
     }
     if (!best) return null;
-    // A giro: incrocio → semaforo → cavalcavia (solo sulle croci) → incrocio.
+    // A giro: incrocio → cavalcavia (solo sulle croci) → incrocio.
     if (best.overpass) {
       removeOverpass(this.graph, best);
       this.overpassBudget++;
       this.updateRoutes();
       return 'removed';
     }
-    if (!best.signal) {
-      best.signal = true;
-      this.graph.version++;
-      return 'signal';
-    }
-    delete best.signal;
-    this.graph.version++;
-    if (!overpassPairs(this.graph, best)) return 'normal';
+    if (!overpassPairs(this.graph, best)) return 'not-a-cross';
     if (this.overpassBudget <= 0) return 'normal-no-overpass';
     buildOverpass(this.graph, best);
     this.overpassBudget--;

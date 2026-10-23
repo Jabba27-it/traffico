@@ -1,5 +1,5 @@
-// Segnali agli incroci: le luci dei semafori e i triangoli di "dare precedenza"
-// sulle strade laterali, così si vede chi deve aspettare.
+// Segnali agli incroci: i triangoli di "dare precedenza" sulle strade laterali,
+// così si vede chi deve aspettare; e le isole delle rotatorie.
 
 import { ROAD_WIDTH } from '../sim/graph.js';
 import { drawIsland } from './looks.js';
@@ -7,12 +7,9 @@ import { drawIsland } from './looks.js';
 /** @typedef {import('../sim/graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('../sim/lanes.js').LaneGeometry} LaneGeometry */
 
-const GREEN = '#3fbf5f';
-const RED = '#e0453a';
-const AMBER = '#f2c53d';
 const YIELD = 'rgba(255, 255, 255, 0.85)';
 const YIELD_EDGE = 'rgba(214, 84, 70, 0.9)';
-/** Distanza dal centro dell'incrocio dove si mettono luci e triangoli. */
+/** Distanza dal centro dell'incrocio dove si mettono i triangoli. */
 const MARK_DISTANCE = 19;
 
 /**
@@ -29,9 +26,8 @@ export function drawRoundaboutIslands(ctx, roundabouts, look) {
  * @param {CanvasRenderingContext2D} ctx
  * @param {RoadGraph} graph
  * @param {LaneGeometry} lanes
- * @param {Map<number, {phase: 0 | 1, allRed: boolean}>} signals
  */
-export function drawJunctionMarks(ctx, graph, lanes, signals) {
+export function drawJunctionMarks(ctx, graph, lanes) {
   /** @type {Map<number, number[]>} vicini di ogni nodo */
   const around = new Map();
   for (const e of graph.edges.values()) {
@@ -44,7 +40,6 @@ export function drawJunctionMarks(ctx, graph, lanes, signals) {
     const n = graph.nodes.get(id);
     if (!n || neighbors.length < 3 || n.stationId !== undefined || n.overpass) continue;
     const main = lanes.mainRoad(id);
-    const signal = signals.get(id);
     for (const other of neighbors) {
       // Solo le strade da cui si arriva (i sensi unici in uscita no).
       if (!graph.canTravel(other, id)) continue;
@@ -58,17 +53,7 @@ export function drawJunctionMarks(ctx, graph, lanes, signals) {
       const side = graph.getEdge(id, other)?.oneWay ? 0 : ROAD_WIDTH / 4;
       const x = n.x + dx * MARK_DISTANCE + dy * side;
       const y = n.y + dy * MARK_DISTANCE - dx * side;
-      if (signal) {
-        const green = !signal.allRed && (signal.phase === 0) === fromMain;
-        ctx.fillStyle = '#2b2e34';
-        ctx.beginPath();
-        ctx.arc(x, y, 3.6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = signal.allRed ? AMBER : green ? GREEN : RED;
-        ctx.beginPath();
-        ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (!fromMain) {
+      if (!fromMain) {
         // Triangolo con la punta verso chi arriva, come il cartello vero.
         const s = 3.6;
         ctx.beginPath();

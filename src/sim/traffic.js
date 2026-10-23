@@ -38,17 +38,6 @@ const RAMP_CAR = 0.85;
 const RAMP_HEAVY = 0.65;
 /** Un veicolo è "fermo nel traffico" sotto questa frazione della sua velocità massima. */
 export const SLOW = 0.3;
-/**
- * Durata del verde del semaforo: più lungo per la strada principale, che ha
- * più traffico. Fra una fase e l'altra, un momento di tutto rosso.
- */
-const GREEN_TIME = 8;
-const SIDE_GREEN_TIME = 4;
-const ALL_RED_TIME = 1.5;
-/** Verde minimo prima che il semaforo possa passare in anticipo a chi aspetta. */
-const MIN_GREEN = 2;
-/** Tutto rosso quando nell'incrocio non c'è nessuno. */
-const ALL_RED_EMPTY = 0.3;
 /** Quanto in fretta il colore del traffico di una strada segue la realtà. */
 const CONGESTION_RATE = 0.8;
 
@@ -78,12 +67,6 @@ export class Traffic {
     this.conflictCache = new Map();
     /** @type {Map<string, number>} traffico lento su ogni strada, 0..1, per coppia di nodi */
     this.congestion = new Map();
-    /**
-     * Semafori: fase 0 = verde alla strada principale, 1 = alle laterali.
-     * @type {Map<number, {phase: 0 | 1, allRed: boolean, t: number}>}
-     */
-    this.signals = new Map();
-    this.signalVersion = -1;
   }
 
   /**
@@ -94,7 +77,6 @@ export class Traffic {
    */
   step(vehicles, dt) {
     this.indexVehicles(vehicles);
-    this.updateSignals(dt);
     this.grantPermissions();
 
     for (const v of vehicles) v.speed = this.safeSpeed(v, dt);
@@ -281,31 +263,27 @@ export class Traffic {
    * - Chi arriva dalla strada principale viene prima; chi arriva da una laterale
    *   passa solo se nessuno della principale con una traiettoria in conflitto
    *   sta arrivando (è l'immissione: se il varco c'è, non serve fermarsi).
-   * - Con il semaforo passa solo chi ha il verde.
    * - Fra pari, passa chi è arrivato prima.
    */
   grantPermissions() {
     for (const [node, j] of this.junctions) {
-      const signal = this.signals.get(node);
       const main = this.lanes.mainRoad(node);
       const fromMain = (/** @type {Request} */ r) => main.has(r.turn.from);
       // Le richieste della principale prima, ognuna nel suo ordine d'arrivo.
-      const ordered = signal ? j.queue : [...j.queue.filter(fromMain), ...j.queue.filter((r) => !fromMain(r))];
+      const ordered = [...j.queue.filter(fromMain), ...j.queue.filter((r) => !fromMain(r))];
       /** @type {Request[]} */
       const waiting = [];
       // Chi arriva da una laterale aspetta anche chi sta arrivando sulla principale,
       // ma solo se le loro curve si incrociano.
-      const arrivals = !signal && j.queue.some((r) => !fromMain(r)) ? this.mainArrivals(node, main) : [];
+      const arrivals = j.queue.some((r) => !fromMain(r)) ? this.mainArrivals(node, main) : [];
       j.queue = ordered.filter((r) => {
-        const red = signal !== undefined && (signal.allRed || (signal.phase === 0) !== fromMain(r));
         const blocked =
-          red ||
           (!fromMain(r) && arrivals.some((t) => this.conflicts(t, r.turn))) ||
           [...j.inside.values()].some((t) => this.conflicts(t, r.turn)) ||
           waiting.some((w) => this.conflicts(w.turn, r.turn)) ||
           !this.exitIsFree(r.v, r.turn);
         if (blocked) {
-          if (!red) waiting.push(r);
+          waiting.push(r);
           return true;
         }
         j.inside.set(r.v.id, r.turn);
@@ -349,77 +327,6 @@ export class Traffic {
       }
     }
     return turns;
-  }
-
-  /**
-   * Chi usa o aspetta un semaforo: c'è qualcuno dalla parte col verde (in
-   * attesa, già nell'incrocio o in arrivo) e qualcuno in attesa col rosso?
-   * @param {number} node
-   * @param {0 | 1} phase  0 = verde alla principale
-   */
-  signalDemand(node, phase) {
-    const j = this.junctions.get(node);
-    const main = this.lanes.mainRoad(node);
-    const green = (/** @type {number} */ from) => (phase === 0) === main.has(from);
-    let greenSide = (j?.inside.size ?? 0) > 0;
-    let redSide = false;
-    for (const r of j?.queue ?? []) {
-      if (green(r.turn.from)) greenSide = true;
-      else redSide = true;
-    }
-    // Chi sta arrivando col verde, anche se non ha ancora chiesto di passare.
-    if (!greenSide) {
-      for (const e of this.lanes.graph.edges.values()) {
-        if (e.a !== node && e.b !== node) continue;
-        const m = e.a === node ? e.b : e.a;
-        if (!green(m) || !this.lanes.graph.canTravel(m, node)) continue;
-        const lane = this.lanes.lane(m, node);
-        if ((this.occupancy.get(lane.key) ?? []).some((o) => lane.length - o.s < REQUEST_DISTANCE * 2)) greenSide = true;
-      }
-    }
-    return { greenSide, redSide };
-  }
-
-  /**
-   * Fa avanzare i semafori: verde alla strada principale, poi tutto rosso,
-   * verde alle laterali, tutto rosso, e così via. Sono semafori "con i
-   * sensori": se dall'altra parte non aspetta nessuno il verde resta, e se
-   * col verde non passa nessuno mentre dall'altra parte si aspetta, il verde
-   * passa subito (dopo un minimo). Così nessuno si ferma a un rosso inutile.
-   * @param {number} dt
-   */
-  updateSignals(dt) {
-    if (this.signalVersion !== this.lanes.graph.version) {
-      this.signalVersion = this.lanes.graph.version;
-      for (const n of this.lanes.graph.nodes.values()) {
-        if (n.signal && !this.signals.has(n.id)) this.signals.set(n.id, { phase: 0, allRed: false, t: GREEN_TIME });
-      }
-      for (const id of this.signals.keys()) if (!this.lanes.graph.nodes.get(id)?.signal) this.signals.delete(id);
-    }
-    for (const [node, s] of this.signals) {
-      s.t -= dt;
-      if (!s.allRed) {
-        s.green = (s.green ?? 0) + dt;
-        const { greenSide, redSide } = this.signalDemand(node, s.phase);
-        // Nessuno col verde e qualcuno col rosso: si cambia subito.
-        if (redSide && !greenSide && s.green >= MIN_GREEN) s.t = 0;
-        // Verde finito ma col rosso non aspetta nessuno: il verde continua.
-        if (s.t <= 0 && !redSide) s.t = s.phase === 0 ? GREEN_TIME : SIDE_GREEN_TIME;
-      } else if ((this.junctions.get(node)?.inside.size ?? 0) === 0) {
-        // Il tutto rosso serve a far liberare l'incrocio: se è già vuoto, dura un attimo.
-        s.t = Math.min(s.t, ALL_RED_EMPTY);
-      }
-      if (s.t > 0) continue;
-      if (s.allRed) {
-        s.allRed = false;
-        s.phase = s.phase === 0 ? 1 : 0;
-        s.t = s.phase === 0 ? GREEN_TIME : SIDE_GREEN_TIME;
-        s.green = 0;
-      } else {
-        s.allRed = true;
-        s.t = ALL_RED_TIME;
-      }
-    }
   }
 
   /**
