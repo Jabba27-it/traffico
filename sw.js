@@ -38,7 +38,10 @@ self.addEventListener('fetch', (event) => {
     (async () => {
       const cache = await caches.open(CACHE);
       try {
-        const response = await fetch(request);
+        // "no-cache": il browser chiede sempre al sito se c'è una versione nuova
+        // (se non è cambiato nulla la risposta è minima), invece di usare per
+        // 10 minuti la sua copia: così una versione pubblicata si vede subito.
+        const response = await fetch(request.url, { cache: 'no-cache' });
         if (response.ok) await cache.put(request, response.clone());
         return response;
       } catch {
