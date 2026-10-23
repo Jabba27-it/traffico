@@ -22,6 +22,8 @@ export const STATION_RADIUS = 18;
  * @property {number} y
  * @property {number} nodeId  nodo del grafo stradale che rappresenta la stazione
  * @property {Shape[]} queue   forme dei veicoli in attesa di partire, dal primo arrivato
+ * @property {number} returned quanti veicoli in testa alla coda sono "rientrati" da una strada
+ *   cancellata: partono per primi e non contano per il sovraccarico
  * @property {number} bornAt   secondo di gioco in cui è comparsa
  * @property {number} capacity veicoli in coda che regge senza sovraccarico
  * @property {number} overload secondi di sovraccarico accumulati
@@ -63,6 +65,7 @@ export function createStation(graph, def, id, bornAt, capacity) {
     y: def.y,
     nodeId: node.id,
     queue: [],
+    returned: 0,
     bornAt,
     capacity,
     overload: 0,

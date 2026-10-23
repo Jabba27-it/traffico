@@ -697,6 +697,7 @@ export class Simulation {
       v.pose = pointOnVehicle(this.lanes, v);
       this.nextVehicleId++;
       origin.queue.splice(i, 1);
+      if (i < origin.returned) origin.returned--;
       this.vehicles.push(v);
       return true;
     }
@@ -843,8 +844,13 @@ export class Simulation {
     this.vehicles = this.vehicles.filter((v) => {
       if (this.reroute(v)) return true;
       this.traffic.forget(v);
+      // Torna in testa alla coda come "rientrato": riparte per primo e non conta
+      // per il sovraccarico, così rifare una strada non fa perdere la partita.
       const origin = this.stations.find((s) => s.id === v.fromStationId);
-      origin?.queue.unshift(v.shape);
+      if (origin) {
+        origin.queue.unshift(v.shape);
+        origin.returned++;
+      }
       return false;
     });
     this.traffic.reset(this.vehicles);

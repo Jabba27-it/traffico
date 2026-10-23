@@ -22,6 +22,8 @@ const LOOKAHEAD = 100;
 const REQUEST_DISTANCE = 50;
 /** Chi si immette aspetta se sulla principale qualcuno è a meno di così dall'incrocio. */
 const ARRIVAL_GAP = 18;
+/** Sotto questa velocità un veicolo sulla principale non sta "arrivando": è fermo. */
+const ARRIVING_SPEED = 2;
 /** Velocità in curva, in frazione della massima, per la curva più stretta. */
 const SHARPEST_CURVE = 0.3;
 /** Accelerazione laterale massima in curva: v² / raggio. */
@@ -291,13 +293,14 @@ export class Traffic {
       const ordered = signal ? j.queue : [...j.queue.filter(fromMain), ...j.queue.filter((r) => !fromMain(r))];
       /** @type {Request[]} */
       const waiting = [];
-      // Chi arriva da una laterale aspetta anche se sulla principale sta arrivando qualcuno.
-      const mainBusy = !signal && j.queue.some((r) => !fromMain(r)) && this.priorityApproaching(node, main);
+      // Chi arriva da una laterale aspetta anche chi sta arrivando sulla principale,
+      // ma solo se le loro curve si incrociano.
+      const arrivals = !signal && j.queue.some((r) => !fromMain(r)) ? this.mainArrivals(node, main) : [];
       j.queue = ordered.filter((r) => {
         const red = signal !== undefined && (signal.allRed || (signal.phase === 0) !== fromMain(r));
         const blocked =
           red ||
-          (!signal && !fromMain(r) && mainBusy) ||
+          (!fromMain(r) && arrivals.some((t) => this.conflicts(t, r.turn))) ||
           [...j.inside.values()].some((t) => this.conflicts(t, r.turn)) ||
           waiting.some((w) => this.conflicts(w.turn, r.turn)) ||
           !this.exitIsFree(r.v, r.turn);
@@ -312,28 +315,40 @@ export class Traffic {
   }
 
   /**
-   * true se sulla strada principale un veicolo sta per arrivare all'incrocio
-   * (o lo sta attraversando senza bisogno di permesso, come sull'anello di una rotatoria).
+   * Le curve che faranno in questo incrocio i veicoli che stanno arrivando sulla
+   * strada principale (o che lo attraversano senza bisogno di permesso, come
+   * sull'anello di una rotatoria). Chi sulla principale è fermo non conta: se
+   * aspetta il suo turno è già nella coda dei permessi.
    * @param {number} node
    * @param {Set<number>} main
+   * @returns {Piece[]}
    */
-  priorityApproaching(node, main) {
+  mainArrivals(node, main) {
+    /** @type {Piece[]} */
+    const turns = [];
+    /** @param {Vehicle} v */
+    const nextTurnHere = (v) => {
+      const i = v.path.indexOf(node, v.leg);
+      if (i >= 1 && i + 1 < v.path.length) turns.push(this.lanes.turn(v.path[i - 1], node, v.path[i + 1]));
+    };
     for (const m of main) {
       if (!this.lanes.graph.canTravel(m, node)) continue;
       const lane = this.lanes.lane(m, node);
       for (const o of this.occupancy.get(lane.key) ?? []) {
-        if (lane.length - o.s < ARRIVAL_GAP + o.v.speed * 0.5) return true;
+        if (o.v.speed > ARRIVING_SPEED && lane.length - o.s < ARRIVAL_GAP + o.v.speed * 0.5) nextTurnHere(o.v);
       }
     }
-    // Chi è già nella curva dell'incrocio arrivando dalla principale.
     for (const [key, list] of this.occupancy) {
-      if (!key.startsWith('T') || list.length === 0) continue;
-      const turn = currentPiece(this.lanes, list[0].v);
-      if (turn.node === node && main.has(turn.from)) return true;
-      // Oppure nella curva subito prima, che porta sulla principale verso l'incrocio.
-      if (turn.to === node && main.has(turn.node)) return true;
+      if (!key.startsWith('T')) continue;
+      for (const o of list) {
+        const turn = currentPiece(this.lanes, o.v);
+        // Già nella curva dell'incrocio arrivando dalla principale, senza permesso (anello).
+        if (turn.node === node && main.has(turn.from) && !turn.guarded) turns.push(turn);
+        // Oppure nella curva subito prima, che porta sulla principale verso l'incrocio.
+        else if (turn.to === node && main.has(turn.node) && o.v.speed > ARRIVING_SPEED) nextTurnHere(o.v);
+      }
     }
-    return false;
+    return turns;
   }
 
   /**

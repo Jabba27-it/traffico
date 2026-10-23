@@ -146,11 +146,16 @@ function drawQueue(ctx, s, shapes) {
     };
   };
 
+  // I primi della fila possono essere "rientrati" da una strada cancellata: solo
+  // il contorno, perché non contano per la capienza.
+  ctx.strokeStyle = QUEUE_COLOR;
+  ctx.lineWidth = 1.5;
   for (let i = 0; i < shown; i++) {
     const p = slot(i);
     ctx.beginPath();
     traceShape(ctx, shapes[i], p.x, p.y, QUEUE_ITEM_RADIUS);
-    ctx.fill();
+    if (i < s.returned) ctx.stroke();
+    else ctx.fill();
   }
   if (count > capacity) {
     const p = slot(capacity - 1);
