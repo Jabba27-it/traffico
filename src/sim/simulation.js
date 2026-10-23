@@ -136,7 +136,8 @@ export class Simulation {
     /** Ponti ancora disponibili. */
     // Almeno un ponte per ogni collegamento fra le terre (rive e isole): con tre
     // terre ne servono due, così si può sempre arrivare a tutte le stazioni.
-    this.bridgeBudget = Math.max(level.bridges, countLands(level) - 1);
+    // Un livello può rinunciarci (New York: i ponti arrivano coi premi).
+    this.bridgeBudget = level.bridgesPerLand ? Math.max(level.bridges, countLands(level) - 1) : level.bridges;
     /** Cavalcavia ancora disponibili. */
     this.overpassBudget = level.overpasses;
     /** @type {Map<number, import('./roundabout.js').Roundabout>} */

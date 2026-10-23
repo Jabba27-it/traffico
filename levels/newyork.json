@@ -973,7 +973,8 @@
     }
   ],
   "ponti": {
-    "iniziali": 3
+    "iniziali": 3,
+    "minimoTerre": false
   },
   "cavalcavia": {
     "iniziali": 1
