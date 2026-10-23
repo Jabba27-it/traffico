@@ -119,6 +119,6 @@
   "stelle": {
     "viaggi": 240,
     "giorni": 20,
-    "traffico": { "soglia": 12 }, "platino": { "efficienza": 75 }
+    "traffico": { "soglia": 12 }, "platino": { "efficienza": 70 }
   }
 }
