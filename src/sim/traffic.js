@@ -24,6 +24,8 @@ const REQUEST_DISTANCE = 50;
 const ARRIVAL_GAP = 18;
 /** Sotto questa velocità un veicolo sulla principale non sta "arrivando": è fermo. */
 const ARRIVING_SPEED = 2;
+/** Sopra questa velocità chi è appena oltre l'incrocio si sta allontanando: si può entrare. */
+const MOVING_SPEED = 4;
 /** Velocità in curva, in frazione della massima, per la curva più stretta. */
 const SHARPEST_CURVE = 0.3;
 /** Accelerazione laterale massima in curva: v² / raggio. */
@@ -330,7 +332,9 @@ export class Traffic {
   }
 
   /**
-   * "Non bloccare l'incrocio": dopo la curva deve esserci posto per tutto il veicolo.
+   * "Non bloccare l'incrocio": dopo la curva deve esserci posto per tutto il veicolo,
+   * oppure chi c'è davanti si sta allontanando (non serve aspettare che il posto sia
+   * già libero: le code a fisarmonica agli incroci nascevano da qui).
    * @param {Vehicle} v
    * @param {Piece} turn
    */
@@ -344,8 +348,15 @@ export class Traffic {
         continue;
       }
       let first = Infinity;
-      for (const o of this.occupancy.get(piece.key) ?? []) first = Math.min(first, o.s - o.v.type.length / 2);
-      if (first < Infinity) return free + first >= need;
+      let firstSpeed = 0;
+      for (const o of this.occupancy.get(piece.key) ?? []) {
+        const back = o.s - o.v.type.length / 2;
+        if (back < first) {
+          first = back;
+          firstSpeed = o.v.speed;
+        }
+      }
+      if (first < Infinity) return free + first >= need || (firstSpeed > MOVING_SPEED && free + first > 0);
       free += piece.length;
       if (free >= need) return true;
     }
