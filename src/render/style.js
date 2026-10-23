@@ -22,6 +22,7 @@ export const STYLE = {
   water: '#9ccbd3',
   waterBank: '#7fb0bc',
   beach: '#ead9b0',
+  wave: 'rgba(255, 255, 255, 0.55)',
 
   // Strade
   road: '#55504b',

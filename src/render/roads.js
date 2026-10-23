@@ -5,6 +5,7 @@
 import { ROAD_WIDTH } from '../sim/graph.js';
 import { STYLE } from './style.js';
 import { bridgeColors, drawBridgeDetails, overpassRail, drawOverpassDetails } from './looks.js';
+import { distanceToWater } from '../sim/water.js';
 
 /** @typedef {import('../sim/graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('../sim/graph.js').RoadEdge} RoadEdge */
@@ -319,6 +320,53 @@ export function drawWater(ctx, waters) {
       }
     }
   }
+  drawWaves(ctx, waters);
+}
+
+/** Distanza fra un'ondina e l'altra, e dalla riva, in unità di mondo. */
+const WAVE_STEP = 46;
+const WAVE_MARGIN = 16;
+/** @type {WeakMap<object, Point[]>} dove stanno le ondine di ogni elenco d'acque */
+const waveCache = new WeakMap();
+
+/**
+ * Ondine sparse su mari, baie e laghi (non sui fiumi), per far capire che è
+ * acqua aperta. Stanno su una griglia un po' mossa, lontano dalle rive.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {import('../sim/water.js').Water[]} waters
+ */
+function drawWaves(ctx, waters) {
+  let spots = waveCache.get(waters);
+  if (!spots) {
+    spots = [];
+    for (const w of waters) {
+      if (w.kind === 'river') continue;
+      const xs = w.points.map((p) => p.x);
+      const ys = w.points.map((p) => p.y);
+      const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+      let row = 0;
+      for (let y = y0 + WAVE_STEP / 2; y < y1; y += WAVE_STEP * 0.8, row++) {
+        for (let x = x0 + (row % 2 ? WAVE_STEP / 2 : 0); x < x1; x += WAVE_STEP) {
+          // Un piccolo spostamento fisso per ogni punto: niente file troppo regolari.
+          const h = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+          const p = { x: x + ((h - Math.floor(h)) - 0.5) * 16, y: y + ((h * 7 - Math.floor(h * 7)) - 0.5) * 12 };
+          if (distanceToWater([w], p) < -WAVE_MARGIN) spots.push(p);
+        }
+      }
+    }
+    waveCache.set(waters, spots);
+  }
+  if (spots.length === 0) return;
+  ctx.strokeStyle = STYLE.wave;
+  ctx.lineWidth = 1.6;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  for (const { x, y } of spots) {
+    ctx.moveTo(x - 7, y);
+    ctx.quadraticCurveTo(x - 3.5, y - 3.5, x, y);
+    ctx.quadraticCurveTo(x + 3.5, y + 3.5, x + 7, y);
+  }
+  ctx.stroke();
 }
 
 /**
