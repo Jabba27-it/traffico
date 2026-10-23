@@ -9,16 +9,18 @@ const DURATION = 5000;
  * @param {HTMLElement} parent
  * @param {StarGoal[]} goals
  * @param {number | null} [efficiency]  efficienza dei viaggi in percentuale, se già misurata
+ * @param {StarGoal | null} [platinum]  la stella di platino, se il livello ce l'ha
  */
-export function showGoals(parent, goals, efficiency = null) {
+export function showGoals(parent, goals, efficiency = null, platinum = null) {
   parent.querySelector('.goals')?.remove();
   const box = document.createElement('div');
   box.className = 'goals';
-  for (const g of goals) {
+  for (const g of platinum ? [...goals, platinum] : goals) {
     const row = document.createElement('div');
     row.className = 'goals-row';
     const star = document.createElement('span');
-    star.className = g.reached ? 'star-on' : 'star-off';
+    const shine = g === platinum ? 'star-platinum' : 'star-on';
+    star.className = g.reached ? shine : g === platinum ? 'star-platinum-off' : 'star-off';
     star.textContent = g.reached ? '★' : '☆';
     const text = document.createElement('div');
     const label = document.createElement('div');

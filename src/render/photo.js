@@ -22,6 +22,7 @@ const MARGIN = 12;
  * @property {number} days     giorni giocati
  * @property {number} trips    viaggi completati
  * @property {boolean[]} stars stelle prese
+ * @property {boolean} [platinum] stella di platino presa
  */
 
 /**
@@ -77,7 +78,7 @@ export function cityPhoto(level, sim, info) {
   ctx.fillText(info.city, PHOTO_WIDTH / 2, 102);
   const footerY = HEADER + mapHeight + FOOTER / 2;
   ctx.font = '600 40px system-ui, sans-serif';
-  const stars = info.stars.map((s) => (s ? '★' : '☆')).join(' ');
+  const stars = info.stars.map((s) => (s ? '★' : '☆')).join(' ') + (info.platinum ? '  +  platino' : '');
   const days = `${info.days} ${info.days === 1 ? 'giorno' : 'giorni'}`;
   const trips = `${info.trips} ${info.trips === 1 ? 'viaggio' : 'viaggi'}`;
   ctx.fillText(`${days}  ·  ${trips}  ·  ${stars}`, PHOTO_WIDTH / 2, footerY);

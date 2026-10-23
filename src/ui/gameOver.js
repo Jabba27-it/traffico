@@ -26,7 +26,11 @@ export function showGameOver(parent, values, best, actions, completed = false, c
   title.textContent = completed ? 'Livello completato!' : 'Livello fallito';
   const reason = document.createElement('p');
   reason.textContent = completed
-    ? 'Hai preso tutte e tre le stelle.'
+    ? values.platinum
+      ? 'Hai preso tutte e tre le stelle, e anche quella di platino!'
+      : values.platinumMin != null
+        ? `Hai preso tutte e tre le stelle. Platino mancato: efficienza ${values.efficiency ?? 0}%, ne serviva ${values.platinumMin}%.`
+        : 'Hai preso tutte e tre le stelle.'
     : `${culprit ? `La stazione ${culprit}` : 'Una stazione'} è rimasta sovraccarica troppo a lungo.`;
   if (completed) overlay.classList.add('completed');
   box.append(title, reason);
@@ -34,7 +38,7 @@ export function showGameOver(parent, values, best, actions, completed = false, c
   if (best) {
     const stars = document.createElement('div');
     stars.className = 'game-over-stars';
-    stars.innerHTML = starsHtml(values.stars);
+    stars.innerHTML = starsHtml(values.stars, values.platinum);
     box.appendChild(stars);
   }
 

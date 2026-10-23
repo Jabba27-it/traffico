@@ -76,6 +76,7 @@ import { emptyTerrain } from './terrain.js';
  * @property {number} trips  prima stella: viaggi completati
  * @property {number} days   seconda stella: giorni sopravvissuti
  * @property {TrafficGoal} traffic  terza stella
+ * @property {number | null} platinum  stella di platino: efficienza minima dei viaggi (%) quando si prende la terza stella
  */
 
 /**
@@ -261,7 +262,8 @@ export function parseLevel(json) {
       after: isNum(t.veicoli) ? t.veicoli : 6,
       hold: isNum(t.secondi) ? t.secondi : 40,
     };
-    stars = { trips: st.viaggi, days: st.giorni, traffic };
+    const platinum = isNum(st.platino?.efficienza) ? st.platino.efficienza : null;
+    stars = { trips: st.viaggi, days: st.giorni, traffic, platinum };
   }
 
   /** @type {{name: string, x: number, y: number}[]} */

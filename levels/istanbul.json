@@ -708,6 +708,9 @@
     "giorni": 21,
     "traffico": {
       "soglia": 12
+    },
+    "platino": {
+      "efficienza": 72
     }
   }
 }

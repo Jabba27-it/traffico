@@ -11,6 +11,8 @@
  * @property {number} bridges      ponti disponibili
  * @property {number} overpasses   cavalcavia disponibili
  * @property {boolean[]} stars     stelle guadagnate
+ * @property {boolean} [platinum]  stella di platino presa (assente se il livello non ce l'ha)
+ * @property {number | null} [platinumMin]  efficienza chiesta per il platino
  * @property {number | null} [efficiency]  efficienza dei viaggi in percentuale
  * @property {number | null} [slowTraffic]  traffico lento medio in percentuale
  */
@@ -53,7 +55,7 @@ export function createHud(parent, options) {
       if (percent !== lastBar) {
         lastBar = percent;
         barFill.style.width = `${percent}%`;
-      }      const text = `${values.day}|${values.score}|${values.trips}|${values.roads}|${values.bridges}|${values.overpasses}|${values.stars}`;
+      }      const text = `${values.day}|${values.score}|${values.trips}|${values.roads}|${values.bridges}|${values.overpasses}|${values.stars}|${values.platinum}`;
       if (text === last) return; // tocca il DOM solo quando qualcosa cambia
       last = text;
       day.textContent = `${WEEKDAYS[(values.day - 1) % 7]} ${values.day}`;
@@ -67,17 +69,20 @@ export function createHud(parent, options) {
       }
       overpasses.textContent = String(values.overpasses);
       overpasses.classList.toggle('hud-empty', values.overpasses === 0);
-      if (stars) stars.innerHTML = starsHtml(values.stars);
+      if (stars) stars.innerHTML = starsHtml(values.stars, values.platinum);
     },
   };
 }
 
 /**
- * Tre stelle, piene quelle guadagnate.
+ * Tre stelle, piene quelle guadagnate, e dopo uno spazio quella di platino.
  * @param {boolean[]} earned
+ * @param {boolean} [platinum]  undefined se la stella di platino non va mostrata
  */
-export function starsHtml(earned) {
-  return earned.map((on) => `<span class="${on ? 'star-on' : 'star-off'}">${on ? '★' : '☆'}</span>`).join('');
+export function starsHtml(earned, platinum) {
+  const three = earned.map((on) => `<span class="${on ? 'star-on' : 'star-off'}">${on ? '★' : '☆'}</span>`).join('');
+  if (platinum === undefined) return three;
+  return `${three}<span class="${platinum ? 'star-platinum' : 'star-platinum-off'}">${platinum ? '★' : '☆'}</span>`;
 }
 
 /**

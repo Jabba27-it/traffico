@@ -153,7 +153,7 @@ async function start() {
   const hud = createHud(document.body, {
     bridges: hasWater,
     stars: level.stars !== null,
-    onStarsTap: () => showGoals(document.body, sim.starGoals(), sim.efficiency),
+    onStarsTap: () => showGoals(document.body, sim.starGoals(), sim.efficiency, sim.platinumGoal()),
   });
   const speed = createSpeedControls(document.body);
   const tutorial = level.tutorial
@@ -340,15 +340,17 @@ async function start() {
       bridges: sim.bridgeBudget,
       overpasses: sim.overpassBudget,
       stars: sim.starsEarned,
+      platinum: level.stars?.platinum != null ? sim.platinum : undefined,
+      platinumMin: level.stars?.platinum ?? null,
       efficiency: sim.efficiency,
       slowTraffic: sim.slowTraffic,
     };
     hud.update(results);
     if ((sim.failed || sim.completed) && !gameOverShown) {
       gameOverShown = true;
-      const best = level.stars ? saveRecord(/** @type {string} */ (LEVEL_NAME), sim.score, sim.starsEarned) : null;
+      const best = level.stars ? saveRecord(/** @type {string} */ (LEVEL_NAME), sim.score, sim.starsEarned, sim.platinum) : null;
       const onPhoto = () => {
-        const info = { game: GAME_TITLE, city: level.name, days: results.day - 1, trips: sim.trips, stars: sim.starsEarned };
+        const info = { game: GAME_TITLE, city: level.name, days: results.day - 1, trips: sim.trips, stars: sim.starsEarned, platinum: sim.platinum };
         cityPhoto(level, sim, info)
           .then((image) => showPhoto(document.body, image, `traffico-${LEVEL_NAME}.png`, `La mia ${level.name} in ${GAME_TITLE}`))
           .catch((err) => console.error(err));

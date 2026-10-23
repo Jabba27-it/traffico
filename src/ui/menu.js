@@ -45,7 +45,7 @@ export function showMenu(parent, levels, onPick) {
     description.textContent = level.description;
     const result = document.createElement('div');
     result.className = 'menu-record';
-    result.innerHTML = `${starsHtml(record.stars)} <span>${record.score > 0 ? `Record ${record.score}` : 'Mai giocato'}</span>`;
+    result.innerHTML = `${starsHtml(record.stars, record.platinum || undefined)} <span>${record.score > 0 ? `Record ${record.score}` : 'Mai giocato'}</span>`;
     card.append(name, description, result);
     if (level.icon) card.appendChild(monumentIcon(level.icon));
     card.addEventListener('click', () => onPick(level.file));

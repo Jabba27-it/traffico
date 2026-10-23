@@ -14,7 +14,7 @@ import { planRoad, buildPlannedRoad } from './roadBuilder.js';
 import { findRoadPiece, removeRoadPiece, removeIsolatedNodes, edgeLength, orderedChain, pieceType, setPieceType } from './roadEditing.js';
 import { isInWater, lengthInWater, countLands } from './water.js';
 import { viewAt, insetRect, rectContains } from './view.js';
-import { starGoals } from './stars.js';
+import { starGoals, platinumGoal } from './stars.js';
 import { buildOverpass, overpassPairs, removeOverpass } from './overpass.js';
 import { drawnCircle, buildRoundabout, removeRoundabout, ringCost, ringPoints } from './roundabout.js';
 import { obstacleAt } from './terrain.js';
@@ -162,6 +162,8 @@ export class Simulation {
     this.starsAnnounced = [false, false, false];
     /** true quando sono state prese tutte le stelle: la partita è vinta e finisce. */
     this.completed = false;
+    /** Stella di platino: si decide quando arriva la terza stella. */
+    this.platinum = false;
     /** @type {{index: number, label: string} | null} l'ultima stella guadagnata */
     this.lastStar = null;
     this.starTimer = 0;
@@ -173,14 +175,29 @@ export class Simulation {
    */
   starGoals() {
     if (!this.level.stars) return [];
-    return starGoals(this.level.stars, {
+    return starGoals(this.level.stars, this.starState());
+  }
+
+  /**
+   * A che punto è la stella di platino (null se il livello non ce l'ha).
+   * @returns {import('./stars.js').StarGoal | null}
+   */
+  platinumGoal() {
+    const min = this.level.stars?.platinum;
+    return min == null ? null : platinumGoal(min, this.starState());
+  }
+
+  /** @returns {import('./stars.js').StarState} */
+  starState() {
+    return {
       trips: this.trips,
       daysSurvived: Math.floor(this.elapsed / this.level.dayLength + 1e-6),
       stations: this.stations.length,
       lastGenerated: this.stations[this.stations.length - 1]?.generated ?? 0,
       trafficNow: Math.round(this.recentSlow * 100),
       trafficStreak: this.trafficStreak,
-    });
+      efficiency: this.efficiency,
+    };
   }
 
   /**
@@ -199,7 +216,11 @@ export class Simulation {
       }
     });
     // Tutte le stelle prese: il livello è completato e la partita finisce.
-    if (goals.length > 0 && goals.every((_, i) => this.starsEarned[i])) this.completed = true;
+    // In quel momento si decide anche la stella di platino.
+    if (goals.length > 0 && goals.every((_, i) => this.starsEarned[i])) {
+      this.completed = true;
+      this.platinum = this.platinumGoal()?.reached ?? false;
+    }
   }
 
   /**

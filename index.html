@@ -60,6 +60,10 @@
     .hud-tappable { pointer-events: auto; cursor: pointer; }
     .star-on { color: #e9a23b; }
     .star-off { color: #b8b5ad; }
+    .star-platinum { color: #6f9fb8; }
+    .star-platinum-off { color: #c9d3d8; }
+    /* Dopo le tre stelle, la platino un po' staccata */
+    span + .star-platinum, span + .star-platinum-off { margin-left: 0.3em; }
     .goals {
       position: fixed;
       top: calc(env(safe-area-inset-top) + 64px);
