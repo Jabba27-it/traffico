@@ -14,8 +14,9 @@ import { starsHtml } from './hud.js';
  * @param {{ onRetry: () => void, onMenu: () => void, onPhoto: () => void }} actions
  * @param {boolean} [completed]  true se la partita finisce perché il livello è completato
  * @param {string} [culprit]  nome della stazione che ha fatto perdere, se ce l'ha
+ * @param {boolean} [sandbox]  partita in modalità sandbox: niente stelle, conta il punteggio
  */
-export function showGameOver(parent, values, best, actions, completed = false, culprit = '') {
+export function showGameOver(parent, values, best, actions, completed = false, culprit = '', sandbox = false) {
   const overlay = document.createElement('div');
   overlay.className = 'game-over';
 
@@ -23,7 +24,7 @@ export function showGameOver(parent, values, best, actions, completed = false, c
   box.className = 'game-over-box';
 
   const title = document.createElement('h1');
-  title.textContent = completed ? 'Livello completato!' : 'Livello fallito';
+  title.textContent = completed ? 'Livello completato!' : sandbox ? 'Partita finita' : 'Livello fallito';
   const reason = document.createElement('p');
   reason.textContent = completed
     ? values.platinum
@@ -35,7 +36,7 @@ export function showGameOver(parent, values, best, actions, completed = false, c
   if (completed) overlay.classList.add('completed');
   box.append(title, reason);
 
-  if (best) {
+  if (best && !sandbox) {
     const stars = document.createElement('div');
     stars.className = 'game-over-stars';
     stars.innerHTML = starsHtml(values.stars, values.platinum);
@@ -66,7 +67,7 @@ export function showGameOver(parent, values, best, actions, completed = false, c
   if (best) {
     const record = document.createElement('p');
     record.className = 'game-over-record';
-    record.textContent = best.newBest ? 'Nuovo record!' : `Record: ${best.record.score}`;
+    record.textContent = best.newBest ? `Nuovo record: ${values.score} punti!` : `Record: ${best.record.score}`;
     box.appendChild(record);
   }
 

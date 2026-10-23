@@ -2,6 +2,8 @@
 // salvati sul telefono. Se il browser non lo permette, semplicemente non si salvano.
 
 const PREFIX = 'traffico.record.';
+/** Il record della sandbox di una città si salva a parte: "roma.sandbox". */
+export const SANDBOX_SUFFIX = '.sandbox';
 
 /**
  * @typedef {Object} LevelRecord

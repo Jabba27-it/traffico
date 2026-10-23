@@ -1,7 +1,7 @@
 // Schermata iniziale: nome del gioco ed elenco dei livelli con stelle e record.
 
 import { starsHtml } from './hud.js';
-import { loadRecord } from './records.js';
+import { loadRecord, SANDBOX_SUFFIX } from './records.js';
 import { drawMonument } from '../render/terrain.js';
 
 /** Lato in pixel del monumento simbolo disegnato in ogni scheda. */
@@ -13,6 +13,7 @@ const ICON_SIZE = 64;
  * @property {string} name
  * @property {string} description
  * @property {string} icon  icona del monumento simbolo della città (come i monumenti sulla mappa)
+ * @property {boolean} sandbox  se la città si può giocare anche in sandbox (voce "sandbox", di base sì)
  */
 
 /** Nome provvisorio: quello vero, originale, è ancora da scegliere. */
@@ -21,7 +22,7 @@ export const GAME_TITLE = 'Traffico';
 /**
  * @param {HTMLElement} parent
  * @param {LevelEntry[]} levels
- * @param {(file: string) => void} onPick
+ * @param {(file: string, sandbox: boolean) => void} onPick  sandbox true se si sceglie la sandbox
  */
 export function showMenu(parent, levels, onPick) {
   const root = document.createElement('div');
@@ -48,7 +49,20 @@ export function showMenu(parent, levels, onPick) {
     result.innerHTML = `${starsHtml(record.stars, record.platinum || undefined)} <span>${record.score > 0 ? `Record ${record.score}` : 'Mai giocato'}</span>`;
     card.append(name, description, result);
     if (level.icon) card.appendChild(monumentIcon(level.icon));
-    card.addEventListener('click', () => onPick(level.file));
+    card.addEventListener('click', () => onPick(level.file, false));
+    if (level.sandbox) {
+      // Sotto il livello, la sandbox: si gioca finché non si perde, col suo record.
+      const best = loadRecord(level.file + SANDBOX_SUFFIX).score;
+      const sandbox = document.createElement('span');
+      sandbox.className = 'menu-sandbox';
+      sandbox.setAttribute('role', 'button');
+      sandbox.innerHTML = `Sandbox <small>${best > 0 ? `record ${best}` : 'senza fine'}</small>`;
+      sandbox.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onPick(level.file, true);
+      });
+      card.appendChild(sandbox);
+    }
     root.appendChild(card);
   }
   parent.appendChild(root);
@@ -83,6 +97,6 @@ export function parseIndex(json) {
     if (typeof l?.file !== 'string' || !/^[a-z0-9_-]+$/.test(l.file)) {
       throw new Error(`Livello ${i + 1} dell'indice: "file" deve essere un nome come "roma"`);
     }
-    return { file: l.file, name: String(l.nome ?? l.file), description: String(l.descrizione ?? ''), icon: String(l.icona ?? '') };
+    return { file: l.file, name: String(l.nome ?? l.file), description: String(l.descrizione ?? ''), icon: String(l.icona ?? ''), sandbox: l.sandbox !== false };
   });
 }

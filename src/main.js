@@ -1,5 +1,5 @@
 import { RoadGraph } from './sim/graph.js';
-import { parseLevel } from './sim/level.js';
+import { parseLevel, sandboxLevel } from './sim/level.js';
 import { Simulation } from './sim/simulation.js';
 import { setupCanvas, fitCamera, scaleFor, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
 import { createCamera, cameraRect, zoomAround } from './render/camera.js';
@@ -27,7 +27,7 @@ import { showGoals } from './ui/goals.js';
 import { showMenu, parseIndex, GAME_TITLE } from './ui/menu.js';
 import { cityPhoto } from './render/photo.js';
 import { showPhoto } from './ui/photo.js';
-import { saveRecord } from './ui/records.js';
+import { saveRecord, SANDBOX_SUFFIX } from './ui/records.js';
 import { askConfirm } from './ui/confirm.js';
 import { createMuteButton } from './ui/mute.js';
 import { unlockAudioOnTouch, playSegment, playRoad, playBridge, playRoundabout, playError, playStation, playRemove, playTap, playHeartbeat, playWeek, playStar } from './audio/sounds.js';
@@ -35,6 +35,8 @@ import { waitingCount } from './sim/congestion.js';
 
 // Il livello si sceglie dall'indirizzo, es. ?livello=roma; senza livello si apre il menu.
 const LEVEL_PARAM = new URLSearchParams(location.search).get('livello');
+// ?livello=roma&modalita=sandbox: si gioca finché non si perde, conta solo il punteggio.
+const SANDBOX = new URLSearchParams(location.search).get('modalita') === 'sandbox';
 
 // Copia del gioco sul telefono, per giocare anche offline (funziona su https e in locale).
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -90,8 +92,8 @@ async function start() {
     try {
       const res = await fetch(INDEX_URL);
       if (!res.ok) throw new Error(`Impossibile caricare ${INDEX_URL} (${res.status})`);
-      showMenu(document.body, parseIndex(await res.json()), (file) => {
-        location.search = `?livello=${file}`;
+      showMenu(document.body, parseIndex(await res.json()), (file, sandbox) => {
+        location.search = `?livello=${file}${sandbox ? '&modalita=sandbox' : ''}`;
       });
     } catch (err) {
       showError(err instanceof Error ? err.message : String(err));
@@ -104,6 +106,7 @@ async function start() {
     const res = await fetch(LEVEL_URL);
     if (!res.ok) throw new Error(`Impossibile caricare ${LEVEL_URL} (${res.status})`);
     level = parseLevel(await res.json());
+    if (SANDBOX) level = sandboxLevel(level);
   } catch (err) {
     showError(err instanceof Error ? err.message : String(err));
     return;
@@ -348,14 +351,18 @@ async function start() {
     hud.update(results);
     if ((sim.failed || sim.completed) && !gameOverShown) {
       gameOverShown = true;
-      const best = level.stars ? saveRecord(/** @type {string} */ (LEVEL_NAME), sim.score, sim.starsEarned, sim.platinum) : null;
+      const best = SANDBOX
+        ? saveRecord(`${LEVEL_NAME}${SANDBOX_SUFFIX}`, sim.score, [false, false, false])
+        : level.stars
+          ? saveRecord(/** @type {string} */ (LEVEL_NAME), sim.score, sim.starsEarned, sim.platinum)
+          : null;
       const onPhoto = () => {
-        const info = { game: GAME_TITLE, city: level.name, days: results.day - 1, trips: sim.trips, stars: sim.starsEarned, platinum: sim.platinum };
+        const info = { game: GAME_TITLE, city: level.name, days: results.day - 1, trips: sim.trips, stars: sim.starsEarned, platinum: sim.platinum, score: SANDBOX ? sim.score : undefined };
         cityPhoto(level, sim, info)
           .then((image) => showPhoto(document.body, image, `traffico-${LEVEL_NAME}.png`, `La mia ${level.name} in ${GAME_TITLE}`))
           .catch((err) => console.error(err));
       };
-      showGameOver(document.body, results, best, { onRetry: () => location.reload(), onMenu: goToMenu, onPhoto }, sim.completed, sim.failedStation?.name);
+      showGameOver(document.body, results, best, { onRetry: () => location.reload(), onMenu: goToMenu, onPhoto }, sim.completed, sim.failedStation?.name, SANDBOX);
     }
 
     const { ctx } = view;

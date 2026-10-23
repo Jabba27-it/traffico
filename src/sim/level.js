@@ -405,3 +405,20 @@ function parseLook(s) {
   const classics = Array.isArray(s?.classiche) && s.classiche.length === 2 ? s.classiche.map(name) : ['aiuola', 'fontanaClassica'];
   return { bridge: name(s?.ponte), overpass: name(s?.cavalcavia), roundabout: name(s?.rotonda), classics };
 }
+
+/**
+ * La stessa città in modalità sandbox: niente stelle, si gioca finché non si
+ * perde e conta solo il punteggio. Le stazioni continuano a nascere finché c'è
+ * posto e i veicoli aumentano ogni giorno senza tetto, così prima o poi si perde.
+ * @param {Level} level
+ * @returns {Level}
+ */
+export function sandboxLevel(level) {
+  return {
+    ...level,
+    stars: null,
+    tutorial: null,
+    growth: level.growth ? { ...level.growth, max: Infinity } : null,
+    spawn: { ...level.spawn, growthMax: Infinity },
+  };
+}
