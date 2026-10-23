@@ -12,7 +12,7 @@ import { pickNewStation } from './growth.js';
 import { updateCongestion } from './congestion.js';
 import { planRoad, buildPlannedRoad } from './roadBuilder.js';
 import { findRoadPiece, removeRoadPiece, removeIsolatedNodes, edgeLength, orderedChain, pieceType, setPieceType } from './roadEditing.js';
-import { isInWater, lengthInWater } from './water.js';
+import { isInWater, lengthInWater, countLands } from './water.js';
 import { viewAt, insetRect, rectContains } from './view.js';
 import { starGoals } from './stars.js';
 import { buildOverpass, overpassPairs, removeOverpass } from './overpass.js';
@@ -134,7 +134,9 @@ export class Simulation {
      */
     this.roadCredit = 0;
     /** Ponti ancora disponibili. */
-    this.bridgeBudget = level.bridges;
+    // Almeno un ponte per ogni collegamento fra le terre (rive e isole): con tre
+    // terre ne servono due, così si può sempre arrivare a tutte le stazioni.
+    this.bridgeBudget = Math.max(level.bridges, countLands(level) - 1);
     /** Cavalcavia ancora disponibili. */
     this.overpassBudget = level.overpasses;
     /** @type {Map<number, import('./roundabout.js').Roundabout>} */

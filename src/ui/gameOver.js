@@ -11,7 +11,7 @@ import { starsHtml } from './hud.js';
  * @param {HTMLElement} parent
  * @param {HudValues} values
  * @param {{ record: LevelRecord, newBest: boolean } | null} best  null se il livello non ha stelle
- * @param {{ onRetry: () => void, onMenu: () => void }} actions
+ * @param {{ onRetry: () => void, onMenu: () => void, onPhoto: () => void }} actions
  * @param {boolean} [completed]  true se la partita finisce perché il livello è completato
  * @param {string} [culprit]  nome della stazione che ha fatto perdere, se ce l'ha
  */
@@ -72,12 +72,16 @@ export function showGameOver(parent, values, best, actions, completed = false, c
   const look = document.createElement('button');
   look.textContent = 'Guarda la mappa';
   look.className = 'secondary';
+  const photo = document.createElement('button');
+  photo.textContent = 'Foto della città';
+  photo.className = 'secondary';
+  photo.addEventListener('click', actions.onPhoto);
   const menu = document.createElement('button');
   menu.textContent = 'Menu';
   menu.className = 'secondary';
   menu.addEventListener('click', actions.onMenu);
 
-  box.append(retry, look, menu);
+  box.append(retry, look, photo, menu);
   overlay.appendChild(box);
   parent.appendChild(overlay);
 

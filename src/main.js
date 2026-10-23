@@ -24,7 +24,9 @@ import { showToast } from './ui/toast.js';
 import { showStationPopup } from './ui/stationPopup.js';
 import { showNotice } from './ui/notice.js';
 import { showGoals } from './ui/goals.js';
-import { showMenu, parseIndex } from './ui/menu.js';
+import { showMenu, parseIndex, GAME_TITLE } from './ui/menu.js';
+import { cityPhoto } from './render/photo.js';
+import { showPhoto } from './ui/photo.js';
 import { saveRecord } from './ui/records.js';
 import { askConfirm } from './ui/confirm.js';
 
@@ -312,7 +314,13 @@ async function start() {
     if ((sim.failed || sim.completed) && !gameOverShown) {
       gameOverShown = true;
       const best = level.stars ? saveRecord(/** @type {string} */ (LEVEL_NAME), sim.score, sim.starsEarned) : null;
-      showGameOver(document.body, results, best, { onRetry: () => location.reload(), onMenu: goToMenu }, sim.completed, sim.failedStation?.name);
+      const onPhoto = () => {
+        const info = { game: GAME_TITLE, city: level.name, days: results.day - 1, trips: sim.trips, stars: sim.starsEarned };
+        cityPhoto(level, sim, info)
+          .then((image) => showPhoto(document.body, image, `traffico-${LEVEL_NAME}.png`, `La mia ${level.name} in ${GAME_TITLE}`))
+          .catch((err) => console.error(err));
+      };
+      showGameOver(document.body, results, best, { onRetry: () => location.reload(), onMenu: goToMenu, onPhoto }, sim.completed, sim.failedStation?.name);
     }
 
     const { ctx } = view;

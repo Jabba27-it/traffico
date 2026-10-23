@@ -242,6 +242,42 @@
     .game-over button + button { margin-top: 8px; }
     .game-over button.secondary { background: #ece2d0; color: var(--ink); }
     .game-over[hidden], .map-review[hidden] { display: none; }
+    .photo {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: var(--veil);
+    }
+    .photo-box {
+      width: min(360px, 100%);
+      padding: 14px;
+      border-radius: 16px;
+      background: var(--card);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+    }
+    .photo-box img {
+      display: block;
+      width: 100%;
+      max-height: 62vh;
+      object-fit: contain;
+      border-radius: 10px;
+      background: var(--land);
+    }
+    .photo-buttons { display: flex; gap: 8px; margin-top: 12px; }
+    .photo-buttons button {
+      flex: 1;
+      padding: 12px 8px;
+      border: none;
+      border-radius: 12px;
+      background: var(--ink);
+      color: var(--card);
+      font: 600 15px system-ui, sans-serif;
+      cursor: pointer;
+    }
+    .photo-buttons button.secondary { background: #ece2d0; color: var(--ink); }
     .map-review {
       position: fixed;
       top: calc(env(safe-area-inset-top) + 64px);

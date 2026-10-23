@@ -12,7 +12,7 @@ import { closestPointOnSegment, distance } from './geometry.js';
 export const SHAPES = ['cerchio', 'quadrato', 'triangolo', 'pentagono', 'esagono', 'stella', 'rombo', 'croce', 'mezzaluna', 'goccia'];
 
 /** Raggio dell'area occupata da una stazione: nessuna strada la scavalca. */
-export const STATION_RADIUS = 18;
+export const STATION_RADIUS = 15;
 
 /**
  * @typedef {Object} Station

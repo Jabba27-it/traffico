@@ -5,7 +5,7 @@
 
 import { distance } from './geometry.js';
 import { STATION_RADIUS } from './stations.js';
-import { distanceToWater, landMap, landOf } from './water.js';
+import { distanceToWater, landOf, landsOf } from './water.js';
 import { obstacleAt } from './terrain.js';
 
 /** @typedef {import('./level.js').Level} Level */
@@ -67,22 +67,6 @@ export function pickNewStation(random, level, stations, area, graph, allowed = (
   });
   const name = districtName(level, stations, best);
   return { shape, x: best.x, y: best.y, ...(name ? { name } : {}) };
-}
-
-/** @type {WeakMap<Level, import('./water.js').LandMap>} terre di ogni livello, calcolate una volta */
-const lands = new WeakMap();
-
-/**
- * Le terre del livello (rive e isole), calcolate la prima volta che servono.
- * @param {Level} level
- */
-function landsOf(level) {
-  let map = lands.get(level);
-  if (!map) {
-    map = landMap(level.waters, level.world);
-    lands.set(level, map);
-  }
-  return map;
 }
 
 /**
