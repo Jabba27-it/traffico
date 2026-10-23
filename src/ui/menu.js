@@ -1,11 +1,13 @@
-// Schermata iniziale: nome del gioco ed elenco dei livelli con stelle e record.
+// Schermata iniziale: nome del gioco ed elenco delle città, tutto in una schermata
+// del telefono senza scorrere: per ogni città le stelle del livello e due tasti,
+// Livello e Sandbox (col record della sandbox).
 
 import { starsHtml } from './hud.js';
 import { loadRecord, SANDBOX_SUFFIX } from './records.js';
 import { drawMonument } from '../render/terrain.js';
 
 /** Lato in pixel del monumento simbolo disegnato in ogni scheda. */
-const ICON_SIZE = 64;
+const ICON_SIZE = 46;
 
 /**
  * @typedef {Object} LevelEntry  una riga di levels/indice.json
@@ -38,24 +40,29 @@ export function showMenu(parent, levels, onPick) {
     const record = loadRecord(level.file);
     const card = document.createElement('div');
     card.className = 'menu-card';
-    const name = document.createElement('div');
+    if (level.icon) card.appendChild(monumentIcon(level.icon));
+    // Nome e stelle del livello sulla stessa riga (il tutorial non ha stelle).
+    const head = document.createElement('div');
+    head.className = 'menu-head';
+    const name = document.createElement('span');
     name.className = 'menu-name';
     name.textContent = level.name;
-    const description = document.createElement('div');
-    description.className = 'menu-description';
-    description.textContent = level.description;
-    const result = document.createElement('div');
-    result.className = 'menu-record';
-    result.innerHTML = `${starsHtml(record.stars, record.platinum || undefined)} <span>${record.score > 0 ? `Record ${record.score}` : 'Mai giocato'}</span>`;
-    card.append(name, description, result);
-    if (level.icon) card.appendChild(monumentIcon(level.icon));
+    head.appendChild(name);
+    if (level.sandbox) {
+      const stars = document.createElement('span');
+      stars.className = 'menu-stars';
+      stars.innerHTML = starsHtml(record.stars, record.platinum || undefined);
+      head.appendChild(stars);
+    }
+    card.title = level.description;
+    card.appendChild(head);
     // Due tasti separati: il livello con le stelle, e la sandbox che va avanti
     // finché non si perde, col suo record.
     const modes = document.createElement('div');
     modes.className = 'menu-modes';
     const play = document.createElement('button');
     play.className = 'menu-mode';
-    play.innerHTML = level.sandbox ? 'Livello <small>con le stelle</small>' : 'Gioca';
+    play.textContent = level.sandbox ? 'Livello' : 'Gioca';
     play.addEventListener('click', () => onPick(level.file, false));
     modes.appendChild(play);
     if (level.sandbox) {

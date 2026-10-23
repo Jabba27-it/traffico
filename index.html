@@ -309,54 +309,64 @@
     }
     .game-over-stars { font-size: 34px; letter-spacing: 6px; margin-bottom: 12px; }
     .game-over-record { margin: -8px 0 16px !important; font-weight: 600; opacity: 1 !important; }
+    /* Il menu sta tutto in una schermata del telefono: le schede si dividono lo spazio. */
     .menu {
       position: fixed;
       inset: 0;
-      overflow-y: auto;
-      padding: calc(env(safe-area-inset-top) + 48px) 16px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+      padding: calc(env(safe-area-inset-top) + 18px) 14px calc(env(safe-area-inset-bottom) + 14px);
       background: var(--land);
       font-family: system-ui, sans-serif;
       color: var(--ink);
       text-align: center;
     }
-    .menu h1 { margin: 0; font-size: 40px; letter-spacing: -0.02em; color: var(--accent); }
-    .menu > p { margin: 4px 0 28px; opacity: 0.7; }
+    .menu h1 { margin: 0; font-size: 32px; letter-spacing: -0.02em; color: var(--accent); }
+    .menu > p { margin: 0 0 4px; font-size: 14px; opacity: 0.7; }
     .menu-card {
-      display: block;
+      flex: 1 1 0;
+      min-height: 0;
+      max-height: 112px;
       width: 100%;
-      max-width: 360px;
-      margin: 0 auto 12px;
-      padding: 18px 20px;
-      border: none;
-      border-radius: 16px;
+      max-width: 420px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      grid-template-rows: auto auto;
+      align-content: center;
+      column-gap: 12px;
+      row-gap: 6px;
+      padding: 8px 12px;
+      border-radius: 14px;
       background: var(--card);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-      color: var(--ink);
-      font-family: inherit;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
       text-align: left;
     }
-    .menu-card { position: relative; padding-right: 96px; }
-    /* In alto a destra, così sotto c'è posto per i due tasti a tutta larghezza */
-    .menu-icon { position: absolute; right: 18px; top: 18px; }
-    .menu-name { font-size: 20px; font-weight: 700; }
-    .menu-description { margin: 2px 0 10px; font-size: 14px; opacity: 0.7; }
-    .menu-record { font-size: 20px; }
-    .menu-record span { margin-left: 8px; font-size: 14px; opacity: 0.7; vertical-align: 2px; }
-    .menu-modes { display: flex; gap: 8px; margin-top: 14px; margin-right: -76px; }
+    .menu-icon { grid-row: 1 / span 2; align-self: center; }
+    .menu-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .menu-name { font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .menu-stars { font-size: 15px; white-space: nowrap; }
+    .menu-modes { display: flex; gap: 6px; }
     .menu-mode {
       flex: 1;
-      padding: 9px 10px;
+      min-width: 0;
+      padding: 7px 8px;
       border: none;
-      border-radius: 12px;
+      border-radius: 10px;
       background: var(--ink);
       color: var(--card);
       font: inherit;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 600;
+      white-space: nowrap;
       cursor: pointer;
     }
-    .menu-mode small { display: block; font-size: 12px; font-weight: 400; opacity: 0.75; }
+    .menu-mode small { margin-left: 4px; font-size: 11px; font-weight: 400; opacity: 0.8; }
     .menu-mode-sandbox { background: #6f9fb8; }
+    /* Livello prende solo il posto che gli serve: alla sandbox resta spazio per il record */
+    .menu-mode:not(.menu-mode-sandbox):not(:only-child) { flex: 0 0 auto; padding: 7px 14px; }
     .menu-mode:active { transform: scale(0.97); }
     .tutorial {
       position: fixed;

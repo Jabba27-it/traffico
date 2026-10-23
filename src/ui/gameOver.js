@@ -47,8 +47,9 @@ export function showGameOver(parent, values, best, actions, completed = false, c
 
   const stats = document.createElement('div');
   stats.className = 'game-over-stats';
+  // Il punteggio conta solo in sandbox: nei livelli contano le stelle.
   for (const [label, value] of [
-    ['Punti', String(values.score)],
+    ...(sandbox ? [['Punti', String(values.score)]] : []),
     ['Giorni', String(values.day - 1)],
     ['Viaggi', String(values.trips)],
     ['Efficienza', values.efficiency == null ? '–' : `${values.efficiency}%`],
@@ -66,7 +67,7 @@ export function showGameOver(parent, values, best, actions, completed = false, c
   }
   box.appendChild(stats);
 
-  if (best) {
+  if (best && sandbox) {
     const record = document.createElement('p');
     record.className = 'game-over-record';
     record.textContent = best.newBest ? `Nuovo record: ${values.score} punti!` : `Record: ${best.record.score}`;

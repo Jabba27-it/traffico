@@ -156,6 +156,8 @@ async function start() {
   const hud = createHud(document.body, {
     bridges: hasWater,
     stars: level.stars !== null,
+    // Nei livelli contano le stelle, in sandbox solo il punteggio.
+    score: SANDBOX,
     onStarsTap: () => showGoals(document.body, sim.starGoals(), sim.efficiency, sim.platinumGoal()),
   });
   const speed = createSpeedControls(document.body);

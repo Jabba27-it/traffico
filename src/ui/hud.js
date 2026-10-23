@@ -21,8 +21,9 @@ const WEEKDAYS = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
 /**
  * @param {HTMLElement} parent
- * @param {{ bridges: boolean, stars: boolean, onStarsTap: () => void }} options
- *   quali voci mostrare (i ponti solo nei livelli con acqua) e cosa fare toccando le stelle
+ * @param {{ bridges: boolean, stars: boolean, score: boolean, onStarsTap: () => void }} options
+ *   quali voci mostrare (i ponti solo nei livelli con acqua, i punti solo in sandbox)
+ *   e cosa fare toccando le stelle
  * @returns {{ update: (values: HudValues) => void }}
  */
 export function createHud(parent, options) {
@@ -34,7 +35,7 @@ export function createHud(parent, options) {
   const barFill = document.createElement('div');
   bar.appendChild(barFill);
   /** @type {HTMLElement} */ (day.parentElement).insertBefore(bar, day.nextSibling);
-  const score = addItem(root, 'Punti');
+  const score = options.score ? addItem(root, 'Punti') : null;
   const trips = addItem(root, 'Viaggi');
   const roads = addItem(root, 'Strade');
   const bridges = options.bridges ? addItem(root, 'Ponti') : null;
@@ -59,7 +60,7 @@ export function createHud(parent, options) {
       if (text === last) return; // tocca il DOM solo quando qualcosa cambia
       last = text;
       day.textContent = `${WEEKDAYS[(values.day - 1) % 7]} ${values.day}`;
-      score.textContent = String(values.score);
+      if (score) score.textContent = String(values.score);
       trips.textContent = String(values.trips);
       roads.textContent = Number.isFinite(values.roads) ? String(values.roads) : '∞';
       roads.classList.toggle('hud-empty', values.roads === 0);
