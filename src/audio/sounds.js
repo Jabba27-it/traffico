@@ -121,3 +121,84 @@ export function playStation() {
   note(1320, 0, 0.35, 0.06, 'sine');
   note(1175, 0.09, 0.5, 0.12, 'sine');
 }
+
+/** @type {AudioBuffer | null} rumore bianco breve, riusato per la "gomma" della rimozione */
+let noise = null;
+
+/** Strada tolta: un "fsss" che scende, come una gomma. */
+export function playRemove() {
+  if (!ready()) return;
+  const ctx = /** @type {AudioContext} */ (audio);
+  if (!noise) {
+    noise = ctx.createBuffer(1, Math.round(ctx.sampleRate * 0.3), ctx.sampleRate);
+    const data = noise.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  }
+  const t = ctx.currentTime;
+  const src = ctx.createBufferSource();
+  src.buffer = noise;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.Q.value = 1.5;
+  filter.frequency.setValueAtTime(3000, t);
+  filter.frequency.exponentialRampToValueAtTime(400, t + 0.25);
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(0.4, t + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+  src.connect(filter).connect(gain).connect(/** @type {GainNode} */ (master));
+  src.start(t);
+  src.stop(t + 0.3);
+}
+
+/** @type {Record<string, number>} un clic di altezza diversa per ogni esito del tocco */
+const TAP_PITCH = {
+  normal: 700,
+  'normal-no-overpass': 700,
+  signal: 1100,
+  built: 500,
+  removed: 500,
+  two: 800,
+  forward: 900,
+  backward: 900,
+  super: 1000,
+  'super-too-expensive': 800,
+};
+
+/**
+ * Tocco breve su una strada o un incrocio: un clic secco, diverso per tipo.
+ * @param {string} result  esito del tocco
+ */
+export function playTap(result) {
+  if (!ready()) return;
+  if (result === 'roundabout-removed') return playRemove();
+  const freq = TAP_PITCH[result];
+  if (!freq) return;
+  note(freq, 0, 0.04, 0.22, 'square', freq * 0.6);
+  // Il cavalcavia ha un secondo colpo, più basso, come un passaggio sopra.
+  if (result === 'built') note(freq * 0.75, 0.07, 0.08, 0.18, 'square', freq * 0.5);
+}
+
+/**
+ * Stazione piena: un battito doppio, più forte quando il tempo sta per finire.
+ * @param {number} urgency  0..1, quanto è avanti il conto alla rovescia
+ */
+export function playHeartbeat(urgency) {
+  if (!ready()) return;
+  const volume = 0.2 + 0.25 * urgency;
+  note(90, 0, 0.12, volume, 'sine', 60);
+  note(80, 0.16, 0.12, volume * 0.7, 'sine', 55);
+}
+
+/** Fine settimana, arrivano i premi: un piccolo accordo. */
+export function playWeek() {
+  if (!ready()) return;
+  [523, 659, 784].forEach((f) => note(f, 0, 0.7, 0.1, 'triangle'));
+  note(1047, 0.12, 0.6, 0.08, 'sine');
+}
+
+/** Stella presa: uno scintillio di note alte. */
+export function playStar() {
+  if (!ready()) return;
+  [1319, 1568, 1976, 2637].forEach((f, i) => note(f, i * 0.06, 0.35, 0.1, 'sine'));
+}

@@ -30,7 +30,8 @@ import { showPhoto } from './ui/photo.js';
 import { saveRecord } from './ui/records.js';
 import { askConfirm } from './ui/confirm.js';
 import { createMuteButton } from './ui/mute.js';
-import { unlockAudioOnTouch, playSegment, playRoad, playBridge, playRoundabout, playError, playStation } from './audio/sounds.js';
+import { unlockAudioOnTouch, playSegment, playRoad, playBridge, playRoundabout, playError, playStation, playRemove, playTap, playHeartbeat, playWeek, playStar } from './audio/sounds.js';
+import { waitingCount } from './sim/congestion.js';
 
 // Il livello si sceglie dall'indirizzo, es. ?livello=roma; senza livello si apre il menu.
 const LEVEL_PARAM = new URLSearchParams(location.search).get('livello');
@@ -132,10 +133,14 @@ async function start() {
       else if (result && TAP_MESSAGES[result]) showToast(document.body, TAP_MESSAGES[result]);
     },
     findPiece: (x, y, radius) => sim.findRoadPiece(x, y, radius),
-    remove: (piece) => sim.removeRoad(piece),
+    remove: (piece) => {
+      sim.removeRoad(piece);
+      playRemove();
+    },
     active: () => !choosingStation && !gameOverShown,
     tap: (x, y, radius) => {
       const result = sim.tap(x, y, Math.max(radius, 20));
+      if (result) playTap(result);
       if (result && TAP_MESSAGES[result]) showToast(document.body, TAP_MESSAGES[result]);
     },
   });
@@ -182,6 +187,8 @@ async function start() {
   let lastTime = performance.now();
   /** Tratti della strada che si sta disegnando, per il tic a ogni tratto nuovo. */
   let previewCost = 0;
+  /** Quando suona il prossimo battito delle stazioni piene (ms, come performance.now). */
+  let nextBeat = 0;
   let pending = 0;
   let gameOverShown = false;
   let rewardShown = false;
@@ -253,13 +260,27 @@ async function start() {
     // A gioco fermo il tempo non si accumula, così alla ripresa non c'è un balzo in avanti.
     if (!running || !sim.running) pending = 0;
 
+    // Con una stazione oltre la capienza si sente un battito, più fitto man mano
+    // che il conto alla rovescia avanza (solo a gioco in corso).
+    const urgency = Math.max(0, ...sim.stations.filter((s) => waitingCount(s) > s.capacity).map((s) => s.overload / level.congestion.tolerance));
+    if (urgency > 0 && running && sim.running && speed.speed() > 0) {
+      if (now >= nextBeat) {
+        playHeartbeat(urgency);
+        nextBeat = now + 1400 - 900 * urgency;
+      }
+    } else {
+      nextBeat = 0;
+    }
+
     if (sim.lastStar && sim.lastStar !== lastStar) {
       lastStar = sim.lastStar;
+      playStar();
       showToast(document.body, `★ ${STAR_NAMES[lastStar.index]} stella: ${lastStar.label}`);
     }
 
     if (sim.rewardPending && !rewardShown) {
       rewardShown = true;
+      playWeek();
       const cards = [
         {
           icon: REWARD_ICONS.roads,
