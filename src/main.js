@@ -29,6 +29,8 @@ import { cityPhoto } from './render/photo.js';
 import { showPhoto } from './ui/photo.js';
 import { saveRecord } from './ui/records.js';
 import { askConfirm } from './ui/confirm.js';
+import { createMuteButton } from './ui/mute.js';
+import { unlockAudioOnTouch, playSegment, playRoad, playBridge, playRoundabout, playError, playStation } from './audio/sounds.js';
 
 // Il livello si sceglie dall'indirizzo, es. ?livello=roma; senza livello si apre il menu.
 const LEVEL_PARAM = new URLSearchParams(location.search).get('livello');
@@ -119,7 +121,13 @@ async function start() {
   };
   const drawing = attachRoadDrawing(canvas, graph, toWorld, () => 1 / view.scale, {
     build: (points, snapRadius) => {
+      const bridgesBefore = sim.bridgeBudget;
+      const roadsBefore = sim.roadBudget;
       const result = sim.buildRoad(points, snapRadius);
+      if (result === 'roundabout') playRoundabout();
+      else if (sim.bridgeBudget < bridgesBefore) playBridge();
+      else if (sim.roadBudget < roadsBefore) playRoad();
+      if (result && BUILD_PROBLEMS[result]) playError();
       if (result && BUILD_PROBLEMS[result]) showNotice(document.body, BUILD_PROBLEMS[result]);
       else if (result && TAP_MESSAGES[result]) showToast(document.body, TAP_MESSAGES[result]);
     },
@@ -168,8 +176,12 @@ async function start() {
     if (leave) goToMenu();
   });
   document.body.appendChild(menuButton);
+  unlockAudioOnTouch();
+  createMuteButton(document.body);
 
   let lastTime = performance.now();
+  /** Tratti della strada che si sta disegnando, per il tic a ogni tratto nuovo. */
+  let previewCost = 0;
   let pending = 0;
   let gameOverShown = false;
   let rewardShown = false;
@@ -295,6 +307,7 @@ async function start() {
     // Nel tutorial le stazioni nuove le presenta già il riquadro delle istruzioni.
     if (sim.stations.length > knownStations) {
       if (!tutorial) showStationPopup(document.body, sim.stations[sim.stations.length - 1]);
+      playStation();
       knownStations = sim.stations.length;
     }
     const results = {
@@ -344,7 +357,13 @@ async function start() {
     const preview = drawing.preview();
     if (preview.length >= 2) {
       const plan = sim.planRoad(preview);
-      drawPreview(ctx, preview, plan.cut, sim.roadCost(plan), plan.bridges, framed);
+      const cost = sim.roadCost(plan);
+      drawPreview(ctx, preview, plan.cut, cost, plan.bridges, framed);
+      // Un tic per ogni tratto in più, mentre il dito allunga la strada.
+      if (cost > previewCost) playSegment(cost);
+      previewCost = cost;
+    } else {
+      previewCost = 0;
     }
     const removal = drawing.removal();
     const finger = drawing.finger();
