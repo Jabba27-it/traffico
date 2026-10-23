@@ -316,7 +316,8 @@ export class Simulation {
    * Se il tratto è un cerchio intorno a un incrocio, ne fa una rotatoria.
    * @param {Point[]} points
    * @param {number} snapRadius
-   * @returns {string | null}  esito da mostrare, se ce n'è uno
+   * @returns {string | null}  esito da mostrare, se ce n'è uno: per un tratto
+   *   fermato prima della fine "cut-" più il motivo (es. "cut-long")
    */
   buildRoad(points, snapRadius) {
     // Un cerchio disegnato diventa una rotonda, nel verso in cui è stato disegnato.
@@ -328,7 +329,8 @@ export class Simulation {
     }
 
     const plan = this.planRoad(points);
-    if (plan.runs.length === 0) return null;
+    const outcome = plan.cut ? `cut-${plan.cut.reason}` : null;
+    if (plan.runs.length === 0) return outcome;
     const before = new Set(this.graph.edges.keys());
     buildPlannedRoad(this.graph, plan, snapRadius);
     const cost = this.roadCost(plan);
@@ -357,7 +359,7 @@ export class Simulation {
         }
       }
     }
-    return null;
+    return outcome;
   }
 
   /**
@@ -932,8 +934,10 @@ export class Simulation {
     return min + this.random() * (max - min);
   }
 
+  /** Secondi al prossimo veicolo di una stazione: col passare dei giorni nascono un po' più spesso. */
   nextSpawnDelay() {
-    const { min, max } = this.level.spawn;
-    return min + this.random() * (max - min);
+    const { min, max, growth } = this.level.spawn;
+    const day = this.elapsed / this.level.dayLength;
+    return (min + this.random() * (max - min)) / (1 + growth * day);
   }
 }

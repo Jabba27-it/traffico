@@ -22,6 +22,7 @@ import { createSpeedControls } from './ui/speed.js';
 import { showRewardChoice, showStationPrompt, REWARD_ICONS } from './ui/reward.js';
 import { showToast } from './ui/toast.js';
 import { showStationPopup } from './ui/stationPopup.js';
+import { showNotice } from './ui/notice.js';
 import { showGoals } from './ui/goals.js';
 import { showMenu, parseIndex } from './ui/menu.js';
 import { saveRecord } from './ui/records.js';
@@ -49,9 +50,20 @@ const TAP_MESSAGES = {
   'super-too-expensive': 'Doppio senso: per la superstrada servono più tratti',
   roundabout: 'Rotatoria',
   'roundabout-removed': 'Rotatoria tolta: torna incrocio',
-  'roundabout-too-expensive': 'Per la rotatoria servono più tratti',
-  'roundabout-station': 'La rotonda non può contenere una stazione',
-  'roundabout-blocked': 'Qui la rotonda non ci sta (acqua, ville, monumenti o fuori città)',
+};
+/** @type {Record<string, {title: string, text: string}>} perché una strada o una rotonda non si è costruita */
+const BUILD_PROBLEMS = {
+  'cut-roads': { title: 'Tratti di strada finiti', text: 'La strada si ferma dove finiscono i tratti. Ne arrivano altri ogni giorno, oppure togli una strada che non serve.' },
+  'cut-bridges': { title: 'Servono ponti', text: 'Per attraversare l\'acqua serve un ponte e li hai finiti. Ne puoi scegliere altri come premio a fine settimana.' },
+  'cut-long': { title: 'Ponte troppo lungo', text: 'Un ponte può essere lungo al massimo il doppio della larghezza del fiume: attraversalo più dritto o in un punto più stretto.' },
+  'cut-water': { title: 'La strada finisce in acqua', text: 'Una strada deve arrivare sulla terra: allungala fino all\'altra riva.' },
+  'cut-sea': { title: 'Sul mare non si costruisce', text: 'Il mare e le baie aperte non si attraversano: gira intorno passando dalla terra.' },
+  'cut-outside': { title: 'Fuori città', text: 'Si costruisce solo nella parte visibile della città, che si allarga con i giorni.' },
+  'cut-villa': { title: 'C\'è un parco', text: 'Nei parchi e nelle ville non si costruisce: passaci attorno.' },
+  'cut-monument': { title: 'C\'è un monumento', text: 'Sui monumenti non si costruisce: passaci attorno.' },
+  'roundabout-too-expensive': { title: 'Tratti di strada finiti', text: 'L\'anello della rotonda costa più tratti di quelli che hai.' },
+  'roundabout-station': { title: 'Una stazione nel cerchio', text: 'La rotonda non può contenere una stazione: disegna il cerchio intorno a un incrocio.' },
+  'roundabout-blocked': { title: 'Qui la rotonda non ci sta', text: 'L\'anello passerebbe sull\'acqua, su un parco, su un monumento o fuori città.' },
 };
 /** Quante carte premio si propongono a fine settimana (scelte a caso fra quelle possibili). */
 const REWARD_CHOICES = 3;
@@ -101,7 +113,8 @@ async function start() {
   const drawing = attachRoadDrawing(canvas, graph, toWorld, () => 1 / view.scale, {
     build: (points, snapRadius) => {
       const result = sim.buildRoad(points, snapRadius);
-      if (result && TAP_MESSAGES[result]) showToast(document.body, TAP_MESSAGES[result]);
+      if (result && BUILD_PROBLEMS[result]) showNotice(document.body, BUILD_PROBLEMS[result]);
+      else if (result && TAP_MESSAGES[result]) showToast(document.body, TAP_MESSAGES[result]);
     },
     findPiece: (x, y, radius) => sim.findRoadPiece(x, y, radius),
     remove: (piece) => sim.removeRoad(piece),

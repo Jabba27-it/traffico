@@ -108,12 +108,12 @@
   "crescita": { "ogniMin": 45, "ogniMax": 60, "massimo": 12, "distanzaMinima": 100, "difficolta": 0.8 },
   "congestione": { "capienza": 6, "tolleranza": 20 },
   "tempo": { "giorno": 20 },
-  "veicoli": { "ogniMin": 7, "ogniMax": 9 },
+  "veicoli": { "ogniMin": 7, "ogniMax": 9, "aumento": 0.02 },
   "strade": { "iniziali": 25, "perGiorno": 5, "lunghezzaTratto": 40 },
   "premi": { "strade": 20, "capienza": 3, "ponti": 1, "cavalcavia": 1 },
   "stelle": {
-    "viaggi": 160,
-    "giorni": 19,
-    "traffico": { "soglia": 40 }
+    "viaggi": 220,
+    "giorni": 20,
+    "traffico": { "soglia": 12 }
   }
 }

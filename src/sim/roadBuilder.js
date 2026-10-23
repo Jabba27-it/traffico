@@ -5,7 +5,7 @@
 import { closestPointOnSegment, distance, segmentIntersection } from './geometry.js';
 import { STATION_RADIUS } from './stations.js';
 import { ROAD_WIDTH } from './graph.js';
-import { isInWater, lengthInWater, touchesSea, widestWaterAlong } from './water.js';
+import { isInWater, lengthInWater, touchesSea, riverWidthsAlong } from './water.js';
 import { obstacleAt } from './terrain.js';
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
@@ -104,7 +104,7 @@ export function planRoad(graph, points, limits) {
     } else {
       const span = points.slice(i - 1, end + 2);
       if (touchesSea(limits.waters, span)) stop('sea');
-      else if (lengthInWater(limits.waters, span) > 2 * widestWaterAlong(limits.waters, span)) stop('long');
+      else if (lengthInWater(limits.waters, span) > 2 * riverWidthsAlong(limits.waters, span)) stop('long');
       else if (crossings.length >= limits.bridges) stop('bridges');
       else crossings.push({ start: i, end });
     }

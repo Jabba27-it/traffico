@@ -11,17 +11,6 @@ import { STYLE } from './style.js';
 
 /** Opacità massima della velatura rossa del traffico: tenue, come richiesto. */
 const TRAFFIC_TINT = 0.32;
-/** @type {Record<import('../sim/roadBuilder.js').CutReason, string>} */
-const CUT_LABELS = {
-  roads: 'Strade finite',
-  bridges: 'Servono ponti',
-  long: 'Ponte troppo lungo',
-  water: 'Non si finisce in acqua',
-  sea: 'Non si costruisce sul mare',
-  outside: 'Fuori città',
-  villa: 'Qui c\'è una villa: passale attorno',
-  monument: 'Qui c\'è un monumento: passagli attorno',
-};
 /** Il numero del costo sta sopra il dito, per non restare coperto. */
 const LABEL_OFFSET = 34;
 /** Larghezza di vista a cui le scritte hanno la loro grandezza normale. */
@@ -332,8 +321,8 @@ export function drawPreview(ctx, points, cut, cost, bridges, bounds) {
   const spent = [cost > 0 ? `−${cost}` : '', bridges > 0 ? `${bridges} ${bridges === 1 ? 'ponte' : 'ponti'}` : '']
     .filter(Boolean)
     .join(' · ');
-  const label = cut ? CUT_LABELS[cut.reason] : spent;
-  if (label) drawFingerLabel(ctx, label, tip, bounds, cut ? STYLE.blockedText : STYLE.label);
+  // Se il tratto si ferma basta il rosso: il motivo lo spiega un riquadro quando si alza il dito.
+  if (!cut && spent) drawFingerLabel(ctx, spent, tip, bounds, STYLE.label);
 }
 
 /**

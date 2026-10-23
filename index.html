@@ -11,6 +11,7 @@
       --land: #efe5d3;
       --card: #fffaf1;
       --accent: #b8542f;
+      --blocked: #b23a26;
       --veil: rgba(239, 229, 211, 0.82);
     }
     html, body {
@@ -165,6 +166,26 @@
     .station-popup-label { font-size: 11px; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.04em; }
     .station-popup-name { font-size: 15px; font-weight: 700; }
     .station-popup-close { margin-left: 6px; font-size: 13px; opacity: 0.5; }
+    .notice {
+      position: fixed;
+      left: 50%;
+      top: 40%;
+      transform: translate(-50%, -50%);
+      width: min(340px, calc(100vw - 32px));
+      padding: 14px 16px 10px;
+      border-radius: 14px;
+      border-left: 5px solid var(--blocked);
+      background: var(--card);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+      color: var(--ink);
+      font-family: system-ui, sans-serif;
+      cursor: pointer;
+      animation: notice-in 0.2s ease-out;
+    }
+    @keyframes notice-in { from { opacity: 0; transform: translate(-50%, -46%); } }
+    .notice-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .notice-text { font-size: 14px; line-height: 1.35; }
+    .notice-hint { font-size: 11px; opacity: 0.5; margin-top: 8px; text-align: right; }
     .toast.visible { opacity: 1; transform: translate(-50%, 0); }
     .speed button {
       width: 40px;

@@ -60,16 +60,17 @@ export function lengthInWater(waters, points) {
 }
 
 /**
- * Il fiume più largo fra quelli che toccano la spezzata (0 se nessuno).
+ * Somma delle larghezze dei fiumi che la spezzata tocca (0 se nessuno): un
+ * ponte che passa dove una baia si apre sul fiume attraversa due acque di fila.
  * @param {Water[]} waters
  * @param {Point[]} points
  */
-export function widestWaterAlong(waters, points) {
-  let widest = 0;
+export function riverWidthsAlong(waters, points) {
+  let total = 0;
   for (const w of waters) {
-    if (w.kind === 'river' && points.some((p) => riverDistance(w, p) < 0)) widest = Math.max(widest, w.width);
+    if (w.kind === 'river' && points.some((p) => riverDistance(w, p) < 0)) total += w.width;
   }
-  return widest;
+  return total;
 }
 
 /**
