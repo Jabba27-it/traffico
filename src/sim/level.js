@@ -110,8 +110,9 @@ const TUTORIAL_GOALS = ['avanti', 'collega', 'viaggi', 'rimuovi', 'tipoStrada', 
  * @property {import('./terrain.js').Terrain} terrain  ville, colli, monumenti e mura
  * @property {TutorialStep[] | null} tutorial  passi guidati (solo nel livello tutorial)
  * @property {number} overpasses  cavalcavia disponibili all'inizio
- * @property {{min: number, max: number, growth: number}} spawn  secondi fra un veicolo nuovo e il successivo, per stazione;
- *   growth = quanti veicoli in più nascono ogni giorno che passa (0.03 = +3% al giorno)
+ * @property {{min: number, max: number, growth: number, growthMax: number}} spawn  secondi fra un veicolo nuovo e il successivo, per stazione;
+ *   growth = quanti veicoli in più nascono ogni giorno che passa (0.02 = +2% al giorno),
+ *   fino al massimo growthMax (0.5 = al più +50%)
  * @property {{name: string, x: number, y: number}[]} districts
  *   quartieri: una stazione nata a caso prende il nome del quartiere più vicino
  */
@@ -272,6 +273,7 @@ export function parseLevel(json) {
     min: spawnMin,
     max: isNum(vh.ogniMax) && vh.ogniMax >= spawnMin ? vh.ogniMax : spawnMin + 2,
     growth: isNum(vh.aumento) && vh.aumento >= 0 ? vh.aumento : 0,
+    growthMax: isNum(vh.aumentoMassimo) && vh.aumentoMassimo >= 0 ? vh.aumentoMassimo : Infinity,
   };
 
   const terrain = parseTerrain(json.terreno);

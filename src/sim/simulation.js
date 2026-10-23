@@ -960,10 +960,10 @@ export class Simulation {
     return min + this.random() * (max - min);
   }
 
-  /** Secondi al prossimo veicolo di una stazione: col passare dei giorni nascono un po' più spesso. */
+  /** Secondi al prossimo veicolo di una stazione: col passare dei giorni nascono un po' più spesso, fino a un massimo. */
   nextSpawnDelay() {
-    const { min, max, growth } = this.level.spawn;
+    const { min, max, growth, growthMax } = this.level.spawn;
     const day = this.elapsed / this.level.dayLength;
-    return (min + this.random() * (max - min)) / (1 + growth * day);
+    return (min + this.random() * (max - min)) / (1 + Math.min(growth * day, growthMax));
   }
 }

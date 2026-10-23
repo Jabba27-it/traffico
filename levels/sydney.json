@@ -1612,7 +1612,8 @@
   "veicoli": {
     "ogniMin": 7,
     "ogniMax": 9,
-    "aumento": 0.02
+    "aumento": 0.02,
+    "aumentoMassimo": 0.5
   },
   "strade": {
     "iniziali": 25,
