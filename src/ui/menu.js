@@ -6,8 +6,8 @@ import { starsHtml } from './hud.js';
 import { loadRecord, SANDBOX_SUFFIX } from './records.js';
 import { drawMonument } from '../render/terrain.js';
 
-/** Lato in pixel del monumento simbolo disegnato in ogni scheda. */
-const ICON_SIZE = 46;
+/** Lato in pixel a cui si disegna il monumento: il CSS lo rimpicciolisce secondo lo schermo. */
+const ICON_SIZE = 72;
 
 /**
  * @typedef {Object} LevelEntry  una riga di levels/indice.json
@@ -56,6 +56,14 @@ export function showMenu(parent, levels, onPick) {
     }
     card.title = level.description;
     card.appendChild(head);
+    // Il record è quello della sandbox: i punti contano solo lì.
+    if (level.sandbox) {
+      const best = loadRecord(level.file + SANDBOX_SUFFIX).score;
+      const recordLine = document.createElement('div');
+      recordLine.className = 'menu-record';
+      recordLine.textContent = best > 0 ? `Record: ${best} punti` : 'Record: ancora nessuno';
+      card.appendChild(recordLine);
+    }
     // Due tasti separati: il livello con le stelle, e la sandbox che va avanti
     // finché non si perde, col suo record.
     const modes = document.createElement('div');
@@ -66,10 +74,9 @@ export function showMenu(parent, levels, onPick) {
     play.addEventListener('click', () => onPick(level.file, false));
     modes.appendChild(play);
     if (level.sandbox) {
-      const best = loadRecord(level.file + SANDBOX_SUFFIX).score;
       const sandbox = document.createElement('button');
       sandbox.className = 'menu-mode menu-mode-sandbox';
-      sandbox.innerHTML = `Sandbox <small>${best > 0 ? `record ${best}` : 'senza fine'}</small>`;
+      sandbox.textContent = 'Senza fine';
       sandbox.addEventListener('click', () => onPick(level.file, true));
       modes.appendChild(sandbox);
     }
@@ -88,7 +95,6 @@ function monumentIcon(icon) {
   canvas.className = 'menu-icon';
   const dpr = window.devicePixelRatio || 1;
   canvas.width = canvas.height = ICON_SIZE * dpr;
-  canvas.style.width = canvas.style.height = `${ICON_SIZE}px`;
   const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
   ctx.scale(dpr, dpr);
   ctx.lineCap = 'round';
