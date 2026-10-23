@@ -199,6 +199,28 @@ function drawMonument(ctx, m) {
       }
       ctx.stroke();
       break;
+    case 'vele': // tre gusci a vela, uno dietro l'altro
+      for (let k = 0; k < 3; k++) {
+        const bx = x - s * 0.8 + k * s * 0.6;
+        ctx.moveTo(bx, y + s * 0.5);
+        ctx.quadraticCurveTo(bx + s * 0.1, y - s * (0.5 + k * 0.15), bx + s * 0.75, y - s * (0.6 + k * 0.15));
+        ctx.quadraticCurveTo(bx + s * 0.55, y, bx + s * 0.6, y + s * 0.5);
+      }
+      ctx.moveTo(x - s, y + s * 0.5);
+      ctx.lineTo(x + s, y + s * 0.5);
+      ctx.stroke();
+      break;
+    case 'aereo': // sagoma vista dall'alto: fusoliera, ali e coda
+      ctx.moveTo(x, y - s);
+      ctx.lineTo(x, y + s);
+      ctx.moveTo(x - s * 0.9, y + s * 0.05);
+      ctx.lineTo(x, y - s * 0.3);
+      ctx.lineTo(x + s * 0.9, y + s * 0.05);
+      ctx.moveTo(x - s * 0.4, y + s * 0.85);
+      ctx.lineTo(x, y + s * 0.65);
+      ctx.lineTo(x + s * 0.4, y + s * 0.85);
+      ctx.stroke();
+      break;
     default: // colonne sotto un frontone
       ctx.moveTo(x - s, y - s * 0.35);
       ctx.lineTo(x, y - s * 0.85);

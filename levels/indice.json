@@ -2,6 +2,7 @@
   "livelli": [
     { "file": "tutorial", "nome": "Tutorial", "descrizione": "Impara a giocare in pochi minuti" },
     { "file": "roma", "nome": "Roma", "descrizione": "Il Tevere, i ponti e la strada fino a Ostia" },
-    { "file": "newyork", "nome": "New York", "descrizione": "Manhattan, tre fiumi e la baia" }
+    { "file": "newyork", "nome": "New York", "descrizione": "Manhattan, tre fiumi e la baia" },
+    { "file": "sydney", "nome": "Sydney", "descrizione": "Il porto, le baie e Botany Bay" }
   ]
 }
