@@ -7,11 +7,12 @@ import { STYLE } from './style.js';
  * @param {{x: number, y: number}} p
  * @param {number} time   secondi, per la pulsazione
  * @param {number} scale  ingrandimento, per restare visibile quando la vista è ampia
+ * @param {string} [color]
  */
-export function drawHint(ctx, p, time, scale) {
+export function drawHint(ctx, p, time, scale, color = STYLE.hint) {
   const t = (time * 1.2) % 1;
   ctx.lineWidth = 3 * scale;
-  ctx.strokeStyle = STYLE.hint;
+  ctx.strokeStyle = color;
   for (const phase of [0, 0.5]) {
     const k = (t + phase) % 1;
     ctx.globalAlpha = 1 - k;

@@ -123,7 +123,7 @@ async function start() {
     },
     findPiece: (x, y, radius) => sim.findRoadPiece(x, y, radius),
     remove: (piece) => sim.removeRoad(piece),
-    active: () => !choosingStation,
+    active: () => !choosingStation && !gameOverShown,
     tap: (x, y, radius) => {
       const result = sim.tap(x, y, Math.max(radius, 20));
       if (result && TAP_MESSAGES[result]) showToast(document.body, TAP_MESSAGES[result]);
@@ -312,7 +312,7 @@ async function start() {
     if ((sim.failed || sim.completed) && !gameOverShown) {
       gameOverShown = true;
       const best = level.stars ? saveRecord(/** @type {string} */ (LEVEL_NAME), sim.score, sim.starsEarned) : null;
-      showGameOver(document.body, results, best, { onRetry: () => location.reload(), onMenu: goToMenu }, sim.completed);
+      showGameOver(document.body, results, best, { onRetry: () => location.reload(), onMenu: goToMenu }, sim.completed, sim.failedStation?.name);
     }
 
     const { ctx } = view;
@@ -353,6 +353,8 @@ async function start() {
     const hint = tutorial?.hint();
     if (hint) drawHint(ctx, hint, now / 1000, labelScale);
     if (choosingStation) drawSelectable(ctx, sim.stations, now / 1000);
+    // A partita persa, la stazione che ha fatto perdere pulsa in rosso.
+    if (sim.failedStation) drawHint(ctx, sim.failedStation, now / 1000, labelScale * 1.4, STYLE.blockedText);
   }
 
   requestAnimationFrame((now) => {

@@ -1,5 +1,6 @@
 // Schermata di fine partita: "Livello fallito" o "Livello completato!", stelle, risultati, record,
-// e i pulsanti Riprova e Menu.
+// e i pulsanti Riprova, Guarda la mappa e Menu. Con "Guarda la mappa" il riquadro si
+// nasconde e resta la mappa ferma al momento della fine; una barra in alto lo riapre.
 
 import { starsHtml } from './hud.js';
 
@@ -12,8 +13,9 @@ import { starsHtml } from './hud.js';
  * @param {{ record: LevelRecord, newBest: boolean } | null} best  null se il livello non ha stelle
  * @param {{ onRetry: () => void, onMenu: () => void }} actions
  * @param {boolean} [completed]  true se la partita finisce perché il livello è completato
+ * @param {string} [culprit]  nome della stazione che ha fatto perdere, se ce l'ha
  */
-export function showGameOver(parent, values, best, actions, completed = false) {
+export function showGameOver(parent, values, best, actions, completed = false, culprit = '') {
   const overlay = document.createElement('div');
   overlay.className = 'game-over';
 
@@ -23,7 +25,9 @@ export function showGameOver(parent, values, best, actions, completed = false) {
   const title = document.createElement('h1');
   title.textContent = completed ? 'Livello completato!' : 'Livello fallito';
   const reason = document.createElement('p');
-  reason.textContent = completed ? 'Hai preso tutte e tre le stelle.' : 'Una stazione è rimasta sovraccarica troppo a lungo.';
+  reason.textContent = completed
+    ? 'Hai preso tutte e tre le stelle.'
+    : `${culprit ? `La stazione ${culprit}` : 'Una stazione'} è rimasta sovraccarica troppo a lungo.`;
   if (completed) overlay.classList.add('completed');
   box.append(title, reason);
 
@@ -65,12 +69,34 @@ export function showGameOver(parent, values, best, actions, completed = false) {
   const retry = document.createElement('button');
   retry.textContent = completed ? 'Gioca ancora' : 'Riprova';
   retry.addEventListener('click', actions.onRetry);
+  const look = document.createElement('button');
+  look.textContent = 'Guarda la mappa';
+  look.className = 'secondary';
   const menu = document.createElement('button');
   menu.textContent = 'Menu';
   menu.className = 'secondary';
   menu.addEventListener('click', actions.onMenu);
 
-  box.append(retry, menu);
+  box.append(retry, look, menu);
   overlay.appendChild(box);
   parent.appendChild(overlay);
+
+  // La mappa ferma, con una barra per tornare al riepilogo.
+  const bar = document.createElement('div');
+  bar.className = 'map-review';
+  bar.hidden = true;
+  const label = document.createElement('span');
+  label.textContent = completed ? 'La città alla fine' : 'La città quando hai perso';
+  const back = document.createElement('button');
+  back.textContent = 'Torna al riepilogo';
+  bar.append(label, back);
+  parent.appendChild(bar);
+  look.addEventListener('click', () => {
+    overlay.hidden = true;
+    bar.hidden = false;
+  });
+  back.addEventListener('click', () => {
+    bar.hidden = true;
+    overlay.hidden = false;
+  });
 }
