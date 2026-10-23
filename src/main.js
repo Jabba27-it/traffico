@@ -30,6 +30,7 @@ import { showPhoto } from './ui/photo.js';
 import { saveRecord, SANDBOX_SUFFIX } from './ui/records.js';
 import { askConfirm } from './ui/confirm.js';
 import { createMuteButton } from './ui/mute.js';
+import { createUndoButton } from './ui/undo.js';
 import { unlockAudioOnTouch, playSegment, playRoad, playBridge, playRoundabout, playError, playStation, playRemove, playTap, playHeartbeat, playWeek, playStar } from './audio/sounds.js';
 import { waitingCount } from './sim/congestion.js';
 
@@ -187,6 +188,17 @@ async function start() {
   document.body.appendChild(menuButton);
   unlockAudioOnTouch();
   createMuteButton(document.body);
+  // Annulla l'ultima mossa (non nel tutorial, per non confondere gli esercizi).
+  const undoButton = tutorial
+    ? null
+    : createUndoButton(document.body, {
+        canUndo: () => sim.canUndo && !gameOverShown && !choosingStation && !sim.rewardPending,
+        onUndo: () => {
+          if (!sim.undo()) return;
+          playRemove();
+          showToast(document.body, 'Mossa annullata');
+        },
+      });
 
   let lastTime = performance.now();
   /** Tratti della strada che si sta disegnando, per il tic a ogni tratto nuovo. */
@@ -357,6 +369,7 @@ async function start() {
       slowTraffic: sim.slowTraffic,
     };
     hud.update(results);
+    undoButton?.update();
     if ((sim.failed || sim.completed) && !gameOverShown) {
       gameOverShown = true;
       const best = SANDBOX

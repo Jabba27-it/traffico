@@ -144,6 +144,8 @@ export class Simulation {
     this.roundabouts = new Map();
     this.nextRoundaboutId = 1;
     this.nextBridgeId = 1;
+    /** L'ultima mossa del giocatore, per poterla annullare (una sola). */
+    this.lastMove = null;
     /** L'ultimo giorno per cui sono già stati dati i tratti in più. */
     this.rewardedDay = 1;
     /** Settimane concluse per cui il premio è già stato proposto. */
@@ -370,9 +372,98 @@ export class Simulation {
    * @param {Point[]} points
    * @param {number} snapRadius
    * @returns {string | null}  esito da mostrare, se ce n'è uno: per un tratto
-   *   fermato prima della fine "cut-" più il motivo (es. "cut-long")
+   *   fermato prima della fine "cut-" più il motivo (es. "cut-long").
+   * È una mossa: si può annullare.
    */
   buildRoad(points, snapRadius) {
+    return this.asMove(() => this._buildRoad(points, snapRadius));
+  }
+
+  /**
+   * Toglie un pezzo di strada. È una mossa: si può annullare.
+   * @param {RoadPiece} piece
+   */
+  removeRoad(piece) {
+    return this.asMove(() => this._removeRoad(piece));
+  }
+
+  /**
+   * Tocco breve su strade, incroci e rotonde. È una mossa: si può annullare.
+   * @param {number} x
+   * @param {number} y
+   * @param {number} radius
+   * @returns {string | null}
+   */
+  tap(x, y, radius) {
+    return this.asMove(() => this._tap(x, y, radius));
+  }
+
+  /** Le risorse che una mossa può spendere o restituire. */
+  budgets() {
+    return { road: this.roadBudget, credit: this.roadCredit, bridge: this.bridgeBudget, overpass: this.overpassBudget };
+  }
+
+  /**
+   * Esegue una mossa ricordando com'erano le strade prima, per poterla annullare.
+   * Se la mossa non cambia niente, resta annullabile quella precedente.
+   * @template T
+   * @param {() => T} action
+   * @returns {T}
+   */
+  asMove(action) {
+    const before = {
+      version: this.graph.version,
+      nodes: new Map([...this.graph.nodes].map(([id, n]) => [id, { ...n, ...(n.overpass ? { overpass: { ...n.overpass } } : {}) }])),
+      edges: new Map([...this.graph.edges].map(([id, e]) => [id, { ...e }])),
+      roundabouts: new Map([...this.roundabouts].map(([id, r]) => [id, { ...r, ring: [...r.ring] }])),
+      budgets: this.budgets(),
+    };
+    const result = action();
+    const after = this.budgets();
+    const changed =
+      this.graph.version !== before.version || Object.keys(after).some((k) => after[/** @type {keyof typeof after} */ (k)] !== before.budgets[/** @type {keyof typeof after} */ (k)]);
+    if (changed) this.lastMove = { before, after };
+    return result;
+  }
+
+  /** true se c'è una mossa da annullare. */
+  get canUndo() {
+    return this.lastMove !== null;
+  }
+
+  /**
+   * Annulla l'ultima mossa: le strade tornano com'erano e le risorse spese (o
+   * restituite) tornano indietro. Quello che si è guadagnato nel frattempo, come
+   * i tratti del giorno, resta. Chi era su una strada che sparisce torna in coda.
+   * @returns {boolean}  false se non c'era niente da annullare
+   */
+  undo() {
+    const move = this.lastMove;
+    if (!move) return false;
+    const { before, after } = move;
+    // Le stazioni nate dopo la mossa restano.
+    const born = [...this.graph.nodes.values()].filter((n) => n.stationId !== undefined && !before.nodes.has(n.id));
+    this.graph.nodes = before.nodes;
+    for (const n of born) this.graph.nodes.set(n.id, n);
+    this.graph.edges = before.edges;
+    this.graph.version = Math.max(this.graph.version, before.version) + 1;
+    this.roundabouts = before.roundabouts;
+    this.roadBudget += before.budgets.road - after.road;
+    this.roadCredit = Math.max(0, this.roadCredit + before.budgets.credit - after.credit);
+    this.bridgeBudget += before.budgets.bridge - after.bridge;
+    this.overpassBudget += before.budgets.overpass - after.overpass;
+    this.lastMove = null;
+    this.updateRoutes();
+    return true;
+  }
+
+  /**
+   * La costruzione vera, senza la fotografia per l'annulla (vedi buildRoad).
+   * @param {Point[]} points
+   * @param {number} snapRadius
+   * @returns {string | null}
+   */
+  _buildRoad(points, snapRadius) {
     // Un cerchio disegnato diventa una rotonda, nel verso in cui è stato disegnato.
     const circle = drawnCircle(points);
     if (circle) {
@@ -512,6 +603,7 @@ export class Simulation {
 
   /** Premio di fine settimana: cavalcavia in più. */
   chooseOverpassReward() {
+    this.lastMove = null;
     if (!this.rewardPending) return;
     this.overpassBudget += this.level.rewards.overpasses;
     this.rewardPending = false;
@@ -525,7 +617,7 @@ export class Simulation {
    * @param {number} radius
    * @returns {string | null}  cosa è successo (per l'avviso), null se niente
    */
-  tap(x, y, radius) {
+  _tap(x, y, radius) {
     const roundabout = this.tapRoundabout(x, y);
     if (roundabout) return roundabout;
     const junction = this.toggleOverpass(x, y, radius);
@@ -614,6 +706,7 @@ export class Simulation {
 
   /** Premio di fine settimana: ponti in più. */
   chooseBridgesReward() {
+    this.lastMove = null;
     if (!this.rewardPending) return;
     this.bridgeBudget += this.level.rewards.bridges;
     this.rewardPending = false;
@@ -621,6 +714,7 @@ export class Simulation {
 
   /** Premio di fine settimana: tratti di strada in più. */
   chooseRoadsReward() {
+    this.lastMove = null;
     if (!this.rewardPending) return;
     this.roadBudget += this.level.rewards.roads;
     this.rewardPending = false;
@@ -631,6 +725,7 @@ export class Simulation {
    * @param {number} stationId
    */
   chooseUpgradeReward(stationId) {
+    this.lastMove = null;
     const station = this.stations.find((s) => s.id === stationId);
     if (!this.rewardPending || !station) return;
     station.capacity += this.level.rewards.capacity;
@@ -985,7 +1080,7 @@ export class Simulation {
    * Rimuove un pezzo di strada e restituisce i suoi tratti.
    * @param {RoadPiece} piece
    */
-  removeRoad(piece) {
+  _removeRoad(piece) {
     this.events.removed++;
     // Togliere un pezzo d'anello rompe la rotatoria: resta una strada a senso unico.
     for (const id of piece.edgeIds) {
