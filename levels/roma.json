@@ -106,7 +106,7 @@
   "stile": {
     "ponte": "pietra",
     "cavalcavia": "terracotta",
-    "rotonda": "pino"
+    "rotonda": "obelisco"
   },
   "ponti": { "iniziali": 2 },
   "cavalcavia": { "iniziali": 1 },

@@ -326,12 +326,9 @@ function palm(ctx, x, y, size) {
   ctx.fill();
 }
 
-/** Rotonde classiche, buone per ogni città, che si alternano a quella tipica. */
-const CLASSIC_ROUNDABOUTS = ['aiuola', 'fontanaClassica'];
-
 /**
  * Il tipo di una rotonda: a turno la tipica della città, una classica, di nuovo la
- * tipica, l'altra classica. Dipende solo dal numero della rotonda, quindi non
+ * tipica, l'altra classica (di base aiuola e fontana, il livello può sceglierne altre). Dipende solo dal numero della rotonda, quindi non
  * cambia da un fotogramma all'altro e la prima è sempre quella della città.
  * @param {number} id
  * @param {Look} [look]
@@ -340,7 +337,8 @@ export function roundaboutKind(id, look) {
   const own = look?.roundabout ?? 'semplice';
   if (own === 'semplice') return own;
   const turn = (((id - 1) % 4) + 4) % 4;
-  return turn % 2 === 0 ? own : CLASSIC_ROUNDABOUTS[(turn - 1) / 2];
+  const classics = look?.classics ?? ['aiuola', 'fontanaClassica'];
+  return turn % 2 === 0 ? own : classics[(turn - 1) / 2];
 }
 
 /**
@@ -361,6 +359,7 @@ export function drawIsland(ctx, r, look) {
   };
   const ground = {
     pino: STYLE.grass,
+    obelisco: STYLE.travertine,
     aiuola: STYLE.grass,
     jacaranda: STYLE.grass,
     colonna: STYLE.nyPaving,
@@ -378,6 +377,45 @@ export function drawIsland(ctx, r, look) {
     disc(ri * 0.62, STYLE.shadow, ri * 0.12, ri * 0.16);
     disc(ri * 0.62, STYLE.pine);
     disc(ri * 0.34, STYLE.pineLight, -ri * 0.15, -ri * 0.15);
+  } else if (kind === 'obelisco') {
+    // Roma: piazza in travertino col disegno a raggi e l'obelisco al centro, con la sua ombra lunga.
+    ctx.strokeStyle = STYLE.travertineDark;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(x, y, ri * 0.62, 0, Math.PI * 2);
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      ctx.moveTo(x + Math.cos(a) * ri * 0.25, y + Math.sin(a) * ri * 0.25);
+      ctx.lineTo(x + Math.cos(a) * ri * 0.62, y + Math.sin(a) * ri * 0.62);
+    }
+    ctx.stroke();
+    ctx.lineWidth = ri * 0.22;
+    ctx.lineCap = 'butt';
+    ctx.strokeStyle = STYLE.shadow;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + ri * 0.85, y + ri * 0.85);
+    ctx.stroke();
+    const s = ri * 0.24;
+    ctx.fillStyle = STYLE.monumentEdge;
+    ctx.fillRect(x - s, y - s, s * 2, s * 2);
+    // La punta a piramide: quattro facce, due in luce e due in ombra.
+    ctx.fillStyle = STYLE.travertine;
+    ctx.beginPath();
+    ctx.moveTo(x - s * 0.7, y - s * 0.7);
+    ctx.lineTo(x + s * 0.7, y - s * 0.7);
+    ctx.lineTo(x, y);
+    ctx.lineTo(x - s * 0.7, y + s * 0.7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = STYLE.monumentIcon;
+    ctx.beginPath();
+    ctx.moveTo(x + s * 0.7, y - s * 0.7);
+    ctx.lineTo(x + s * 0.7, y + s * 0.7);
+    ctx.lineTo(x - s * 0.7, y + s * 0.7);
+    ctx.lineTo(x, y);
+    ctx.closePath();
+    ctx.fill();
   } else if (kind === 'aiuola') {
     // Classica: prato con una corona di fiori e tre cespugli.
     for (let i = 0; i < 14; i++) {

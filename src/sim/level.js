@@ -389,15 +389,17 @@ function isNum(v) {
  * @property {string} bridge
  * @property {string} overpass
  * @property {string} roundabout
+ * @property {string[]} classics  rotonde classiche che si alternano a quella tipica
  */
 
 /**
- * Voce "stile" del livello: {"ponte": "pietra", "cavalcavia": "terracotta", "rotonda": "pino"}.
- * Quello che manca resta semplice.
+ * Voce "stile" del livello: {"ponte": "pietra", "cavalcavia": "terracotta", "rotonda": "obelisco"},
+ * più "classiche" facoltativo (di base aiuola e fontana). Quello che manca resta semplice.
  * @param {any} s
  * @returns {Look}
  */
 function parseLook(s) {
   const name = (/** @type {any} */ v) => (typeof v === 'string' && v ? v : 'semplice');
-  return { bridge: name(s?.ponte), overpass: name(s?.cavalcavia), roundabout: name(s?.rotonda) };
+  const classics = Array.isArray(s?.classiche) && s.classiche.length === 2 ? s.classiche.map(name) : ['aiuola', 'fontanaClassica'];
+  return { bridge: name(s?.ponte), overpass: name(s?.cavalcavia), roundabout: name(s?.rotonda), classics };
 }

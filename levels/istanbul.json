@@ -663,7 +663,8 @@
   "stile": {
     "ponte": "bosforo",
     "cavalcavia": "maiolica",
-    "rotonda": "fontana"
+    "rotonda": "fontana",
+    "classiche": ["aiuola", "pino"]
   },
   "ponti": {
     "iniziali": 2
