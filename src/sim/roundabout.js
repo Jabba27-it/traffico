@@ -111,6 +111,7 @@ export function buildRoundabout(graph, c, id, cost) {
 
   const inside = new Set([...graph.nodes.values()].filter((n) => n.stationId === undefined && distance(n, c) <= R).map((n) => n.id));
   const ring = ringPoints(c).map((p) => graph.addNode(p.x, p.y));
+  const ringIds = new Set(ring.map((p) => p.id));
   const n = ring.length;
   for (let k = 0; k < n; k++) {
     const next = c.clockwise ? (k + 1) % n : (k + n - 1) % n;
@@ -125,7 +126,8 @@ export function buildRoundabout(graph, c, id, cost) {
   /** @type {Set<number>} */
   const used = new Set();
   for (const e of [...graph.edges.values()]) {
-    if (e.ring !== undefined) continue;
+    // Può essere già sparita, tolta arretrando lungo un'altra strada.
+    if (e.ring !== undefined || !graph.edges.has(e.id)) continue;
     const inA = inside.has(e.a);
     const inB = inside.has(e.b);
     if (inA && inB) {
@@ -140,18 +142,27 @@ export function buildRoundabout(graph, c, id, cost) {
     let superPaid = e.superPaid ?? 0;
     let bridgeId = e.bridgeId;
     graph.removeEdge(e.id);
-    let outer = /** @type {RoadNode} */ (graph.nodes.get(inA ? e.b : e.a));
-    // Se l'estremità esterna è appena fuori dall'anello, si arretra ancora un po'.
-    while (distance(outer, c) < R + SPOKE_MIN && outer.stationId === undefined) {
-      const rest = [...graph.edges.values()].filter((x) => x.ring === undefined && (x.a === outer.id || x.b === outer.id));
+    let outer = graph.nodes.get(inA ? e.b : e.a);
+    if (!outer) continue;
+    // Se l'estremità esterna è appena fuori dall'anello, si arretra ancora un po',
+    // ma solo lungo una strada semplice: ci si ferma a ogni incrocio, a ogni nodo
+    // che ha già una strada attaccata all'anello, e prima di rientrare nel cerchio.
+    // Così non si cancella mai un nodo che serve ancora (niente archi nel vuoto).
+    while (distance(outer, c) < R + SPOKE_MIN && outer.stationId === undefined && !ringIds.has(outer.id)) {
+      const here = outer;
+      const rest = [...graph.edges.values()].filter((x) => x.a === here.id || x.b === here.id);
       if (rest.length !== 1) break;
-      cost += rest[0].cost ?? 0;
-      superPaid += rest[0].superPaid ?? 0;
-      bridgeId ??= rest[0].bridgeId;
-      graph.removeEdge(rest[0].id);
-      const prev = outer;
-      outer = /** @type {RoadNode} */ (graph.nodes.get(rest[0].a === outer.id ? rest[0].b : rest[0].a));
-      graph.nodes.delete(prev.id);
+      const back = rest[0];
+      if (back.ring !== undefined || ringIds.has(back.a) || ringIds.has(back.b)) break;
+      const nextId = back.a === here.id ? back.b : back.a;
+      const nextNode = graph.nodes.get(nextId);
+      if (!nextNode || inside.has(nextId)) break;
+      cost += back.cost ?? 0;
+      superPaid += back.superPaid ?? 0;
+      bridgeId ??= back.bridgeId;
+      graph.removeEdge(back.id);
+      graph.nodes.delete(here.id);
+      outer = nextNode;
     }
     const target = [...ring].sort((p, q) => distance(p, outer) - distance(q, outer)).find((p) => !used.has(p.id)) ?? ring[0];
     used.add(target.id);

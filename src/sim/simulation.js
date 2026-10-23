@@ -63,6 +63,8 @@ const GROWTH_RETRY = 1;
  * preferiscono i percorsi con meno incroci a parità di lunghezza.
  */
 const JUNCTION_COST = 25;
+/** Spazio minimo fra l'anello di una rotonda nuova e un'altra rotonda o un cavalcavia. */
+const ROUNDABOUT_GAP = 12;
 export class Simulation {
   /**
    * @param {RoadGraph} graph
@@ -373,6 +375,15 @@ export class Simulation {
       (p) => isInWater(this.level.waters, p) || obstacleAt(this.level.terrain, p, 6) !== null || !rectContains(view, p),
     );
     if (blocked) return 'roundabout-blocked';
+    // Una rotonda non si sovrappone a un'altra (nemmeno ai resti di una rotta)
+    // né a un cavalcavia: cancellerebbe nodi che servono ancora all'altra.
+    const ringNodes = new Set();
+    for (const e of this.graph.edges.values()) if (e.ring !== undefined) ringNodes.add(e.a).add(e.b);
+    for (const n of this.graph.nodes.values()) {
+      const d = Math.hypot(n.x - circle.x, n.y - circle.y);
+      if (ringNodes.has(n.id) && d < circle.radius + ROUNDABOUT_GAP) return 'roundabout-overlap';
+      if (n.overpass && d < circle.radius + ROUNDABOUT_GAP) return 'roundabout-overpass';
+    }
     const cost = ringCost(circle.radius, this.level.roads.segmentLength);
     if (this.roadBudget < cost) return 'roundabout-too-expensive';
     this.roadBudget -= cost;
@@ -771,7 +782,7 @@ export class Simulation {
         }
       }
       // Altrimenti la strada sotto il veicolo è stata rimossa.
-      if (!found) return false;
+      if (!found || !this.graph.hasEdge(here, next)) return false;
     }
 
     const ending = this.endsAtStation(v, next);
@@ -808,6 +819,20 @@ export class Simulation {
     if (!station || station.shape !== v.shape) return false;
     v.toStationId = station.id;
     return true;
+  }
+
+  /**
+   * Rete di sicurezza dopo un errore imprevisto: toglie gli archi rimasti senza
+   * un estremo e le rotonde che hanno perso pezzi, poi rimette in strada i veicoli.
+   */
+  repair() {
+    for (const e of [...this.graph.edges.values()]) {
+      if (!this.graph.nodes.has(e.a) || !this.graph.nodes.has(e.b)) this.graph.removeEdge(e.id);
+    }
+    for (const [id, r] of this.roundabouts) {
+      if (r.ring.some((n) => !this.graph.nodes.has(n))) this.roundabouts.delete(id);
+    }
+    this.updateRoutes();
   }
 
   /**
@@ -903,9 +928,10 @@ export class Simulation {
       this.overpassBudget++;
     }
     // Subito, e non al prossimo passo: anche in pausa nessun veicolo deve
-    // restare su nodi che stanno per sparire.
-    this.updateRoutes();
+    // restare su nodi spariti. Prima si tolgono i nodi rimasti senza strade,
+    // così chi ci stava sopra torna in coda invece di restare su un nodo che non c'è.
     removeIsolatedNodes(this.graph, touched);
+    this.updateRoutes();
   }
 
   /**

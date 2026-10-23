@@ -67,6 +67,8 @@ const BUILD_PROBLEMS = {
   'roundabout-too-expensive': { title: 'Tratti di strada finiti', text: 'L\'anello della rotonda costa più tratti di quelli che hai.' },
   'roundabout-station': { title: 'Una stazione nel cerchio', text: 'La rotonda non può contenere una stazione: disegna il cerchio intorno a un incrocio.' },
   'roundabout-blocked': { title: 'Qui la rotonda non ci sta', text: 'L\'anello passerebbe sull\'acqua, su un parco, su un monumento o fuori città.' },
+  'roundabout-overlap': { title: 'Troppo vicina a un\'altra rotonda', text: 'Due rotonde non si sovrappongono: disegna il cerchio più lontano, o togli prima l\'altra rotonda.' },
+  'roundabout-overpass': { title: 'C\'è un cavalcavia', text: 'Una rotonda non può contenere un cavalcavia: toglilo prima con un tocco, o disegna il cerchio altrove.' },
 };
 /** Quante carte premio si propongono a fine settimana (scelte a caso fra quelle possibili). */
 const REWARD_CHOICES = 3;
@@ -211,6 +213,19 @@ async function start() {
 
   /** @param {number} now */
   function frame(now) {
+    // Un errore imprevisto in un fotogramma non deve bloccare il gioco per sempre:
+    // si salta quel fotogramma e si va avanti.
+    try {
+      drawFrame(now);
+    } catch (err) {
+      console.error(err);
+      sim.repair();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /** @param {number} now */
+  function drawFrame(now) {
     updateReserved();
     tutorial?.update();
     // A velocità doppia scorre il doppio del tempo di gioco, sempre a passi fissi.
@@ -338,7 +353,6 @@ async function start() {
     const hint = tutorial?.hint();
     if (hint) drawHint(ctx, hint, now / 1000, labelScale);
     if (choosingStation) drawSelectable(ctx, sim.stations, now / 1000);
-    requestAnimationFrame(frame);
   }
 
   requestAnimationFrame((now) => {
