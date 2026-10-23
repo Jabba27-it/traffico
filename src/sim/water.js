@@ -1,4 +1,5 @@
-// Acqua della mappa: fiumi (linee con una larghezza) e mare (aree chiuse).
+// Acqua della mappa: fiumi (linee con una larghezza), mare (aree chiuse dove non
+// si costruisce) e baie (aree chiuse che si attraversano coi ponti).
 
 import { closestPointOnSegment, distance } from './geometry.js';
 
@@ -18,7 +19,16 @@ import { closestPointOnSegment, distance } from './geometry.js';
  * @property {boolean} beach   true se la riva è una spiaggia (false per porti e baie)
  */
 
-/** @typedef {River | Sea} Water */
+/**
+ * Una baia o un porto dalla forma libera: si disegna come il mare ma si
+ * attraversa coi ponti, come un fiume largo `width`.
+ * @typedef {Object} Bay
+ * @property {'bay'} kind
+ * @property {Point[]} points  il contorno dell'area, chiuso da solo
+ * @property {number} width    larghezza di riferimento per la lunghezza dei ponti
+ */
+
+/** @typedef {River | Sea | Bay} Water */
 
 /**
  * Distanza di p dalla riva più vicina: negativa se p è in acqua.
@@ -60,8 +70,9 @@ export function lengthInWater(waters, points) {
 }
 
 /**
- * Somma delle larghezze dei fiumi che la spezzata tocca (0 se nessuno): un
- * ponte che passa dove una baia si apre sul fiume attraversa due acque di fila.
+ * Somma delle larghezze dei fiumi e delle baie che la spezzata tocca (0 se
+ * nessuno): un ponte che passa dove una baia si apre sul fiume attraversa due
+ * acque di fila.
  * @param {Water[]} waters
  * @param {Point[]} points
  */
@@ -69,6 +80,7 @@ export function riverWidthsAlong(waters, points) {
   let total = 0;
   for (const w of waters) {
     if (w.kind === 'river' && points.some((p) => riverDistance(w, p) < 0)) total += w.width;
+    if (w.kind === 'bay' && points.some((p) => seaDistance(w, p) < 0)) total += w.width;
   }
   return total;
 }
@@ -96,8 +108,8 @@ function riverDistance(w, p) {
 }
 
 /**
- * Distanza dal contorno del mare, negativa se p è dentro.
- * @param {Sea} w
+ * Distanza dal contorno del mare o della baia, negativa se p è dentro.
+ * @param {Sea | Bay} w
  * @param {Point} p
  */
 function seaDistance(w, p) {

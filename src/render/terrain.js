@@ -11,7 +11,7 @@ import { traceSmoothClosed } from './roads.js';
 const TREE_SPACING = 15;
 
 /**
- * Tutto ciò che sta sotto l'acqua e le strade.
+ * Tutto ciò che sta sotto l'acqua e le strade (i monumenti no: vanno sopra l'acqua).
  * @param {CanvasRenderingContext2D} ctx
  * @param {Terrain} terrain
  */
@@ -28,39 +28,91 @@ export function drawGround(ctx, terrain) {
     ctx.stroke();
     ctx.setLineDash([]);
   }
-  for (const m of terrain.monuments) drawMonument(ctx, m);
 }
 
 /**
- * I nomi delle ville (al centro) e dei monumenti (sotto l'icona), sempre della
- * stessa grandezza sullo schermo anche quando la vista si allarga.
+ * I monumenti, dopo l'acqua: una riva disegnata morbida non li copre mai.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Terrain} terrain
+ */
+export function drawMonuments(ctx, terrain) {
+  for (const m of terrain.monuments) drawMonument(ctx, m);
+}
+
+/** @typedef {{x: number, y: number, width: number, height: number}} Box */
+
+/**
+ * I nomi dei monumenti (sotto l'icona) e delle ville (al centro), sempre della
+ * stessa grandezza sullo schermo anche quando la vista si allarga. Un nome non
+ * si scrive sopra un altro né sopra stazioni, code e nomi delle stazioni: se il
+ * suo posto è occupato prova sopra o di lato, e se non c'è spazio si salta.
  * @param {CanvasRenderingContext2D} ctx
  * @param {Terrain} terrain
  * @param {number} scale
+ * @param {Box[]} [taken]  spazio già occupato (stazioni e loro nomi)
  */
-export function drawTerrainNames(ctx, terrain, scale) {
+export function drawTerrainNames(ctx, terrain, scale, taken = []) {
+  const placed = [...taken];
   ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
   ctx.lineWidth = 3 * scale;
   ctx.strokeStyle = 'rgba(239, 229, 211, 0.85)';
+
+  const monumentFont = `600 ${9 * scale}px system-ui, sans-serif`;
+  ctx.font = monumentFont;
+  ctx.fillStyle = STYLE.monumentLabel;
+  for (const m of terrain.monuments) {
+    if (!m.name) continue;
+    const w = ctx.measureText(m.name).width + 4 * scale;
+    const h = 11 * scale;
+    const below = (m.icon === 'circo' ? m.radius * 0.5 : m.radius) + 3 + h / 2;
+    const gap = m.radius + 4 + w / 2;
+    // sotto, sopra, a destra, a sinistra dell'icona
+    const spots = [[0, below], [0, -m.radius - 3 - h / 2], [gap, 0], [-gap, 0]];
+    writeWhereFree(ctx, m.name, m.x, m.y, spots, w, h, placed);
+  }
+
   ctx.font = `italic 600 ${10 * scale}px system-ui, sans-serif`;
-  ctx.textBaseline = 'middle';
   ctx.fillStyle = STYLE.parkLabel;
   for (const v of terrain.villas) {
     if (!v.name) continue;
     const cx = v.points.reduce((a, p) => a + p.x, 0) / v.points.length;
     const cy = v.points.reduce((a, p) => a + p.y, 0) / v.points.length;
-    ctx.strokeText(v.name, cx, cy);
-    ctx.fillText(v.name, cx, cy);
+    const w = ctx.measureText(v.name).width + 4 * scale;
+    const h = 12 * scale;
+    // al centro, poi un po' più su o più giù dentro il parco
+    writeWhereFree(ctx, v.name, cx, cy, [[0, 0], [0, -h], [0, h], [0, -2 * h], [0, 2 * h]], w, h, placed);
   }
-  ctx.font = `600 ${9 * scale}px system-ui, sans-serif`;
-  ctx.textBaseline = 'top';
-  ctx.fillStyle = STYLE.monumentLabel;
-  for (const m of terrain.monuments) {
-    if (!m.name) continue;
-    const y = m.y + (m.icon === 'circo' ? m.radius * 0.5 : m.radius) + 3;
-    ctx.strokeText(m.name, m.x, y);
-    ctx.fillText(m.name, m.x, y);
+}
+
+/**
+ * Scrive il testo nel primo posto libero fra quelli proposti e lo segna come occupato.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {string} text
+ * @param {number} x
+ * @param {number} y
+ * @param {number[][]} spots  spostamenti [dx, dy] del centro del testo, in ordine di preferenza
+ * @param {number} w
+ * @param {number} h
+ * @param {Box[]} placed
+ */
+function writeWhereFree(ctx, text, x, y, spots, w, h, placed) {
+  for (const [dx, dy] of spots) {
+    const box = { x: x + dx - w / 2, y: y + dy - h / 2, width: w, height: h };
+    if (placed.some((b) => overlaps(b, box))) continue;
+    placed.push(box);
+    ctx.strokeText(text, x + dx, y + dy);
+    ctx.fillText(text, x + dx, y + dy);
+    return;
   }
+}
+
+/**
+ * @param {Box} a
+ * @param {Box} b
+ */
+function overlaps(a, b) {
+  return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 }
 
 /**

@@ -259,7 +259,7 @@ export function drawLaneMarks(ctx, graph) {
 }
 
 /**
- * Fiumi e mare, con le rive morbide. Il mare ha anche una striscia di spiaggia.
+ * Fiumi, mare e baie, con le rive morbide. Il mare può avere una striscia di spiaggia.
  * @param {CanvasRenderingContext2D} ctx
  * @param {import('../sim/water.js').Water[]} waters
  */

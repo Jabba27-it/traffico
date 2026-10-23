@@ -227,7 +227,13 @@ export function parseLevel(json) {
         waters.push({ kind: 'sea', points: a.punti.map((/** @type {number[]} */ q) => ({ x: q[0], y: q[1] })), beach: a.spiaggia !== false });
         return;
       }
-      if (a?.tipo !== 'fiume') throw new Error(`Acqua ${i + 1}: "tipo" deve essere "fiume" o "mare"`);
+      if (a?.tipo === 'baia') {
+        if (!pointsOk || a.punti.length < 3) throw new Error(`Acqua ${i + 1}: la baia ha bisogno di almeno tre "punti" [x, y]`);
+        if (!isNum(a.larghezza) || a.larghezza < 30) throw new Error(`Acqua ${i + 1}: la baia deve avere "larghezza" (almeno 30), che decide quanto possono essere lunghi i ponti`);
+        waters.push({ kind: 'bay', width: a.larghezza, points: a.punti.map((/** @type {number[]} */ q) => ({ x: q[0], y: q[1] })) });
+        return;
+      }
+      if (a?.tipo !== 'fiume') throw new Error(`Acqua ${i + 1}: "tipo" deve essere "fiume", "mare" o "baia"`);
       // Più stretto di così un tratto disegnato potrebbe "saltare" il fiume fra due punti.
       if (!isNum(a.larghezza) || a.larghezza < 30) throw new Error(`Acqua ${i + 1}: "larghezza" deve essere almeno 30`);
       if (!pointsOk || a.punti.length < 2) throw new Error(`Acqua ${i + 1}: "punti" deve essere una lista di almeno due [x, y]`);

@@ -33,6 +33,10 @@ export function setupCanvas(canvas) {
   };
 
   window.addEventListener('resize', resize);
+  // Nell'app installata il telefono può cambiare l'altezza dopo l'avvio (barra di
+  // stato) senza l'evento "resize": se la misura resta vecchia, il disegno si
+  // schiaccia e la strada compare sopra il dito. Così si rimisura sempre.
+  if ('ResizeObserver' in window) new ResizeObserver(resize).observe(canvas);
   resize();
   return view;
 }

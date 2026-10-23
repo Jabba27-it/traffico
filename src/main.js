@@ -10,8 +10,8 @@ import { drawJunctionMarks, drawRoundaboutIslands } from './render/junctions.js'
 import { STYLE } from './render/style.js';
 import { drawHint } from './render/hint.js';
 import { createTutorial } from './ui/tutorial.js';
-import { drawGround, drawTerrainNames } from './render/terrain.js';
-import { drawStations, drawSelectable } from './render/stations.js';
+import { drawGround, drawMonuments, drawTerrainNames } from './render/terrain.js';
+import { drawStations, drawSelectable, stationAreas } from './render/stations.js';
 import { STATION_RADIUS } from './sim/stations.js';
 import { drawVehicles } from './render/vehicles.js';
 import { drawCongestion } from './render/congestion.js';
@@ -312,6 +312,7 @@ async function start() {
     ctx.fillRect(0, 0, level.world.width, level.world.height);
     drawGround(ctx, level.terrain);
     drawWater(ctx, level.waters);
+    drawMonuments(ctx, level.terrain);
     drawOutsideVeil(ctx, level.world, visible);
     drawRoads(ctx, graph, sim.traffic.congestion);
     drawLaneMarks(ctx, graph);
@@ -332,7 +333,7 @@ async function start() {
     drawVehicles(ctx, elevated);
     drawCongestion(ctx, sim.stations, level.congestion.tolerance, now / 1000);
     const labelScale = framed.width / level.view[0].width;
-    drawTerrainNames(ctx, level.terrain, labelScale);
+    drawTerrainNames(ctx, level.terrain, labelScale, stationAreas(ctx, sim.stations, labelScale));
     drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed, labelScale);
     const hint = tutorial?.hint();
     if (hint) drawHint(ctx, hint, now / 1000, labelScale);

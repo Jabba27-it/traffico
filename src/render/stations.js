@@ -32,6 +32,30 @@ const QUEUE_PER_ROW = 6;
 const QUEUE_MAX_ROWS = 2;
 
 /**
+ * Lo spazio che ogni stazione occupa sulla mappa: la forma con l'anello, la
+ * coda sopra e il nome sotto. Serve agli altri nomi per non finirci sopra.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Station[]} stations
+ * @param {number} [labelScale]
+ * @returns {{x: number, y: number, width: number, height: number}[]}
+ */
+export function stationAreas(ctx, stations, labelScale = 1) {
+  const ring = STATION_RADIUS + 12;
+  const queueHeight = QUEUE_MAX_ROWS * QUEUE_SPACING + QUEUE_ITEM_RADIUS;
+  const queueWidth = QUEUE_PER_ROW * QUEUE_SPACING;
+  const areas = [];
+  for (const s of stations) {
+    areas.push({ x: s.x - ring, y: s.y - ring - queueHeight, width: 2 * ring, height: 2 * ring + queueHeight });
+    areas.push({ x: s.x - queueWidth / 2, y: s.y - ring - queueHeight, width: queueWidth, height: queueHeight });
+    if (!s.name) continue;
+    ctx.font = `${s.landmark ? 600 : 400} ${11 * labelScale}px system-ui, sans-serif`;
+    const w = ctx.measureText(s.name).width + 6 * labelScale;
+    areas.push({ x: s.x - w / 2, y: s.y + STATION_RADIUS + 12, width: w, height: 14 * labelScale });
+  }
+  return areas;
+}
+
+/**
  * @param {CanvasRenderingContext2D} ctx
  * @param {Station[]} stations
  * @param {Map<number, Shape[]>} transit  veicoli nascosti sotto ogni stazione che attraversano
