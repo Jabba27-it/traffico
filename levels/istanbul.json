@@ -1,0 +1,707 @@
+{
+  "nome": "Istanbul",
+  "mondo": {
+    "larghezza": 920,
+    "altezza": 1840
+  },
+  "forme": [
+    "cerchio",
+    "quadrato",
+    "triangolo",
+    "pentagono",
+    "esagono",
+    "stella",
+    "rombo",
+    "croce"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 190,
+      "y": 560,
+      "larghezza": 380
+    },
+    {
+      "giorno": 3,
+      "x": 190,
+      "y": 560,
+      "larghezza": 380
+    },
+    {
+      "giorno": 9,
+      "x": 100,
+      "y": 300,
+      "larghezza": 660
+    },
+    {
+      "giorno": 16,
+      "x": 40,
+      "y": 100,
+      "larghezza": 840
+    },
+    {
+      "giorno": 23,
+      "x": 0,
+      "y": 0,
+      "larghezza": 920
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 351,
+      "y": 1010,
+      "nome": "Eminönü"
+    },
+    {
+      "forma": "quadrato",
+      "x": 432,
+      "y": 767,
+      "nome": "Taksim"
+    },
+    {
+      "forma": "triangolo",
+      "x": 313,
+      "y": 1112,
+      "nome": "Sultanahmet"
+    }
+  ],
+  "acqua": [
+    {
+      "tipo": "baia",
+      "larghezza": 140,
+      "punti": [
+        [
+          454,
+          1021
+        ],
+        [
+          432,
+          956
+        ],
+        [
+          421,
+          907
+        ],
+        [
+          432,
+          875
+        ],
+        [
+          508,
+          783
+        ],
+        [
+          589,
+          745
+        ],
+        [
+          643,
+          718
+        ],
+        [
+          724,
+          686
+        ],
+        [
+          815,
+          648
+        ],
+        [
+          886,
+          540
+        ],
+        [
+          961,
+          410
+        ],
+        [
+          1015,
+          281
+        ],
+        [
+          1134,
+          281
+        ],
+        [
+          1134,
+          605
+        ],
+        [
+          1031,
+          589
+        ],
+        [
+          961,
+          680
+        ],
+        [
+          853,
+          767
+        ],
+        [
+          778,
+          794
+        ],
+        [
+          707,
+          886
+        ],
+        [
+          643,
+          950
+        ],
+        [
+          670,
+          1021
+        ],
+        [
+          583,
+          1112
+        ]
+      ]
+    },
+    {
+      "tipo": "fiume",
+      "larghezza": 43,
+      "punti": [
+        [
+          432,
+          945
+        ],
+        [
+          373,
+          961
+        ],
+        [
+          324,
+          972
+        ],
+        [
+          225,
+          924
+        ],
+        [
+          151,
+          875
+        ],
+        [
+          97,
+          815
+        ],
+        [
+          43,
+          745
+        ],
+        [
+          -22,
+          659
+        ],
+        [
+          -65,
+          616
+        ]
+      ]
+    },
+    {
+      "tipo": "mare",
+      "spiaggia": false,
+      "punti": [
+        [
+          -65,
+          1193
+        ],
+        [
+          116,
+          1177
+        ],
+        [
+          233,
+          1188
+        ],
+        [
+          367,
+          1183
+        ],
+        [
+          427,
+          1161
+        ],
+        [
+          464,
+          1085
+        ],
+        [
+          470,
+          1037
+        ],
+        [
+          583,
+          1069
+        ],
+        [
+          670,
+          1026
+        ],
+        [
+          691,
+          1102
+        ],
+        [
+          740,
+          1231
+        ],
+        [
+          778,
+          1296
+        ],
+        [
+          794,
+          1334
+        ],
+        [
+          783,
+          1404
+        ],
+        [
+          805,
+          1453
+        ],
+        [
+          864,
+          1501
+        ],
+        [
+          918,
+          1577
+        ],
+        [
+          994,
+          1598
+        ],
+        [
+          994,
+          1944
+        ],
+        [
+          -65,
+          1944
+        ]
+      ]
+    }
+  ],
+  "terreno": {
+    "ville": [
+      {
+        "nome": "Topkapı e Gülhane",
+        "punti": [
+          [
+            402,
+            1031
+          ],
+          [
+            448,
+            1031
+          ],
+          [
+            459,
+            1080
+          ],
+          [
+            416,
+            1096
+          ],
+          [
+            400,
+            1069
+          ]
+        ]
+      },
+      {
+        "nome": "Yıldız Parkı",
+        "punti": [
+          [
+            659,
+            648
+          ],
+          [
+            713,
+            643
+          ],
+          [
+            718,
+            583
+          ],
+          [
+            664,
+            578
+          ]
+        ]
+      },
+      {
+        "nome": "Maçka Parkı",
+        "punti": [
+          [
+            497,
+            713
+          ],
+          [
+            540,
+            707
+          ],
+          [
+            540,
+            670
+          ],
+          [
+            497,
+            670
+          ]
+        ]
+      },
+      {
+        "nome": "Fethi Paşa Korusu",
+        "punti": [
+          [
+            810,
+            875
+          ],
+          [
+            853,
+            869
+          ],
+          [
+            853,
+            832
+          ],
+          [
+            810,
+            832
+          ]
+        ]
+      }
+    ],
+    "colli": [
+      {
+        "nome": "Fatih",
+        "x": 119,
+        "y": 1037,
+        "raggio": 55
+      },
+      {
+        "nome": "Beyoğlu",
+        "x": 389,
+        "y": 821,
+        "raggio": 48
+      },
+      {
+        "nome": "Çamlıca",
+        "x": 896,
+        "y": 994,
+        "raggio": 45
+      }
+    ],
+    "monumenti": [
+      {
+        "nome": "Ayasofya",
+        "icona": "moschea",
+        "x": 389,
+        "y": 1109,
+        "raggio": 11
+      },
+      {
+        "nome": "Moschea Blu",
+        "icona": "moschea",
+        "x": 359,
+        "y": 1151,
+        "raggio": 11
+      },
+      {
+        "nome": "Süleymaniye",
+        "icona": "moschea",
+        "x": 242,
+        "y": 1017,
+        "raggio": 11
+      },
+      {
+        "nome": "Torre di Galata",
+        "icona": "torre",
+        "x": 335,
+        "y": 905,
+        "raggio": 9
+      },
+      {
+        "nome": "Torre della Fanciulla",
+        "icona": "torre",
+        "x": 606,
+        "y": 959,
+        "raggio": 8
+      },
+      {
+        "nome": "Gran Bazar",
+        "icona": "cupola",
+        "x": 279,
+        "y": 1083,
+        "raggio": 9
+      },
+      {
+        "nome": "Dolmabahçe",
+        "icona": "colonne",
+        "x": 567,
+        "y": 718,
+        "raggio": 11
+      }
+    ]
+  },
+  "quartieri": [
+    {
+      "nome": "Sirkeci",
+      "x": 373,
+      "y": 1015
+    },
+    {
+      "nome": "Cankurtaran",
+      "x": 405,
+      "y": 1134
+    },
+    {
+      "nome": "Beyazıt",
+      "x": 238,
+      "y": 1107
+    },
+    {
+      "nome": "Laleli",
+      "x": 184,
+      "y": 1102
+    },
+    {
+      "nome": "Aksaray",
+      "x": 130,
+      "y": 1118
+    },
+    {
+      "nome": "Kumkapı",
+      "x": 227,
+      "y": 1156
+    },
+    {
+      "nome": "Yenikapı",
+      "x": 76,
+      "y": 1145
+    },
+    {
+      "nome": "Fatih",
+      "x": 97,
+      "y": 1004
+    },
+    {
+      "nome": "Zeyrek",
+      "x": 184,
+      "y": 994
+    },
+    {
+      "nome": "Vefa",
+      "x": 205,
+      "y": 1053
+    },
+    {
+      "nome": "Fener",
+      "x": 151,
+      "y": 929
+    },
+    {
+      "nome": "Balat",
+      "x": 76,
+      "y": 875
+    },
+    {
+      "nome": "Karaköy",
+      "x": 367,
+      "y": 918
+    },
+    {
+      "nome": "Galata",
+      "x": 297,
+      "y": 880
+    },
+    {
+      "nome": "Cihangir",
+      "x": 443,
+      "y": 837
+    },
+    {
+      "nome": "Kasımpaşa",
+      "x": 270,
+      "y": 821
+    },
+    {
+      "nome": "Hasköy",
+      "x": 162,
+      "y": 778
+    },
+    {
+      "nome": "Sütlüce",
+      "x": 86,
+      "y": 680
+    },
+    {
+      "nome": "Kağıthane",
+      "x": 238,
+      "y": 454
+    },
+    {
+      "nome": "Şişli",
+      "x": 454,
+      "y": 497
+    },
+    {
+      "nome": "Nişantaşı",
+      "x": 475,
+      "y": 616
+    },
+    {
+      "nome": "Beşiktaş",
+      "x": 648,
+      "y": 664
+    },
+    {
+      "nome": "Yıldız",
+      "x": 605,
+      "y": 572
+    },
+    {
+      "nome": "Ortaköy",
+      "x": 788,
+      "y": 594
+    },
+    {
+      "nome": "Mecidiyeköy",
+      "x": 497,
+      "y": 410
+    },
+    {
+      "nome": "Gayrettepe",
+      "x": 605,
+      "y": 400
+    },
+    {
+      "nome": "Levent",
+      "x": 659,
+      "y": 238
+    },
+    {
+      "nome": "Etiler",
+      "x": 788,
+      "y": 270
+    },
+    {
+      "nome": "Ulus",
+      "x": 821,
+      "y": 400
+    },
+    {
+      "nome": "Bebek",
+      "x": 896,
+      "y": 216
+    },
+    {
+      "nome": "Okmeydanı",
+      "x": 281,
+      "y": 626
+    },
+    {
+      "nome": "Üsküdar",
+      "x": 778,
+      "y": 896
+    },
+    {
+      "nome": "Salacak",
+      "x": 691,
+      "y": 967
+    },
+    {
+      "nome": "Kuzguncuk",
+      "x": 886,
+      "y": 799
+    },
+    {
+      "nome": "Harem",
+      "x": 734,
+      "y": 1042
+    },
+    {
+      "nome": "Altunizade",
+      "x": 864,
+      "y": 918
+    },
+    {
+      "nome": "Haydarpaşa",
+      "x": 799,
+      "y": 1188
+    },
+    {
+      "nome": "Acıbadem",
+      "x": 896,
+      "y": 1145
+    },
+    {
+      "nome": "Kadıköy",
+      "x": 842,
+      "y": 1318
+    },
+    {
+      "nome": "Moda",
+      "x": 853,
+      "y": 1426
+    },
+    {
+      "nome": "Fenerbahçe",
+      "x": 907,
+      "y": 1517
+    }
+  ],
+  "ponti": {
+    "iniziali": 2
+  },
+  "cavalcavia": {
+    "iniziali": 1
+  },
+  "crescita": {
+    "ogniMin": 45,
+    "ogniMax": 60,
+    "massimo": 12,
+    "distanzaMinima": 100,
+    "difficolta": 0.8
+  },
+  "congestione": {
+    "capienza": 6,
+    "tolleranza": 20
+  },
+  "tempo": {
+    "giorno": 20
+  },
+  "veicoli": {
+    "ogniMin": 7,
+    "ogniMax": 9,
+    "aumento": 0.02,
+    "aumentoMassimo": 0.5
+  },
+  "strade": {
+    "iniziali": 25,
+    "perGiorno": 5,
+    "lunghezzaTratto": 40
+  },
+  "premi": {
+    "strade": 20,
+    "capienza": 3,
+    "ponti": 1,
+    "cavalcavia": 1
+  },
+  "stelle": {
+    "viaggi": 230,
+    "giorni": 21,
+    "traffico": {
+      "soglia": 12
+    }
+  }
+}

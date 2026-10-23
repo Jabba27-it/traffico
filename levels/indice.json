@@ -1,9 +1,10 @@
 {
   "livelli": [
-    { "file": "tutorial", "nome": "Tutorial", "descrizione": "Impara a giocare in pochi minuti" },
-    { "file": "roma", "nome": "Roma", "descrizione": "Il Tevere, i ponti e la strada fino a Ostia" },
-    { "file": "newyork", "nome": "New York", "descrizione": "Manhattan, tre fiumi e la baia" },
-    { "file": "sydney", "nome": "Sydney", "descrizione": "Il porto, le baie e Botany Bay" },
-    { "file": "rio", "nome": "Rio de Janeiro", "descrizione": "La baia, la Lagoa e i morros fra le spiagge" }
+    { "file": "tutorial", "nome": "Tutorial", "descrizione": "Impara a giocare in pochi minuti", "icona": "forme" },
+    { "file": "roma", "nome": "Roma", "descrizione": "Il Tevere, i ponti e la strada fino a Ostia", "icona": "anfiteatro" },
+    { "file": "newyork", "nome": "New York", "descrizione": "Manhattan, tre fiumi e la baia", "icona": "statua" },
+    { "file": "sydney", "nome": "Sydney", "descrizione": "Il porto, le baie e Botany Bay", "icona": "vele" },
+    { "file": "rio", "nome": "Rio de Janeiro", "descrizione": "La baia, la Lagoa e i morros fra le spiagge", "icona": "cristo" },
+    { "file": "istanbul", "nome": "Istanbul", "descrizione": "Il Bosforo fra due continenti e il Corno d'Oro", "icona": "moschea" }
   ]
 }

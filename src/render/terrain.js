@@ -174,10 +174,11 @@ function drawVilla(ctx, points) {
 
 /**
  * Un monumento: una base color travertino e un'icona semplice e originale.
+ * Serve anche al menu, per il monumento simbolo di ogni città.
  * @param {CanvasRenderingContext2D} ctx
  * @param {{icon: string, x: number, y: number, radius: number}} m
  */
-function drawMonument(ctx, m) {
+export function drawMonument(ctx, m) {
   const { x, y, radius: r } = m;
   ctx.beginPath();
   if (m.icon === 'circo') ctx.ellipse(x, y, r, r * 0.45, -0.25, 0, Math.PI * 2);
@@ -190,7 +191,8 @@ function drawMonument(ctx, m) {
 
   ctx.strokeStyle = STYLE.monumentIcon;
   ctx.fillStyle = STYLE.monumentIcon;
-  ctx.lineWidth = 1.6;
+  // Sulla mappa le icone sono piccole; nel menu sono grandi e il tratto cresce con loro.
+  ctx.lineWidth = Math.max(1.6, r * 0.11);
   const s = r * 0.55;
   ctx.beginPath();
   switch (m.icon) {
@@ -242,15 +244,29 @@ function drawMonument(ctx, m) {
       ctx.closePath();
       ctx.stroke();
       break;
-    case 'statua': // la corona a raggi
-      ctx.arc(x, y + s * 0.2, s * 0.35, 0, Math.PI * 2);
-      for (let k = 0; k < 7; k++) {
-        const a = Math.PI + (k * Math.PI) / 6;
-        ctx.moveTo(x + Math.cos(a) * s * 0.45, y + s * 0.2 + Math.sin(a) * s * 0.45);
-        ctx.lineTo(x + Math.cos(a) * s * 1.05, y + s * 0.2 + Math.sin(a) * s * 1.05);
+    case 'statua': { // figura con la fiaccola alzata e la corona a raggi
+      const hx = x - s * 0.1;
+      const hy = y - s * 0.4;
+      ctx.moveTo(x - s * 0.45, y + s * 0.95);
+      ctx.lineTo(hx - s * 0.2, y - s * 0.2);
+      ctx.lineTo(hx + s * 0.2, y - s * 0.2);
+      ctx.lineTo(x + s * 0.3, y + s * 0.95);
+      ctx.closePath();
+      ctx.moveTo(hx + s * 0.17, hy);
+      ctx.arc(hx, hy, s * 0.17, 0, Math.PI * 2);
+      ctx.moveTo(hx + s * 0.15, y - s * 0.15);
+      ctx.lineTo(x + s * 0.45, y - s * 0.9);
+      for (let k = 0; k < 5; k++) {
+        const a = Math.PI * (1.1 + k * 0.2);
+        ctx.moveTo(hx + Math.cos(a) * s * 0.24, hy + Math.sin(a) * s * 0.24);
+        ctx.lineTo(hx + Math.cos(a) * s * 0.42, hy + Math.sin(a) * s * 0.42);
       }
       ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x + s * 0.48, y - s * 1.0, s * 0.12, 0, Math.PI * 2);
+      ctx.fill();
       break;
+    }
     case 'vele': // tre gusci a vela, uno dietro l'altro
       for (let k = 0; k < 3; k++) {
         const bx = x - s * 0.8 + k * s * 0.6;
@@ -272,6 +288,64 @@ function drawMonument(ctx, m) {
       ctx.lineTo(x, y + s * 0.65);
       ctx.lineTo(x + s * 0.4, y + s * 0.85);
       ctx.stroke();
+      break;
+    case 'anfiteatro': // anello ovale con le arcate, un lato più basso
+      ctx.ellipse(x, y, s * 1.05, s * 0.8, 0, 0, Math.PI * 2);
+      ctx.moveTo(x + s * 0.55, y);
+      ctx.ellipse(x, y, s * 0.55, s * 0.36, 0, 0, Math.PI * 2);
+      for (let k = 0; k < 10; k++) {
+        const a = (k * Math.PI) / 5;
+        ctx.moveTo(x + Math.cos(a) * s * 0.6, y + Math.sin(a) * s * 0.42);
+        ctx.lineTo(x + Math.cos(a) * s * 1.0, y + Math.sin(a) * s * 0.76);
+      }
+      ctx.stroke();
+      break;
+    case 'cristo': // figura a braccia aperte su un piedistallo
+      ctx.arc(x, y - s * 0.75, s * 0.18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(x - s * 0.95, y - s * 0.42);
+      ctx.lineTo(x + s * 0.95, y - s * 0.42);
+      ctx.moveTo(x, y - s * 0.55);
+      ctx.lineTo(x - s * 0.18, y + s * 0.55);
+      ctx.lineTo(x + s * 0.18, y + s * 0.55);
+      ctx.closePath();
+      ctx.moveTo(x - s * 0.35, y + s * 0.8);
+      ctx.lineTo(x + s * 0.35, y + s * 0.8);
+      ctx.stroke();
+      break;
+    case 'moschea': // cupola su una base e due minareti appuntiti
+      ctx.arc(x, y + s * 0.15, s * 0.5, Math.PI, 0);
+      ctx.rect(x - s * 0.6, y + s * 0.15, s * 1.2, s * 0.5);
+      for (const k of [-1, 1]) {
+        ctx.moveTo(x + k * s * 0.9, y + s * 0.65);
+        ctx.lineTo(x + k * s * 0.9, y - s * 0.55);
+        ctx.lineTo(x + k * s * 0.9, y - s * 0.95);
+      }
+      ctx.moveTo(x, y - s * 0.35);
+      ctx.lineTo(x, y - s * 0.6);
+      ctx.stroke();
+      break;
+    case 'torre': // torre tonda col tetto a punta
+      ctx.rect(x - s * 0.35, y - s * 0.2, s * 0.7, s * 0.95);
+      ctx.moveTo(x - s * 0.5, y - s * 0.2);
+      ctx.lineTo(x, y - s * 0.95);
+      ctx.lineTo(x + s * 0.5, y - s * 0.2);
+      ctx.closePath();
+      ctx.moveTo(x - s * 0.12, y + s * 0.15);
+      ctx.lineTo(x - s * 0.12, y + s * 0.4);
+      ctx.moveTo(x + s * 0.12, y + s * 0.15);
+      ctx.lineTo(x + s * 0.12, y + s * 0.4);
+      ctx.stroke();
+      break;
+    case 'forme': // le tre forme delle stazioni
+      ctx.arc(x - s * 0.55, y + s * 0.35, s * 0.32, 0, Math.PI * 2);
+      ctx.rect(x + s * 0.25, y + s * 0.05, s * 0.6, s * 0.6);
+      ctx.moveTo(x - s * 0.3, y - s * 0.15);
+      ctx.lineTo(x, y - s * 0.75);
+      ctx.lineTo(x + s * 0.3, y - s * 0.15);
+      ctx.closePath();
+      ctx.fill();
       break;
     default: // colonne sotto un frontone
       ctx.moveTo(x - s, y - s * 0.35);
