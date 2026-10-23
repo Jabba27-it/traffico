@@ -150,6 +150,15 @@ export class LaneGeometry {
       // Punto d'incontro delle due corsie prolungate.
       const t = ((p2.x - p0.x) * d2.y - (p2.y - p0.y) * d2.x) / cross;
       p1 = { x: p0.x + d0.x * t, y: p0.y + d0.y * t };
+      // Con direzioni quasi opposte (una strada attaccata di traverso a una
+      // rotonda, per esempio) l'incontro finisce lontanissimo o dietro al
+      // veicolo, e la curva lo porterebbe fuori dalla mappa: allora la curva
+      // passa poco oltre il nodo, come un'inversione a U.
+      const center = node(this.graph, b);
+      const radius = this.nodeRadius(b);
+      if (t < 0 || Math.hypot(p1.x - center.x, p1.y - center.y) > radius * 3) {
+        p1 = { x: center.x + d0.x * radius, y: center.y + d0.y * radius };
+      }
     }
     /** @type {Point[]} */
     const points = [];

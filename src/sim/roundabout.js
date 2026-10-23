@@ -189,7 +189,10 @@ export function removeRoundabout(graph, r) {
   /** @type {number[]} */
   const spokes = [];
   const center = graph.addNode(r.x, r.y);
+  // I nodi dell'anello: quelli di quando è nata, più quelli comparsi dopo
+  // attaccando una strada a metà di un tratto dell'anello.
   const ring = new Set(r.ring);
+  for (const e of graph.edges.values()) if (e.ring === r.id) ring.add(e.a).add(e.b);
   for (const e of [...graph.edges.values()]) {
     if (e.ring === r.id) {
       graph.removeEdge(e.id);
@@ -206,7 +209,7 @@ export function removeRoundabout(graph, r) {
       graph.copyRoadKind(e, moved);
     }
   }
-  for (const id of r.ring) graph.nodes.delete(id);
+  for (const id of ring) graph.nodes.delete(id);
   // Senza strade, il centro non serve.
   if (![...graph.edges.values()].some((e) => e.a === center.id || e.b === center.id)) graph.nodes.delete(center.id);
   return spokes;

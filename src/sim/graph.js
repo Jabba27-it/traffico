@@ -147,6 +147,8 @@ export class RoadGraph {
       }
     }
     if (edge.bridgeId !== undefined && first && second) first.bridgeId = second.bridgeId = edge.bridgeId;
+    // Una strada attaccata a metà di un tratto d'anello: le due metà restano anello.
+    if (edge.ring !== undefined && first && second) first.ring = second.ring = edge.ring;
     this.copyRoadKind(edge, first);
     this.copyRoadKind(edge, second);
     return node;
