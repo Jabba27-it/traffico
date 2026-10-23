@@ -47,6 +47,7 @@ const CONGESTION_RATE = 0.8;
  * @typedef {Object} Request
  * @property {Vehicle} v
  * @property {Piece} turn  la curva in cui vuole entrare
+ * @property {number} dist  quanto manca all'inizio della curva
  */
 
 /**
@@ -197,7 +198,7 @@ export class Traffic {
         const curve = Math.min(byAngle, Math.sqrt(MAX_LATERAL * radius));
         limit = Math.min(limit, Math.sqrt(curve * curve + 2 * BRAKE * ahead));
         if (piece.guarded && toStart >= 0 && !this.hasPermission(v, piece)) {
-          if (toStart < REQUEST_DISTANCE) this.request(v, piece);
+          if (toStart < REQUEST_DISTANCE) this.request(v, piece, toStart);
           limit = Math.min(limit, stopSpeed(toStart - v.type.length / 2 - 0.5));
           break; // oltre l'incrocio non serve guardare
         }
@@ -252,12 +253,15 @@ export class Traffic {
   /**
    * @param {Vehicle} v
    * @param {Piece} turn
+   * @param {number} dist  quanto manca all'inizio della curva
    */
-  request(v, turn) {
+  request(v, turn, dist) {
     const j = this.junctionAt(turn.node);
     const mine = j.queue.find((r) => r.v === v);
-    if (mine) mine.turn = turn;
-    else j.queue.push({ v, turn });
+    if (mine) {
+      mine.turn = turn;
+      mine.dist = dist;
+    } else j.queue.push({ v, turn, dist });
   }
 
   /**
@@ -266,6 +270,9 @@ export class Traffic {
    *   passa solo se nessuno della principale con una traiettoria in conflitto
    *   sta arrivando (è l'immissione: se il varco c'è, non serve fermarsi).
    * - Fra pari, passa chi è arrivato prima.
+   * - Il permesso va solo al primo della fila su ogni strada d'arrivo: se lo
+   *   prendesse uno più indietro, chi gli sta davanti e deve fare una curva che
+   *   incrocia la sua aspetterebbe lui, e lui chi gli sta davanti, per sempre.
    */
   grantPermissions() {
     for (const [node, j] of this.junctions) {
@@ -278,7 +285,12 @@ export class Traffic {
       // Chi arriva da una laterale aspetta anche chi sta arrivando sulla principale,
       // ma solo se le loro curve si incrociano.
       const arrivals = j.queue.some((r) => !fromMain(r)) ? this.mainArrivals(node, main) : [];
+      /** @type {Map<number, number>} per ogni strada d'arrivo, quanto è vicino all'incrocio il primo della fila */
+      const front = new Map();
+      for (const r of j.queue) front.set(r.turn.from, Math.min(front.get(r.turn.from) ?? Infinity, r.dist));
       j.queue = ordered.filter((r) => {
+        // Non è il primo della sua fila: aspetta senza bloccare nessuno.
+        if (r.dist > /** @type {number} */ (front.get(r.turn.from))) return true;
         const blocked =
           (!fromMain(r) && arrivals.some((t) => this.conflicts(t, r.turn))) ||
           [...j.inside.values()].some((t) => this.conflicts(t, r.turn)) ||

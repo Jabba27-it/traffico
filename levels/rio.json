@@ -802,13 +802,13 @@
     "cavalcavia": 1
   },
   "stelle": {
-    "viaggi": 440,
-    "giorni": 28,
+    "viaggi": 670,
+    "giorni": 33,
     "traffico": {
       "soglia": 12
     },
     "platino": {
-      "efficienza": 67
+      "efficienza": 62
     }
   }
 }

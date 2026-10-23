@@ -1016,13 +1016,13 @@
     "cavalcavia": 1
   },
   "stelle": {
-    "viaggi": 190,
+    "viaggi": 250,
     "giorni": 20,
     "traffico": {
       "soglia": 12
     },
     "platino": {
-      "efficienza": 70
+      "efficienza": 68
     }
   }
 }
