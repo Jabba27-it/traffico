@@ -271,7 +271,7 @@ export class Simulation {
     if (!growth || this.stations.length >= growth.max) return;
     const i = SPAWN_INSET;
     const area = insetRect(this.view, i.left, i.top, i.right, i.bottom);
-    const def = pickNewStation(this.random, this.level, this.stations, area, this.graph, (p) => !this.isReserved(p));
+    const def = pickNewStation(this.random, this.level, this.stations, area, this.graph, (p) => !this.isReserved(p), this.roundabouts.values());
     if (def) {
       this.addStation(def, this.elapsed);
       this.growthTimer = this.nextGrowthDelay();

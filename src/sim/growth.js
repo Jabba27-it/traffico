@@ -1,9 +1,10 @@
 // Generatore di stazioni: sceglie forma e posizione della prossima stazione.
 // Solo nella parte visibile della città (e dentro le zone del livello, se ce
-// ne sono), fuori dall'acqua e lontano dalle altre stazioni. Fra i punti
+// ne sono), fuori dall'acqua, mai sopra strade o rotonde e lontano dalle altre stazioni. Fra i punti
 // possibili preferisce quelli difficili da collegare, quanto dice il livello.
 
-import { distance } from './geometry.js';
+import { closestPointOnSegment, distance } from './geometry.js';
+import { ROAD_WIDTH } from './graph.js';
 import { STATION_RADIUS } from './stations.js';
 import { distanceToWater, landOf, landsOf } from './water.js';
 import { obstacleAt } from './terrain.js';
@@ -15,8 +16,11 @@ import { obstacleAt } from './terrain.js';
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
 /** @typedef {{x: number, y: number}} Point */
 
-/** Quanti punti casuali provare ogni volta. */
-const ATTEMPTS = 24;
+/** Quanti punti casuali provare ogni volta: tanti, perché in una città piena di
+ * strade restano liberi solo gli spazi fra un isolato e l'altro. */
+const ATTEMPTS = 80;
+/** Spazio minimo fra il bordo di una stazione e il bordo di una strada. */
+const ROAD_MARGIN = 6;
 /** Spazio minimo fra il bordo di una stazione e la riva. */
 const WATER_MARGIN = 16;
 /** Peso di "sta sulla stessa terra (riva o isola) delle altre stazioni della sua forma". */
@@ -31,20 +35,24 @@ const ROAD_WEIGHT = 0.5;
  * @param {import('./view.js').Rect} area  dove può nascere (la vista attuale, già ristretta dai bordi)
  * @param {RoadGraph} graph  per stare lontano dalle strade già costruite
  * @param {(p: Point) => boolean} [allowed]  scarta altri punti, es. quelli coperti dall'interfaccia
+ * @param {Iterable<{x: number, y: number, radius: number}>} [roundabouts]  le rotonde: dentro non si nasce
  * @returns {StationDef | null}  null se non c'è un punto libero adatto
  */
-export function pickNewStation(random, level, stations, area, graph, allowed = () => true) {
+export function pickNewStation(random, level, stations, area, graph, allowed = () => true, roundabouts = []) {
   if (!level.growth || level.shapes.length === 0) return null;
   const { minDistance, difficulty } = level.growth;
   const shape = pickShape(random, level.shapes, stations);
 
+  const rings = [...roundabouts];
   /** @type {Point[]} */
   const candidates = [];
   for (let i = 0; i < ATTEMPTS; i++) {
     const p = { x: area.x + random() * area.width, y: area.y + random() * area.height };
     const inZone = level.zones.length === 0 || level.zones.some((z) => p.x >= z.x && p.y >= z.y && p.x <= z.x + z.width && p.y <= z.y + z.height);
     const dry = distanceToWater(level.waters, p) >= STATION_RADIUS + WATER_MARGIN && !obstacleAt(level.terrain, p, STATION_RADIUS + WATER_MARGIN);
-    if (inZone && dry && allowed(p) && stations.every((s) => distance(s, p) >= minDistance)) candidates.push(p);
+    if (inZone && dry && allowed(p) && stations.every((s) => distance(s, p) >= minDistance) && clearOfRoads(p, graph, rings)) {
+      candidates.push(p);
+    }
   }
   if (candidates.length === 0) return null;
 
@@ -179,4 +187,22 @@ function weightedPick(random, items, weights) {
     if (r < 0) return items[i];
   }
   return items[items.length - 1];
+}
+
+/**
+ * true se una stazione in p non tocca nessuna strada (ponti e cavalcavia
+ * compresi) e non cade dentro una rotonda, isola compresa.
+ * @param {Point} p
+ * @param {RoadGraph} graph
+ * @param {{x: number, y: number, radius: number}[]} roundabouts
+ */
+function clearOfRoads(p, graph, roundabouts) {
+  const reach = STATION_RADIUS + ROAD_WIDTH / 2 + ROAD_MARGIN;
+  for (const r of roundabouts) if (distance(r, p) < r.radius + reach) return false;
+  for (const e of graph.edges.values()) {
+    const a = graph.nodes.get(e.a);
+    const b = graph.nodes.get(e.b);
+    if (a && b && distance(closestPointOnSegment(p, a, b), p) < reach) return false;
+  }
+  return true;
 }
