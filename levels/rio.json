@@ -1,0 +1,806 @@
+{
+  "nome": "Rio de Janeiro",
+  "mondo": {
+    "larghezza": 920,
+    "altezza": 1840
+  },
+  "forme": [
+    "cerchio",
+    "quadrato",
+    "triangolo",
+    "pentagono",
+    "esagono",
+    "stella",
+    "rombo",
+    "croce"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 400,
+      "y": 600,
+      "larghezza": 380
+    },
+    {
+      "giorno": 3,
+      "x": 400,
+      "y": 600,
+      "larghezza": 380
+    },
+    {
+      "giorno": 9,
+      "x": 250,
+      "y": 380,
+      "larghezza": 570
+    },
+    {
+      "giorno": 16,
+      "x": 100,
+      "y": 250,
+      "larghezza": 780
+    },
+    {
+      "giorno": 23,
+      "x": 0,
+      "y": 0,
+      "larghezza": 920
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 520,
+      "y": 749,
+      "nome": "Central do Brasil"
+    },
+    {
+      "forma": "quadrato",
+      "x": 603,
+      "y": 993,
+      "nome": "Largo do Machado"
+    },
+    {
+      "forma": "triangolo",
+      "x": 593,
+      "y": 1154,
+      "nome": "Praia de Botafogo"
+    }
+  ],
+  "acqua": [
+    {
+      "tipo": "mare",
+      "spiaggia": false,
+      "punti": [
+        [
+          905,
+          1243
+        ],
+        [
+          863,
+          1201
+        ],
+        [
+          801,
+          1180
+        ],
+        [
+          759,
+          1165
+        ],
+        [
+          718,
+          1186
+        ],
+        [
+          655,
+          1201
+        ],
+        [
+          608,
+          1165
+        ],
+        [
+          619,
+          1123
+        ],
+        [
+          666,
+          1092
+        ],
+        [
+          692,
+          1061
+        ],
+        [
+          702,
+          978
+        ],
+        [
+          707,
+          915
+        ],
+        [
+          697,
+          879
+        ],
+        [
+          801,
+          889
+        ],
+        [
+          816,
+          842
+        ],
+        [
+          796,
+          764
+        ],
+        [
+          718,
+          744
+        ],
+        [
+          692,
+          718
+        ],
+        [
+          697,
+          660
+        ],
+        [
+          702,
+          634
+        ],
+        [
+          676,
+          624
+        ],
+        [
+          624,
+          608
+        ],
+        [
+          551,
+          582
+        ],
+        [
+          489,
+          551
+        ],
+        [
+          426,
+          478
+        ],
+        [
+          385,
+          416
+        ],
+        [
+          322,
+          354
+        ],
+        [
+          250,
+          291
+        ],
+        [
+          208,
+          208
+        ],
+        [
+          198,
+          125
+        ],
+        [
+          218,
+          42
+        ],
+        [
+          208,
+          -73
+        ],
+        [
+          1071,
+          -73
+        ],
+        [
+          1071,
+          1352
+        ],
+        [
+          915,
+          1290
+        ]
+      ]
+    },
+    {
+      "tipo": "mare",
+      "punti": [
+        [
+          -73,
+          1747
+        ],
+        [
+          10,
+          1700
+        ],
+        [
+          135,
+          1716
+        ],
+        [
+          281,
+          1726
+        ],
+        [
+          395,
+          1721
+        ],
+        [
+          452,
+          1700
+        ],
+        [
+          489,
+          1669
+        ],
+        [
+          530,
+          1643
+        ],
+        [
+          593,
+          1581
+        ],
+        [
+          634,
+          1508
+        ],
+        [
+          671,
+          1435
+        ],
+        [
+          702,
+          1399
+        ],
+        [
+          738,
+          1383
+        ],
+        [
+          764,
+          1342
+        ],
+        [
+          780,
+          1290
+        ],
+        [
+          790,
+          1264
+        ],
+        [
+          822,
+          1274
+        ],
+        [
+          874,
+          1284
+        ],
+        [
+          926,
+          1269
+        ],
+        [
+          988,
+          1248
+        ],
+        [
+          1092,
+          1258
+        ],
+        [
+          1092,
+          2007
+        ],
+        [
+          -73,
+          2007
+        ]
+      ]
+    },
+    {
+      "tipo": "mare",
+      "spiaggia": false,
+      "punti": [
+        [
+          177,
+          1466
+        ],
+        [
+          229,
+          1440
+        ],
+        [
+          302,
+          1446
+        ],
+        [
+          343,
+          1487
+        ],
+        [
+          338,
+          1550
+        ],
+        [
+          302,
+          1596
+        ],
+        [
+          239,
+          1607
+        ],
+        [
+          187,
+          1581
+        ],
+        [
+          166,
+          1529
+        ]
+      ]
+    },
+    {
+      "tipo": "fiume",
+      "larghezza": 30,
+      "punti": [
+        [
+          208,
+          1586
+        ],
+        [
+          198,
+          1664
+        ],
+        [
+          192,
+          1742
+        ]
+      ]
+    }
+  ],
+  "terreno": {
+    "ville": [
+      {
+        "nome": "Parque Nacional da Tijuca",
+        "punti": [
+          [
+            -10,
+            978
+          ],
+          [
+            135,
+            1019
+          ],
+          [
+            218,
+            1154
+          ],
+          [
+            302,
+            1227
+          ],
+          [
+            281,
+            1321
+          ],
+          [
+            177,
+            1352
+          ],
+          [
+            83,
+            1394
+          ],
+          [
+            -10,
+            1394
+          ]
+        ]
+      },
+      {
+        "nome": "Pão de Açúcar",
+        "punti": [
+          [
+            832,
+            1212
+          ],
+          [
+            894,
+            1222
+          ],
+          [
+            900,
+            1248
+          ],
+          [
+            837,
+            1258
+          ]
+        ]
+      },
+      {
+        "nome": "Quinta da Boa Vista",
+        "punti": [
+          [
+            94,
+            718
+          ],
+          [
+            156,
+            718
+          ],
+          [
+            156,
+            770
+          ],
+          [
+            94,
+            770
+          ]
+        ]
+      },
+      {
+        "nome": "Jardim Botânico",
+        "punti": [
+          [
+            83,
+            1425
+          ],
+          [
+            146,
+            1425
+          ],
+          [
+            146,
+            1477
+          ],
+          [
+            83,
+            1477
+          ]
+        ]
+      },
+      {
+        "nome": "Campo de Santana",
+        "punti": [
+          [
+            546,
+            759
+          ],
+          [
+            572,
+            759
+          ],
+          [
+            572,
+            788
+          ],
+          [
+            546,
+            788
+          ]
+        ]
+      }
+    ],
+    "colli": [
+      {
+        "nome": "Santa Teresa",
+        "x": 551,
+        "y": 874,
+        "raggio": 60
+      },
+      {
+        "nome": "Morro de São João",
+        "x": 562,
+        "y": 1331,
+        "raggio": 45
+      },
+      {
+        "nome": "Morro dos Cabritos",
+        "x": 447,
+        "y": 1414,
+        "raggio": 40
+      },
+      {
+        "nome": "Morro da Babilônia",
+        "x": 718,
+        "y": 1321,
+        "raggio": 35
+      },
+      {
+        "nome": "Morro do Andaraí",
+        "x": 42,
+        "y": 915,
+        "raggio": 40
+      }
+    ],
+    "monumenti": [
+      {
+        "nome": "Cristo Redentor",
+        "icona": "statua",
+        "x": 260,
+        "y": 1269,
+        "raggio": 12
+      },
+      {
+        "nome": "Maracanã",
+        "icona": "stadio",
+        "x": 73,
+        "y": 822,
+        "raggio": 20
+      },
+      {
+        "nome": "Theatro Municipal",
+        "icona": "colonne",
+        "x": 619,
+        "y": 801,
+        "raggio": 9
+      },
+      {
+        "nome": "Catedral",
+        "icona": "cupola",
+        "x": 577,
+        "y": 832,
+        "raggio": 9
+      },
+      {
+        "nome": "Museu do Amanhã",
+        "icona": "vele",
+        "x": 668,
+        "y": 655,
+        "raggio": 9
+      },
+      {
+        "nome": "Aeroporto Santos Dumont",
+        "icona": "aereo",
+        "x": 754,
+        "y": 816,
+        "raggio": 30
+      }
+    ]
+  },
+  "quartieri": [
+    {
+      "nome": "Centro",
+      "x": 614,
+      "y": 759
+    },
+    {
+      "nome": "Saúde",
+      "x": 624,
+      "y": 666
+    },
+    {
+      "nome": "Gamboa",
+      "x": 551,
+      "y": 645
+    },
+    {
+      "nome": "Santo Cristo",
+      "x": 478,
+      "y": 624
+    },
+    {
+      "nome": "Cidade Nova",
+      "x": 458,
+      "y": 749
+    },
+    {
+      "nome": "Lapa",
+      "x": 593,
+      "y": 858
+    },
+    {
+      "nome": "Santa Teresa",
+      "x": 515,
+      "y": 910
+    },
+    {
+      "nome": "Catumbi",
+      "x": 458,
+      "y": 853
+    },
+    {
+      "nome": "Estácio",
+      "x": 406,
+      "y": 811
+    },
+    {
+      "nome": "Rio Comprido",
+      "x": 343,
+      "y": 905
+    },
+    {
+      "nome": "Glória",
+      "x": 655,
+      "y": 910
+    },
+    {
+      "nome": "Catete",
+      "x": 582,
+      "y": 946
+    },
+    {
+      "nome": "Flamengo",
+      "x": 629,
+      "y": 1050
+    },
+    {
+      "nome": "Laranjeiras",
+      "x": 520,
+      "y": 1030
+    },
+    {
+      "nome": "Cosme Velho",
+      "x": 406,
+      "y": 1102
+    },
+    {
+      "nome": "Botafogo",
+      "x": 541,
+      "y": 1217
+    },
+    {
+      "nome": "Urca",
+      "x": 790,
+      "y": 1217
+    },
+    {
+      "nome": "Humaitá",
+      "x": 447,
+      "y": 1269
+    },
+    {
+      "nome": "Leme",
+      "x": 666,
+      "y": 1373
+    },
+    {
+      "nome": "Copacabana",
+      "x": 562,
+      "y": 1518
+    },
+    {
+      "nome": "Lagoa",
+      "x": 374,
+      "y": 1394
+    },
+    {
+      "nome": "Ipanema",
+      "x": 364,
+      "y": 1664
+    },
+    {
+      "nome": "Jardim Botânico",
+      "x": 187,
+      "y": 1420
+    },
+    {
+      "nome": "Gávea",
+      "x": 62,
+      "y": 1560
+    },
+    {
+      "nome": "Leblon",
+      "x": 94,
+      "y": 1654
+    },
+    {
+      "nome": "São Cristóvão",
+      "x": 312,
+      "y": 655
+    },
+    {
+      "nome": "Caju",
+      "x": 385,
+      "y": 499
+    },
+    {
+      "nome": "Benfica",
+      "x": 239,
+      "y": 541
+    },
+    {
+      "nome": "Mangueira",
+      "x": 146,
+      "y": 681
+    },
+    {
+      "nome": "Maracanã",
+      "x": 135,
+      "y": 858
+    },
+    {
+      "nome": "Tijuca",
+      "x": 73,
+      "y": 941
+    },
+    {
+      "nome": "Vila Isabel",
+      "x": 31,
+      "y": 863
+    },
+    {
+      "nome": "Manguinhos",
+      "x": 83,
+      "y": 458
+    },
+    {
+      "nome": "Bonsucesso",
+      "x": 94,
+      "y": 312
+    },
+    {
+      "nome": "Maré",
+      "x": 166,
+      "y": 260
+    },
+    {
+      "nome": "Ramos",
+      "x": 114,
+      "y": 125
+    },
+    {
+      "nome": "Penha",
+      "x": 146,
+      "y": 42
+    }
+  ],
+  "ponti": {
+    "iniziali": 1
+  },
+  "cavalcavia": {
+    "iniziali": 1
+  },
+  "crescita": {
+    "ogniMin": 45,
+    "ogniMax": 60,
+    "massimo": 12,
+    "distanzaMinima": 100,
+    "difficolta": 0.8
+  },
+  "congestione": {
+    "capienza": 6,
+    "tolleranza": 20
+  },
+  "tempo": {
+    "giorno": 20
+  },
+  "veicoli": {
+    "ogniMin": 7,
+    "ogniMax": 9,
+    "aumento": 0.02,
+    "aumentoMassimo": 0.5
+  },
+  "strade": {
+    "iniziali": 25,
+    "perGiorno": 5,
+    "lunghezzaTratto": 40
+  },
+  "premi": {
+    "strade": 20,
+    "capienza": 3,
+    "ponti": 1,
+    "cavalcavia": 1
+  },
+  "stelle": {
+    "viaggi": 300,
+    "giorni": 22,
+    "traffico": {
+      "soglia": 12
+    }
+  }
+}
