@@ -285,6 +285,7 @@ export function drawLaneMarks(ctx, graph) {
 
 /**
  * Fiumi, mare e baie, con le rive morbide. Il mare può avere una striscia di spiaggia.
+ * Le isole restano terra: mare e baie si riempiono tutto intorno, non sopra.
  * @param {CanvasRenderingContext2D} ctx
  * @param {import('../sim/water.js').Water[]} waters
  */
@@ -299,24 +300,44 @@ export function drawWater(ctx, waters) {
     ctx.strokeStyle = STYLE.beach;
     ctx.stroke();
   }
-  // Prima le rive di tutto (fiumi e mare), poi l'acqua sopra: dove il fiume
-  // sfocia nel mare non resta una riva in mezzo.
+  const islands = waters.filter((w) => w.kind === 'island');
+  // Prima le rive di tutto (fiumi, mare e isole), poi l'acqua sopra: dove il
+  // fiume sfocia nel mare non resta una riva in mezzo.
   for (const [extra, color] of /** @type {[number, string][]} */ ([[6, STYLE.waterBank], [0, STYLE.water]])) {
     for (const w of waters) {
       ctx.beginPath();
       ctx.strokeStyle = color;
-      if (w.kind === 'river') {
+      if (w.kind === 'island') {
+        if (!extra) continue;
+        traceSmoothClosed(ctx, w.points);
+        ctx.lineWidth = extra;
+        ctx.stroke();
+      } else if (w.kind === 'river') {
         traceSmooth(ctx, w.points);
         ctx.lineWidth = w.width + extra;
         ctx.stroke();
       } else {
         traceSmoothClosed(ctx, w.points);
+        ctx.save();
+        if (islands.length > 0) {
+          // Le isole fuori dall'area da riempire: un rettangolo enorme meno le
+          // isole, con la regola "evenodd" che le lascia vuote.
+          const hole = new Path2D();
+          hole.rect(-1e5, -1e5, 2e5, 2e5);
+          for (const isle of islands) {
+            const outline = new Path2D();
+            traceSmoothClosed(/** @type {any} */ (outline), isle.points);
+            hole.addPath(outline);
+          }
+          ctx.clip(hole, 'evenodd');
+        }
         ctx.fillStyle = color;
         ctx.fill();
         if (extra) {
           ctx.lineWidth = extra;
           ctx.stroke();
         }
+        ctx.restore();
       }
     }
   }
@@ -339,7 +360,9 @@ function drawWaves(ctx, waters) {
   let spots = waveCache.get(waters);
   if (!spots) {
     spots = [];
+    const islands = waters.filter((w) => w.kind === 'island');
     for (const w of waters) {
+      if (w.kind === 'island') continue;
       if (w.kind === 'river') {
         // Una ogni WAVE_STEP lungo il centro del fiume.
         let carry = WAVE_STEP / 2;
@@ -362,7 +385,7 @@ function drawWaves(ctx, waters) {
           // Un piccolo spostamento fisso per ogni punto: niente file troppo regolari.
           const h = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
           const p = { x: x + ((h - Math.floor(h)) - 0.5) * 16, y: y + ((h * 7 - Math.floor(h * 7)) - 0.5) * 12 };
-          if (distanceToWater([w], p) < -WAVE_MARGIN) spots.push(p);
+          if (distanceToWater([w, ...islands], p) < -WAVE_MARGIN) spots.push(p);
         }
       }
     }

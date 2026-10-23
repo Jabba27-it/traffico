@@ -73,7 +73,7 @@ const BUILD_PROBLEMS = {
   'roundabout-too-expensive': { title: 'Tratti di strada finiti', text: 'L\'anello della rotonda costa più tratti di quelli che hai.' },
   'roundabout-station': { title: 'Una stazione nel cerchio', text: 'La rotonda non può contenere una stazione: disegna il cerchio intorno a un incrocio.' },
   'roundabout-blocked': { title: 'Qui la rotonda non ci sta', text: 'L\'anello passerebbe sull\'acqua, su un parco, su un monumento o fuori città.' },
-  'roundabout-overlap': { title: 'Troppo vicina a un\'altra rotonda', text: 'Due rotonde non si sovrappongono: disegna il cerchio più lontano, o togli prima l\'altra rotonda.' },
+  'roundabout-overlap': { title: 'Troppo vicina a un\'altra rotonda', text: 'Due rotonde non si sovrappongono: disegna il cerchio più lontano, o più grande dell\'altra per sostituirla.' },
   'roundabout-overpass': { title: 'C\'è un cavalcavia', text: 'Una rotonda non può contenere un cavalcavia: toglilo prima con un tocco, o disegna il cerchio altrove.' },
 };
 /** Quante carte premio si propongono a fine settimana (scelte a caso fra quelle possibili). */

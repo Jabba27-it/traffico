@@ -239,7 +239,12 @@ export function parseLevel(json) {
         waters.push({ kind: 'bay', width: a.larghezza, points: a.punti.map((/** @type {number[]} */ q) => ({ x: q[0], y: q[1] })) });
         return;
       }
-      if (a?.tipo !== 'fiume') throw new Error(`Acqua ${i + 1}: "tipo" deve essere "fiume", "mare" o "baia"`);
+      if (a?.tipo === 'isola') {
+        if (!pointsOk || a.punti.length < 3) throw new Error(`Acqua ${i + 1}: l'isola ha bisogno di almeno tre "punti" [x, y]`);
+        waters.push({ kind: 'island', points: a.punti.map((/** @type {number[]} */ q) => ({ x: q[0], y: q[1] })) });
+        return;
+      }
+      if (a?.tipo !== 'fiume') throw new Error(`Acqua ${i + 1}: "tipo" deve essere "fiume", "mare", "baia" o "isola"`);
       // Più stretto di così un tratto disegnato potrebbe "saltare" il fiume fra due punti.
       if (!isNum(a.larghezza) || a.larghezza < 30) throw new Error(`Acqua ${i + 1}: "larghezza" deve essere almeno 30`);
       if (!pointsOk || a.punti.length < 2) throw new Error(`Acqua ${i + 1}: "punti" deve essere una lista di almeno due [x, y]`);

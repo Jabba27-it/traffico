@@ -21,6 +21,7 @@ const BRIDGE_COLORS = {
   arco: { rail: STYLE.harbourSteel, deck: STYLE.bridgeDeck },
   strallato: { rail: STYLE.white, deck: STYLE.bridgeDeck },
   bosforo: { rail: STYLE.bosphorusRail, deck: STYLE.bridgeDeck },
+  rialto: { rail: STYLE.istria, deck: STYLE.bridgeDeck },
 };
 
 /** @type {Record<string, string>} colore dei parapetti dei cavalcavia */
@@ -31,6 +32,7 @@ const OVERPASS_RAILS = {
   arenaria: STYLE.sandstone,
   tropicale: STYLE.white,
   maiolica: STYLE.turquoise,
+  istria: STYLE.istria,
 };
 
 /** @param {Look} [look] */
@@ -103,6 +105,7 @@ export function drawBridgeDetails(ctx, bridges, look) {
     else if (kind === 'bosforo') suspensionBridge(ctx, length, pointAt, STYLE.bosphorusTower, 6, false);
     else if (kind === 'arco') archBridge(ctx, length, pointAt);
     else if (kind === 'strallato') cableStayedBridge(ctx, length, pointAt);
+    else if (kind === 'rialto') rialtoBridge(ctx, length, pointAt);
   }
 }
 
@@ -261,6 +264,29 @@ function cableStayedBridge(ctx, length, pointAt) {
 }
 
 /**
+ * Venezia: ponte in pietra d'Istria con le due file di botteghe ai lati, come
+ * a Rialto: piccoli tetti rossi lungo i parapetti, nella parte centrale.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} length
+ * @param {(t: number) => ReturnType<ReturnType<typeof walker>['pointAt']>} pointAt
+ */
+function rialtoBridge(ctx, length, pointAt) {
+  const shops = Math.max(1, Math.floor((length * 0.6) / 9));
+  for (let i = 0; i < shops; i++) {
+    const p = pointAt(0.2 + (0.6 * (i + 0.5)) / shops);
+    for (const side of [-1, 1]) {
+      ctx.fillStyle = STYLE.shopRoof;
+      block(ctx, p, 7, 5, side * (BRIDGE_HALF + 2));
+      ctx.fillStyle = STYLE.istriaEdge;
+      block(ctx, p, 7, 1, side * (BRIDGE_HALF + 2));
+    }
+  }
+  // Le due testate in pietra bianca alle rive.
+  ctx.fillStyle = STYLE.istria;
+  for (const t of [0, 1]) for (const side of [-1, 1]) block(ctx, pointAt(t), 6, 5, side * (BRIDGE_HALF + 1));
+}
+
+/**
  * Dettagli dei cavalcavia, prima dell'impalcato (travi che sporgono) o dopo (alberi).
  * @param {CanvasRenderingContext2D} ctx
  * @param {Point[][]} decks  per ogni cavalcavia: [inizio, centro, fine]
@@ -366,6 +392,7 @@ export function drawIsland(ctx, r, look) {
     onde: STYLE.white,
     fontana: STYLE.travertine,
     fontanaClassica: STYLE.travertine,
+    pozzo: STYLE.nyPaving,
   }[kind] ?? STYLE.island;
   disc(ri, ground);
   ctx.save();
@@ -468,6 +495,27 @@ export function drawIsland(ctx, r, look) {
       }
       ctx.stroke();
     }
+  } else if (kind === 'pozzo') {
+    // Venezia: un campo lastricato di masegni (lastre in diagonale) col pozzo
+    // al centro: la "vera da pozzo" in pietra d'Istria e la bocca scura.
+    ctx.strokeStyle = STYLE.istriaEdge;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let k = -2 * ri; k <= 2 * ri; k += ri * 0.32) {
+      ctx.moveTo(x + k - ri, y - ri);
+      ctx.lineTo(x + k + ri, y + ri);
+      ctx.moveTo(x + k + ri, y - ri);
+      ctx.lineTo(x + k - ri, y + ri);
+    }
+    ctx.stroke();
+    disc(ri * 0.36, STYLE.shadow, ri * 0.08, ri * 0.1);
+    disc(ri * 0.34, STYLE.istria);
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = STYLE.istriaEdge;
+    ctx.beginPath();
+    ctx.arc(x, y, ri * 0.34, 0, Math.PI * 2);
+    ctx.stroke();
+    disc(ri * 0.17, STYLE.wellDark);
   } else if (kind === 'fontana') {
     // Istanbul: fontana ottomana ottagonale, acqua turchese e una piccola cupola.
     const octagon = (/** @type {number} */ rad, /** @type {string} */ fill) => {

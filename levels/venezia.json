@@ -1,0 +1,895 @@
+{
+  "nome": "Venezia",
+  "mondo": {
+    "larghezza": 760,
+    "altezza": 1520
+  },
+  "forme": [
+    "cerchio",
+    "quadrato",
+    "triangolo",
+    "pentagono",
+    "esagono",
+    "stella",
+    "goccia",
+    "mezzaluna"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 50,
+      "y": 200,
+      "larghezza": 380
+    },
+    {
+      "giorno": 3,
+      "x": 50,
+      "y": 200,
+      "larghezza": 380
+    },
+    {
+      "giorno": 9,
+      "x": 60,
+      "y": 60,
+      "larghezza": 560
+    },
+    {
+      "giorno": 16,
+      "x": 20,
+      "y": 0,
+      "larghezza": 700
+    },
+    {
+      "giorno": 23,
+      "x": 0,
+      "y": 0,
+      "larghezza": 760
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 126,
+      "y": 408,
+      "nome": "Piazzale Roma"
+    },
+    {
+      "forma": "quadrato",
+      "x": 144,
+      "y": 324,
+      "nome": "Ferrovia"
+    },
+    {
+      "forma": "triangolo",
+      "x": 324,
+      "y": 334,
+      "nome": "Fondamenta Nove"
+    }
+  ],
+  "acqua": [
+    {
+      "tipo": "baia",
+      "larghezza": 80,
+      "punti": [
+        [
+          -300,
+          -324
+        ],
+        [
+          1080,
+          -324
+        ],
+        [
+          1080,
+          468
+        ],
+        [
+          792,
+          468
+        ],
+        [
+          690,
+          522
+        ],
+        [
+          672,
+          558
+        ],
+        [
+          630,
+          636
+        ],
+        [
+          582,
+          732
+        ],
+        [
+          534,
+          828
+        ],
+        [
+          486,
+          936
+        ],
+        [
+          438,
+          1056
+        ],
+        [
+          390,
+          1188
+        ],
+        [
+          348,
+          1308
+        ],
+        [
+          306,
+          1428
+        ],
+        [
+          276,
+          1548
+        ],
+        [
+          246,
+          1668
+        ],
+        [
+          228,
+          1716
+        ],
+        [
+          -300,
+          1716
+        ]
+      ]
+    },
+    {
+      "tipo": "mare",
+      "spiaggia": true,
+      "punti": [
+        [
+          792,
+          468
+        ],
+        [
+          1080,
+          468
+        ],
+        [
+          1080,
+          1716
+        ],
+        [
+          324,
+          1716
+        ],
+        [
+          336,
+          1668
+        ],
+        [
+          366,
+          1548
+        ],
+        [
+          402,
+          1368
+        ],
+        [
+          444,
+          1248
+        ],
+        [
+          492,
+          1116
+        ],
+        [
+          540,
+          996
+        ],
+        [
+          588,
+          876
+        ],
+        [
+          630,
+          780
+        ],
+        [
+          672,
+          684
+        ],
+        [
+          708,
+          588
+        ],
+        [
+          714,
+          540
+        ],
+        [
+          690,
+          522
+        ]
+      ]
+    },
+    {
+      "tipo": "isola",
+      "punti": [
+        [
+          66,
+          378
+        ],
+        [
+          72,
+          338
+        ],
+        [
+          94,
+          317
+        ],
+        [
+          126,
+          305
+        ],
+        [
+          156,
+          298
+        ],
+        [
+          198,
+          288
+        ],
+        [
+          246,
+          286
+        ],
+        [
+          294,
+          293
+        ],
+        [
+          336,
+          310
+        ],
+        [
+          384,
+          336
+        ],
+        [
+          432,
+          362
+        ],
+        [
+          486,
+          386
+        ],
+        [
+          534,
+          418
+        ],
+        [
+          582,
+          444
+        ],
+        [
+          590,
+          474
+        ],
+        [
+          564,
+          492
+        ],
+        [
+          510,
+          480
+        ],
+        [
+          450,
+          470
+        ],
+        [
+          390,
+          463
+        ],
+        [
+          342,
+          458
+        ],
+        [
+          324,
+          473
+        ],
+        [
+          318,
+          485
+        ],
+        [
+          270,
+          502
+        ],
+        [
+          216,
+          510
+        ],
+        [
+          162,
+          504
+        ],
+        [
+          114,
+          485
+        ],
+        [
+          72,
+          452
+        ],
+        [
+          54,
+          414
+        ]
+      ]
+    },
+    {
+      "tipo": "isola",
+      "punti": [
+        [
+          84,
+          542
+        ],
+        [
+          156,
+          540
+        ],
+        [
+          228,
+          540
+        ],
+        [
+          300,
+          542
+        ],
+        [
+          342,
+          552
+        ],
+        [
+          350,
+          576
+        ],
+        [
+          306,
+          598
+        ],
+        [
+          228,
+          602
+        ],
+        [
+          156,
+          602
+        ],
+        [
+          84,
+          590
+        ],
+        [
+          70,
+          566
+        ]
+      ]
+    },
+    {
+      "tipo": "isola",
+      "punti": [
+        [
+          358,
+          510
+        ],
+        [
+          398,
+          506
+        ],
+        [
+          410,
+          528
+        ],
+        [
+          386,
+          547
+        ],
+        [
+          355,
+          538
+        ]
+      ]
+    },
+    {
+      "tipo": "isola",
+      "punti": [
+        [
+          390,
+          204
+        ],
+        [
+          450,
+          222
+        ],
+        [
+          510,
+          210
+        ],
+        [
+          538,
+          168
+        ],
+        [
+          518,
+          114
+        ],
+        [
+          462,
+          92
+        ],
+        [
+          408,
+          116
+        ],
+        [
+          384,
+          162
+        ]
+      ]
+    },
+    {
+      "tipo": "isola",
+      "punti": [
+        [
+          370,
+          278
+        ],
+        [
+          437,
+          286
+        ],
+        [
+          451,
+          252
+        ],
+        [
+          384,
+          240
+        ]
+      ]
+    },
+    {
+      "tipo": "fiume",
+      "larghezza": 30,
+      "punti": [
+        [
+          36,
+          358
+        ],
+        [
+          90,
+          360
+        ],
+        [
+          144,
+          360
+        ],
+        [
+          186,
+          356
+        ],
+        [
+          228,
+          360
+        ],
+        [
+          270,
+          367
+        ],
+        [
+          300,
+          394
+        ],
+        [
+          278,
+          418
+        ],
+        [
+          240,
+          425
+        ],
+        [
+          242,
+          446
+        ],
+        [
+          282,
+          456
+        ],
+        [
+          312,
+          466
+        ],
+        [
+          336,
+          498
+        ]
+      ]
+    }
+  ],
+  "terreno": {
+    "ville": [
+      {
+        "nome": "Giardini della Biennale",
+        "punti": [
+          [
+            486,
+            446
+          ],
+          [
+            534,
+            430
+          ],
+          [
+            558,
+            454
+          ],
+          [
+            528,
+            473
+          ],
+          [
+            492,
+            468
+          ]
+        ]
+      },
+      {
+        "nome": "Oasi degli Alberoni",
+        "punti": [
+          [
+            312,
+            1440
+          ],
+          [
+            354,
+            1440
+          ],
+          [
+            354,
+            1500
+          ],
+          [
+            306,
+            1500
+          ]
+        ]
+      }
+    ],
+    "colli": [],
+    "monumenti": [
+      {
+        "nome": "Basilica di San Marco",
+        "icona": "cupola",
+        "x": 356,
+        "y": 432,
+        "raggio": 11
+      },
+      {
+        "nome": "Campanile di San Marco",
+        "icona": "torre",
+        "x": 336,
+        "y": 442,
+        "raggio": 8
+      },
+      {
+        "nome": "Palazzo Ducale",
+        "icona": "colonne",
+        "x": 372,
+        "y": 451,
+        "raggio": 9
+      },
+      {
+        "nome": "Santa Maria della Salute",
+        "icona": "cupola",
+        "x": 282,
+        "y": 485,
+        "raggio": 10
+      },
+      {
+        "nome": "Arsenale",
+        "icona": "castello",
+        "x": 456,
+        "y": 432,
+        "raggio": 10
+      },
+      {
+        "nome": "Basilica dei Frari",
+        "icona": "cupola",
+        "x": 210,
+        "y": 396,
+        "raggio": 9
+      },
+      {
+        "nome": "Redentore",
+        "icona": "cupola",
+        "x": 252,
+        "y": 571,
+        "raggio": 9
+      },
+      {
+        "nome": "San Giorgio Maggiore",
+        "icona": "torre",
+        "x": 382,
+        "y": 526,
+        "raggio": 10
+      },
+      {
+        "nome": "Faro di Murano",
+        "icona": "torre",
+        "x": 522,
+        "y": 192,
+        "raggio": 8
+      },
+      {
+        "nome": "Cimitero di San Michele",
+        "icona": "altare",
+        "x": 410,
+        "y": 262,
+        "raggio": 9
+      },
+      {
+        "nome": "Palazzo del Cinema",
+        "icona": "colonne",
+        "x": 600,
+        "y": 816,
+        "raggio": 9
+      }
+    ]
+  },
+  "quartieri": [
+    {
+      "nome": "Cannaregio",
+      "x": 240,
+      "y": 319
+    },
+    {
+      "nome": "Ghetto",
+      "x": 210,
+      "y": 314
+    },
+    {
+      "nome": "Madonna dell'Orto",
+      "x": 270,
+      "y": 312
+    },
+    {
+      "nome": "Santi Giovanni e Paolo",
+      "x": 360,
+      "y": 370
+    },
+    {
+      "nome": "San Bartolomeo",
+      "x": 318,
+      "y": 382
+    },
+    {
+      "nome": "Santo Stefano",
+      "x": 300,
+      "y": 438
+    },
+    {
+      "nome": "San Zaccaria",
+      "x": 402,
+      "y": 444
+    },
+    {
+      "nome": "Castello",
+      "x": 420,
+      "y": 396
+    },
+    {
+      "nome": "Via Garibaldi",
+      "x": 480,
+      "y": 432
+    },
+    {
+      "nome": "San Pietro di Castello",
+      "x": 522,
+      "y": 410
+    },
+    {
+      "nome": "Sant'Elena",
+      "x": 564,
+      "y": 466
+    },
+    {
+      "nome": "Santa Croce",
+      "x": 162,
+      "y": 390
+    },
+    {
+      "nome": "San Giacomo dell'Orio",
+      "x": 198,
+      "y": 376
+    },
+    {
+      "nome": "San Polo",
+      "x": 252,
+      "y": 394
+    },
+    {
+      "nome": "Campo Santa Margherita",
+      "x": 204,
+      "y": 446
+    },
+    {
+      "nome": "Accademia",
+      "x": 258,
+      "y": 470
+    },
+    {
+      "nome": "San Trovaso",
+      "x": 234,
+      "y": 486
+    },
+    {
+      "nome": "Zattere",
+      "x": 186,
+      "y": 490
+    },
+    {
+      "nome": "San Basilio",
+      "x": 156,
+      "y": 470
+    },
+    {
+      "nome": "Santa Marta",
+      "x": 114,
+      "y": 458
+    },
+    {
+      "nome": "Tronchetto",
+      "x": 82,
+      "y": 390
+    },
+    {
+      "nome": "Sacca Fisola",
+      "x": 108,
+      "y": 566
+    },
+    {
+      "nome": "Palanca",
+      "x": 186,
+      "y": 570
+    },
+    {
+      "nome": "Zitelle",
+      "x": 312,
+      "y": 564
+    },
+    {
+      "nome": "Murano",
+      "x": 456,
+      "y": 162
+    },
+    {
+      "nome": "San Donato",
+      "x": 432,
+      "y": 126
+    },
+    {
+      "nome": "Sacca Serenella",
+      "x": 418,
+      "y": 186
+    },
+    {
+      "nome": "Navagero",
+      "x": 492,
+      "y": 180
+    },
+    {
+      "nome": "San Nicolò",
+      "x": 696,
+      "y": 546
+    },
+    {
+      "nome": "Santa Maria Elisabetta",
+      "x": 678,
+      "y": 588
+    },
+    {
+      "nome": "Lido",
+      "x": 628,
+      "y": 708
+    },
+    {
+      "nome": "Des Bains",
+      "x": 606,
+      "y": 756
+    },
+    {
+      "nome": "Ca' Bianca",
+      "x": 535,
+      "y": 912
+    },
+    {
+      "nome": "Lungomare",
+      "x": 492,
+      "y": 1020
+    },
+    {
+      "nome": "Malamocco",
+      "x": 436,
+      "y": 1164
+    },
+    {
+      "nome": "Porto di Malamocco",
+      "x": 394,
+      "y": 1284
+    },
+    {
+      "nome": "Alberoni",
+      "x": 354,
+      "y": 1404
+    }
+  ],
+  "stile": {
+    "ponte": "rialto",
+    "cavalcavia": "istria",
+    "rotonda": "pozzo"
+  },
+  "ponti": {
+    "iniziali": 4
+  },
+  "cavalcavia": {
+    "iniziali": 1
+  },
+  "crescita": {
+    "ogniMin": 45,
+    "ogniMax": 60,
+    "massimo": 12,
+    "distanzaMinima": 90,
+    "difficolta": 0.8
+  },
+  "congestione": {
+    "capienza": 6,
+    "tolleranza": 20
+  },
+  "tempo": {
+    "giorno": 20
+  },
+  "veicoli": {
+    "ogniMin": 7,
+    "ogniMax": 9,
+    "aumento": 0.02,
+    "aumentoMassimo": 0.5
+  },
+  "strade": {
+    "iniziali": 25,
+    "perGiorno": 5,
+    "lunghezzaTratto": 40
+  },
+  "premi": {
+    "strade": 15,
+    "capienza": 3,
+    "ponti": 1,
+    "cavalcavia": 1
+  },
+  "stelle": {
+    "viaggi": 100,
+    "giorni": 14,
+    "traffico": {
+      "soglia": 12
+    },
+    "platino": {
+      "efficienza": 60
+    }
+  }
+}

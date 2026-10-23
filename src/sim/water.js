@@ -1,5 +1,6 @@
 // Acqua della mappa: fiumi (linee con una larghezza), mare (aree chiuse dove non
-// si costruisce) e baie (aree chiuse che si attraversano coi ponti).
+// si costruisce), baie (aree chiuse che si attraversano coi ponti) e isole
+// (terra dentro il mare o una baia, come le isole di una laguna).
 
 import { closestPointOnSegment, distance } from './geometry.js';
 
@@ -28,7 +29,15 @@ import { closestPointOnSegment, distance } from './geometry.js';
  * @property {number} width    larghezza di riferimento per la lunghezza dei ponti
  */
 
-/** @typedef {River | Sea | Bay} Water */
+/**
+ * Un'isola: terra dentro il mare o una baia. I fiumi che la attraversano
+ * restano acqua (come il Canal Grande a Venezia).
+ * @typedef {Object} Island
+ * @property {'island'} kind
+ * @property {Point[]} points  il contorno dell'isola, chiuso da solo
+ */
+
+/** @typedef {River | Sea | Bay | Island} Water */
 
 /**
  * Distanza di p dalla riva più vicina: negativa se p è in acqua.
@@ -36,9 +45,37 @@ import { closestPointOnSegment, distance } from './geometry.js';
  * @param {Point} p
  */
 export function distanceToWater(waters, p) {
+  const islands = islandsOf(waters);
   let best = Infinity;
-  for (const w of waters) best = Math.min(best, w.kind === 'river' ? riverDistance(w, p) : seaDistance(w, p));
+  for (const w of waters) {
+    if (w.kind === 'island') continue;
+    best = Math.min(best, w.kind === 'river' ? riverDistance(w, p) : areaDistance(w, p, islands));
+  }
   return best;
+}
+
+/** @param {Water[]} waters */
+function islandsOf(waters) {
+  return /** @type {Island[]} */ (waters.filter((w) => w.kind === 'island'));
+}
+
+/**
+ * Come seaDistance, ma le isole sono terra: su un'isola la distanza è quella
+ * dalla sua riva (positiva), in acqua conta anche la riva dell'isola più vicina.
+ * @param {Sea | Bay} w
+ * @param {Point} p
+ * @param {Island[]} islands
+ */
+function areaDistance(w, p, islands) {
+  const d = seaDistance(w, p);
+  if (d >= 0 || islands.length === 0) return d;
+  let shore = -d;
+  for (const isle of islands) {
+    const di = seaDistance(isle, p);
+    if (di < 0) return -di;
+    shore = Math.min(shore, di);
+  }
+  return -shore;
 }
 
 /**
@@ -77,10 +114,11 @@ export function lengthInWater(waters, points) {
  * @param {Point[]} points
  */
 export function riverWidthsAlong(waters, points) {
+  const islands = islandsOf(waters);
   let total = 0;
   for (const w of waters) {
     if (w.kind === 'river' && points.some((p) => riverDistance(w, p) < 0)) total += w.width;
-    if (w.kind === 'bay' && points.some((p) => seaDistance(w, p) < 0)) total += w.width;
+    if (w.kind === 'bay' && points.some((p) => areaDistance(w, p, islands) < 0)) total += w.width;
   }
   return total;
 }
@@ -91,7 +129,8 @@ export function riverWidthsAlong(waters, points) {
  * @param {Point[]} points
  */
 export function touchesSea(waters, points) {
-  return waters.some((w) => w.kind === 'sea' && points.some((p) => seaDistance(w, p) < 0));
+  const islands = islandsOf(waters);
+  return waters.some((w) => w.kind === 'sea' && points.some((p) => areaDistance(w, p, islands) < 0));
 }
 
 /**
@@ -108,8 +147,8 @@ function riverDistance(w, p) {
 }
 
 /**
- * Distanza dal contorno del mare o della baia, negativa se p è dentro.
- * @param {Sea | Bay} w
+ * Distanza dal contorno del mare, della baia o dell'isola, negativa se p è dentro.
+ * @param {Sea | Bay | Island} w
  * @param {Point} p
  */
 function seaDistance(w, p) {

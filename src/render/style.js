@@ -65,6 +65,10 @@ export const STYLE = {
   bosphorusRail: '#4f6f73',
   bosphorusTower: '#cfd4d6',
   turquoise: '#3fa6a3',
+  istria: '#f3eee3',
+  istriaEdge: '#c9c1ae',
+  shopRoof: '#c0644a',
+  wellDark: '#4e4741',
 
   // Scritte sulla mappa
   label: '#3d3833',

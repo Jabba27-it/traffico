@@ -431,15 +431,30 @@ export class Simulation {
     if (blocked) return 'roundabout-blocked';
     // Una rotonda non si sovrappone a un'altra (nemmeno ai resti di una rotta)
     // né a un cavalcavia: cancellerebbe nodi che servono ancora all'altra.
-    const ringNodes = new Set();
-    for (const e of this.graph.edges.values()) if (e.ring !== undefined) ringNodes.add(e.a).add(e.b);
+    // Se però le rotonde toccate sono tutte più piccole, la nuova le sostituisce.
+    /** @type {Map<number, number>} nodo dell'anello → numero della sua rotonda */
+    const ringOf = new Map();
+    for (const e of this.graph.edges.values()) if (e.ring !== undefined) ringOf.set(e.a, e.ring).set(e.b, e.ring);
+    /** @type {Set<number>} rotonde (o loro resti) che il cerchio nuovo tocca */
+    const touched = new Set();
+    // Anche un cerchio tutto dentro l'isola di un'altra rotonda la tocca.
+    for (const r of this.roundabouts.values()) {
+      if (Math.hypot(r.x - circle.x, r.y - circle.y) < r.radius + circle.radius + ROUNDABOUT_GAP) touched.add(r.id);
+    }
     for (const n of this.graph.nodes.values()) {
       const d = Math.hypot(n.x - circle.x, n.y - circle.y);
-      if (ringNodes.has(n.id) && d < circle.radius + ROUNDABOUT_GAP) return 'roundabout-overlap';
-      if (n.overpass && d < circle.radius + ROUNDABOUT_GAP) return 'roundabout-overpass';
+      if (d >= circle.radius + ROUNDABOUT_GAP) continue;
+      const ring = ringOf.get(n.id);
+      if (ring !== undefined) touched.add(ring);
+      else if (n.overpass) return 'roundabout-overpass';
     }
+    const replaced = [...touched].map((id) => this.roundabouts.get(id));
+    if (replaced.some((r) => !r || r.radius >= circle.radius)) return 'roundabout-overlap';
     const cost = ringCost(circle.radius, this.level.roads.segmentLength);
-    if (this.roadBudget < cost) return 'roundabout-too-expensive';
+    // Le rotonde sostituite restituiscono i tratti del loro anello.
+    const refunded = replaced.reduce((sum, r) => sum + (r?.cost ?? 0), 0);
+    if (this.roadBudget + refunded < cost) return 'roundabout-too-expensive';
+    for (const r of replaced) if (r) this.dismantleRoundabout(r);
     this.roadBudget -= cost;
     const before = this.paidInRoads();
     const r = buildRoundabout(this.graph, circle, this.nextRoundaboutId++, cost);
@@ -459,22 +474,30 @@ export class Simulation {
   tapRoundabout(x, y) {
     for (const r of this.roundabouts.values()) {
       if (Math.hypot(r.x - x, r.y - y) > r.radius * 0.7) continue;
-      const before = this.paidInRoads();
-      const spokes = removeRoundabout(this.graph, r);
-      this.roundabouts.delete(r.id);
-      this.refund(before - this.paidInRoads());
-      // Le strade tornano fino al centro: riprendono i tratti dei pezzi che erano dentro.
-      const lengths = spokes.map((id) => edgeLength(this.graph, id));
-      const total = lengths.reduce((a, b) => a + b, 0);
-      if (total > 0) spokes.forEach((id, i) => {
-        const e = /** @type {RoadEdge} */ (this.graph.edges.get(id));
-        e.cost = (e.cost ?? 0) + ((r.inner ?? 0) * lengths[i]) / total;
-      });
-      else this.refund(r.inner ?? 0);
+      this.dismantleRoundabout(r);
       this.updateRoutes();
       return 'roundabout-removed';
     }
     return null;
+  }
+
+  /**
+   * Toglie una rotatoria: torna incrocio e restituisce i tratti dell'anello.
+   * @param {import('./roundabout.js').Roundabout} r
+   */
+  dismantleRoundabout(r) {
+    const before = this.paidInRoads();
+    const spokes = removeRoundabout(this.graph, r);
+    this.roundabouts.delete(r.id);
+    this.refund(before - this.paidInRoads());
+    // Le strade tornano fino al centro: riprendono i tratti dei pezzi che erano dentro.
+    const lengths = spokes.map((id) => edgeLength(this.graph, id));
+    const total = lengths.reduce((a, b) => a + b, 0);
+    if (total > 0) spokes.forEach((id, i) => {
+      const e = /** @type {RoadEdge} */ (this.graph.edges.get(id));
+      e.cost = (e.cost ?? 0) + ((r.inner ?? 0) * lengths[i]) / total;
+    });
+    else this.refund(r.inner ?? 0);
   }
 
   /** true quando il livello è fallito: da lì la simulazione è ferma. */
