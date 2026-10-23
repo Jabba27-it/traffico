@@ -4,7 +4,7 @@ import { Simulation } from './sim/simulation.js';
 import { setupCanvas, fitCamera, scaleFor, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
 import { createCamera, cameraRect, zoomAround } from './render/camera.js';
 import { attachPinch } from './input/pinch.js';
-import { drawRoads, drawLaneMarks, drawOverpasses, drawPreview, drawRemoval, drawWater, drawOutsideVeil } from './render/roads.js';
+import { drawRoads, drawBridgeTops, drawLaneMarks, drawOverpasses, drawPreview, drawRemoval, drawWater, drawOutsideVeil } from './render/roads.js';
 import { currentPiece } from './sim/vehicles.js';
 import { drawJunctionMarks, drawRoundaboutIslands } from './render/junctions.js';
 import { STYLE } from './render/style.js';
@@ -395,6 +395,8 @@ async function start() {
     drawVehicles(ctx, sim.vehicles.filter((v) => !elevated.includes(v)));
     drawOverpasses(ctx, graph, level.look);
     drawVehicles(ctx, elevated);
+    // Torri, archi e cavi dei ponti coprono i veicoli che ci passano sotto.
+    drawBridgeTops(ctx, graph, level.look);
     drawCongestion(ctx, sim.stations, level.congestion.tolerance, now / 1000);
     const labelScale = framed.width / level.view[0].width;
     drawTerrainNames(ctx, level.terrain, labelScale, stationAreas(ctx, sim.stations, labelScale));

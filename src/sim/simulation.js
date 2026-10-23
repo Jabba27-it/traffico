@@ -16,7 +16,7 @@ import { isInWater, lengthInWater, countLands } from './water.js';
 import { viewAt, insetRect, rectContains } from './view.js';
 import { starGoals, platinumGoal } from './stars.js';
 import { buildOverpass, overpassPairs, removeOverpass } from './overpass.js';
-import { drawnCircle, buildRoundabout, removeRoundabout, ringCost, ringPoints } from './roundabout.js';
+import { drawnCircle, buildRoundabout, removeRoundabout, ringCost, ringPoints, clipAtRings } from './roundabout.js';
 import { obstacleAt } from './terrain.js';
 
 /** @typedef {import('./roadEditing.js').RoadPiece} RoadPiece */
@@ -376,6 +376,9 @@ export class Simulation {
       return result;
     }
 
+    // Niente strade sull'isola delle rotonde: il tratto si ferma sull'anello.
+    points = clipAtRings(points, this.roundabouts.values());
+    if (points.length < 2) return null;
     const plan = this.planRoad(points);
     const outcome = plan.cut ? `cut-${plan.cut.reason}` : null;
     if (plan.runs.length === 0) return outcome;

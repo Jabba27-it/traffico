@@ -4,6 +4,7 @@
 // (l'anello è la strada principale di ogni suo nodo), chi entra si immette.
 
 import { closestPointOnSegment, distance } from './geometry.js';
+import { ROAD_WIDTH } from './graph.js';
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('./graph.js').RoadNode} RoadNode */
@@ -101,15 +102,33 @@ export function buildRoundabout(graph, c, id, cost) {
   const R = c.radius;
   // Le strade lunghe che attraversano il cerchio senza un nodo dentro si spezzano
   // nel punto più vicino al centro, così hanno anche loro un pezzo dentro.
+  // Anche quelle che passano appena fuori ma toccano l'anello (che è largo una
+  // strada): si spezzano lì e il punto viene tirato dentro, così la strada si
+  // attacca alla rotonda invece di passarle sopra.
+  // Mai i nodi di un'altra rotonda o di un cavalcavia: servono ancora a loro.
+  /** @type {Set<number>} nodi fuori dal cerchio da trattare come dentro */
+  const pulled = new Set();
+  const otherRings = new Set();
+  for (const e of graph.edges.values()) if (e.ring !== undefined) otherRings.add(e.a).add(e.b);
+  const pullable = (/** @type {RoadNode} */ n) => n.stationId === undefined && !n.overpass && !otherRings.has(n.id);
   for (const e of [...graph.edges.values()]) {
     const a = /** @type {RoadNode} */ (graph.nodes.get(e.a));
     const b = /** @type {RoadNode} */ (graph.nodes.get(e.b));
     if (distance(a, c) <= R || distance(b, c) <= R) continue;
     const p = closestPointOnSegment(c, a, b);
-    if (distance(p, c) < R) graph.splitEdge(e.id, p.x, p.y);
+    const d = distance(p, c);
+    if (d < R) graph.splitEdge(e.id, p.x, p.y);
+    else if (d < R + ROAD_WIDTH && e.ring === undefined) {
+      const end = distance(p, a) < 1 ? a : distance(p, b) < 1 ? b : null;
+      if (end) {
+        if (pullable(end)) pulled.add(end.id);
+      } else pulled.add(graph.splitEdge(e.id, p.x, p.y).id);
+    }
   }
 
-  const inside = new Set([...graph.nodes.values()].filter((n) => n.stationId === undefined && distance(n, c) <= R).map((n) => n.id));
+  const inside = new Set(
+    [...graph.nodes.values()].filter((n) => n.stationId === undefined && (distance(n, c) <= R || pulled.has(n.id))).map((n) => n.id),
+  );
   const ring = ringPoints(c).map((p) => graph.addNode(p.x, p.y));
   const ringIds = new Set(ring.map((p) => p.id));
   const n = ring.length;
@@ -213,4 +232,46 @@ export function removeRoundabout(graph, r) {
   // Senza strade, il centro non serve.
   if (![...graph.edges.values()].some((e) => e.a === center.id || e.b === center.id)) graph.nodes.delete(center.id);
   return spokes;
+}
+
+/**
+ * Un tratto disegnato che entra in una rotonda già fatta non deve passare
+ * sull'isola: la parte dentro il cerchio si toglie e il tratto si ferma
+ * sull'anello, dove entra, e riparte dall'anello, dove esce. Così la strada si
+ * attacca alla rotonda da una parte e, se la attraversa, anche dall'altra.
+ * @param {Point[]} points
+ * @param {Iterable<{x: number, y: number, radius: number}>} rings
+ * @returns {Point[]}
+ */
+export function clipAtRings(points, rings) {
+  const list = [...rings];
+  if (list.length === 0 || points.length === 0) return points;
+  const isInside = (/** @type {Point} */ p) => list.some((r) => distance(p, r) < r.radius);
+  /** @type {Point[]} */
+  const out = [];
+  if (!isInside(points[0])) out.push(points[0]);
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1];
+    const b = points[i];
+    // Dove il pezzo a→b taglia i cerchi, in ordine lungo il pezzo.
+    /** @type {number[]} */
+    const cuts = [];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len2 = dx * dx + dy * dy;
+    if (len2 > 0) {
+      for (const r of list) {
+        const fx = a.x - r.x;
+        const fy = a.y - r.y;
+        const k = (fx * dx + fy * dy) / len2;
+        const disc = k * k - (fx * fx + fy * fy - r.radius * r.radius) / len2;
+        if (disc <= 0) continue;
+        for (const t of [-k - Math.sqrt(disc), -k + Math.sqrt(disc)]) if (t > 0 && t <= 1) cuts.push(t);
+      }
+    }
+    cuts.sort((x, y) => x - y);
+    for (const t of cuts) out.push({ x: a.x + dx * t, y: a.y + dy * t });
+    if (!isInside(b)) out.push(b);
+  }
+  return out;
 }

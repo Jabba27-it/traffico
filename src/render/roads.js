@@ -156,12 +156,12 @@ export function drawRoads(ctx, graph, congestion, look) {
   strokeChains(ctx, supers, ROAD_WIDTH + 4, STYLE.superEdge);
   strokeChains(ctx, chains, ROAD_WIDTH, STYLE.road);
   strokeChains(ctx, supers, ROAD_WIDTH - 3, STYLE.superRoad);
-  // Ponti: impalcato più chiaro fra due parapetti, poi i dettagli tipici della città.
+  // Ponti: impalcato più chiaro fra due parapetti. Torri, archi e cavi vanno
+  // disegnati dopo i veicoli, con drawBridgeTops, perché i veicoli ci passano sotto.
   const colors = bridgeColors(look);
   ctx.lineCap = 'butt';
   strokeChains(ctx, bridges, ROAD_WIDTH + 6, colors.rail);
   strokeChains(ctx, bridges, ROAD_WIDTH - 2, colors.deck);
-  drawBridgeDetails(ctx, bridges.map((c) => c.points), look);
   ctx.lineCap = 'round';
   drawOneWayArrows(ctx, graph, [...graph.edges.values()].filter((e) => e.oneWay));
 
@@ -180,6 +180,22 @@ export function drawRoads(ctx, graph, congestion, look) {
     ctx.lineTo(b.x, b.y);
     ctx.stroke();
   }
+}
+
+/**
+ * Quello che sta sopra i ponti (torri, archi, piloni, cavi), nello stile della
+ * città: va disegnato dopo i veicoli, che ci passano sotto e spariscono.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {RoadGraph} graph
+ * @param {import('../sim/level.js').Look} [look]
+ */
+export function drawBridgeTops(ctx, graph, look) {
+  const bridges = roadChains(graph).filter((c) => c.bridge);
+  if (bridges.length === 0) return;
+  ctx.lineCap = 'butt';
+  ctx.lineJoin = 'round';
+  drawBridgeDetails(ctx, bridges.map((c) => c.points), look);
+  ctx.lineCap = 'round';
 }
 
 /**

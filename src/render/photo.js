@@ -2,7 +2,7 @@
 // veicoli né code), con il nome della città in alto e i risultati in basso.
 
 import { STYLE } from './style.js';
-import { drawRoads, drawLaneMarks, drawOverpasses, drawWater } from './roads.js';
+import { drawRoads, drawBridgeTops, drawLaneMarks, drawOverpasses, drawWater } from './roads.js';
 import { drawRoundaboutIslands } from './junctions.js';
 import { drawGround, drawMonuments, drawTerrainNames } from './terrain.js';
 import { drawStations, stationAreas } from './stations.js';
@@ -60,6 +60,7 @@ export function cityPhoto(level, sim, info) {
   drawLaneMarks(ctx, sim.graph);
   drawRoundaboutIslands(ctx, sim.roundabouts.values(), level.look);
   drawOverpasses(ctx, sim.graph, level.look);
+  drawBridgeTops(ctx, sim.graph, level.look);
   const stations = sim.stations.map((s) => ({ ...s, queue: [], returned: 0, bornAt: -Infinity }));
   const labels = area.width / level.view[0].width;
   drawTerrainNames(ctx, level.terrain, labels, stationAreas(ctx, stations, labels));
