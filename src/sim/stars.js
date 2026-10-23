@@ -1,4 +1,4 @@
-// Le tre stelle del livello: viaggi, giorni sopravvissuti, poco traffico lento.
+// Le tre stelle del livello: viaggi, giorni sopravvissuti, poco traffico lento per un po' di fila.
 
 /** @typedef {import('./level.js').Stars} Stars */
 
@@ -6,8 +6,10 @@
  * @typedef {Object} StarState  quello che serve sapere della partita
  * @property {number} trips
  * @property {number} daysSurvived  giorni interi trascorsi
- * @property {number | null} slowTraffic  traffico lento medio in percentuale
- * @property {number} stations     stazioni comparse finora
+ * @property {number} stations       stazioni comparse finora
+ * @property {number} lastGenerated  veicoli generati dall'ultima stazione nata
+ * @property {number} trafficNow     traffico lento attuale, in percentuale
+ * @property {number} trafficStreak  secondi di gioco di fila col traffico attuale sotto la soglia
  */
 
 /**
@@ -15,8 +17,7 @@
  * @property {string} label     es. "130 viaggi"
  * @property {string} progress  es. "34/130"
  * @property {boolean} reached
- * @property {boolean} lasting  true se, una volta presa, la stella resta presa;
- *   la stella del traffico invece si può riperdere fino a fine partita
+ * @property {boolean} lasting  true se, una volta presa, la stella resta presa
  */
 
 /**
@@ -49,15 +50,19 @@ export function starGoals(goals, s) {
  * @returns {StarGoal}
  */
 function trafficGoal(goal, s) {
-  const label = `Traffico lento sotto il ${goal.max}%`;
-  // Conta solo a città completa: con poche stazioni le strade sono vuote e sarebbe troppo facile.
-  if (s.stations < goal.stations || s.slowTraffic === null) {
-    return { label, progress: `si misura con tutte le ${goal.stations} stazioni (ora ${s.stations})`, reached: false, lasting: false };
+  const label = `Traffico lento sotto il ${goal.max}% per ${goal.hold} s`;
+  // Si misura solo a città completa, dopo che l'ultima stazione ha mandato in giro
+  // un po' di veicoli: prima le strade sono vuote e sarebbe troppo facile.
+  if (s.stations < goal.stations) {
+    return { label, progress: `serve la città completa: ${s.stations}/${goal.stations} stazioni`, reached: false, lasting: true };
+  }
+  if (s.lastGenerated < goal.after) {
+    return { label, progress: `l'ultima stazione deve generare ${goal.after} veicoli (${s.lastGenerated}/${goal.after})`, reached: false, lasting: true };
   }
   return {
     label,
-    progress: `ora ${s.slowTraffic}% (massimo ${goal.max}%)`,
-    reached: s.slowTraffic <= goal.max,
-    lasting: false,
+    progress: `ora ${s.trafficNow}%: ${Math.floor(s.trafficStreak)}/${goal.hold} s di fila`,
+    reached: s.trafficStreak >= goal.hold,
+    lasting: true,
   };
 }

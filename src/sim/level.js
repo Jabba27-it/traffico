@@ -64,9 +64,11 @@ import { emptyTerrain } from './terrain.js';
  */
 
 /**
- * @typedef {Object} TrafficGoal  terza stella: poco traffico lento
- * @property {number} max       traffico lento medio massimo, in percentuale
+ * @typedef {Object} TrafficGoal  terza stella: poco traffico lento, per un po' di tempo di fila
+ * @property {number} max       traffico lento massimo, in percentuale
  * @property {number} stations  stazioni che devono esserci tutte prima che la stella conti
+ * @property {number} after     veicoli che l'ultima stazione nata deve aver generato prima che si misuri
+ * @property {number} hold      secondi di gioco di fila sotto la soglia per prendere la stella
  */
 
 /**
@@ -251,7 +253,12 @@ export function parseLevel(json) {
     const t = st.traffico;
     if (!isNum(t?.soglia)) throw new Error('"stelle.traffico" deve avere "soglia" (percentuale di traffico lento)');
     // La stella conta solo a città completa: tutte le stazioni che il livello può avere.
-    const traffic = { max: t.soglia, stations: growth ? growth.max : json.stazioni?.length ?? 0 };
+    const traffic = {
+      max: t.soglia,
+      stations: growth ? growth.max : json.stazioni?.length ?? 0,
+      after: isNum(t.veicoli) ? t.veicoli : 6,
+      hold: isNum(t.secondi) ? t.secondi : 40,
+    };
     stars = { trips: st.viaggi, days: st.giorni, traffic };
   }
 

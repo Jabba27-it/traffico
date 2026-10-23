@@ -63,6 +63,8 @@ const GROWTH_RETRY = 1;
  * preferiscono i percorsi con meno incroci a parità di lunghezza.
  */
 const JUNCTION_COST = 25;
+/** Secondi su cui si ammorbidisce il traffico lento "attuale" della terza stella. */
+const RECENT_TRAFFIC = 5;
 /** Spazio minimo fra l'anello di una rotonda nuova e un'altra rotonda o un cavalcavia. */
 const ROUNDABOUT_GAP = 12;
 export class Simulation {
@@ -108,6 +110,10 @@ export class Simulation {
      */
     this.roadTime = 0;
     this.slowTime = 0;
+    /** Traffico lento "attuale": quota di veicoli lenti, ammorbidita sugli ultimi secondi (0..1). */
+    this.recentSlow = 0;
+    /** Secondi di gioco di fila col traffico attuale sotto la soglia della terza stella. */
+    this.trafficStreak = 0;
     /** @type {Map<number, number>} secondi al prossimo veicolo in coda, per stazione */
     this.spawnTimers = new Map();
     /** @type {Map<number, number>} secondi alla prossima partenza possibile, per stazione */
@@ -163,14 +169,16 @@ export class Simulation {
     return starGoals(this.level.stars, {
       trips: this.trips,
       daysSurvived: Math.floor(this.elapsed / this.level.dayLength + 1e-6),
-      slowTraffic: this.slowTraffic,
       stations: this.stations.length,
+      lastGenerated: this.stations[this.stations.length - 1]?.generated ?? 0,
+      trafficNow: Math.round(this.recentSlow * 100),
+      trafficStreak: this.trafficStreak,
     });
   }
 
   /**
-   * Aggiorna le stelle. Quelle "durature" restano prese; quella del traffico
-   * vale finché la media resta sotto la soglia, e conta com'è a fine partita.
+   * Aggiorna le stelle. Quelle "durature" (oggi tutte) restano prese; le altre
+   * valgono solo finché l'obiettivo resta raggiunto.
    */
   updateStars() {
     const goals = this.starGoals();
@@ -266,6 +274,16 @@ export class Simulation {
    * veicoli andando sotto il 30% della loro velocità massima. null finché
    * nessuno è partito.
    */
+  /**
+   * true quando la terza stella si misura: tutte le stazioni ci sono e l'ultima
+   * nata ha già generato abbastanza veicoli.
+   */
+  get trafficMeasured() {
+    const goal = this.level.stars?.traffic;
+    const last = this.stations[this.stations.length - 1];
+    return Boolean(goal && last && this.stations.length >= goal.stations && last.generated >= goal.after);
+  }
+
   get slowTraffic() {
     return this.roadTime > 0 ? Math.round((100 * this.slowTime) / this.roadTime) : null;
   }
@@ -611,9 +629,18 @@ export class Simulation {
     }
 
     const arrived = new Set(this.traffic.step(this.vehicles, dt));
+    let slowNow = 0;
     for (const v of this.vehicles) {
       this.roadTime += dt;
-      if (v.speed < v.type.maxSpeed * SLOW) this.slowTime += dt;
+      if (v.speed < v.type.maxSpeed * SLOW) {
+        this.slowTime += dt;
+        slowNow++;
+      }
+    }
+    this.recentSlow += ((this.vehicles.length ? slowNow / this.vehicles.length : 0) - this.recentSlow) * Math.min(1, dt / RECENT_TRAFFIC);
+    const trafficGoal = this.level.stars?.traffic;
+    if (trafficGoal && this.trafficMeasured) {
+      this.trafficStreak = this.recentSlow * 100 <= trafficGoal.max ? this.trafficStreak + dt : 0;
     }
     if (arrived.size > 0) {
       this.trips += arrived.size;
@@ -663,6 +690,7 @@ export class Simulation {
     const options = [...present].filter((s) => s !== station.shape);
     if (options.length === 0) return;
     station.queue.push(options[Math.floor(this.random() * options.length)]);
+    station.generated++;
   }
 
   /**
