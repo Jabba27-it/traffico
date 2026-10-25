@@ -13,10 +13,10 @@ import { starsHtml } from './hud.js';
  * @param {{ record: LevelRecord, newBest: boolean } | null} best  null se il livello non ha stelle
  * @param {{ onRetry: () => void, onMenu: () => void, onPhoto: () => void }} actions
  * @param {boolean} [completed]  true se la partita finisce perché il livello è completato
- * @param {string} [culprit]  nome della stazione che ha fatto perdere, se ce l'ha
+ * @param {string} [cause]  perché si è perso (stazione sovraccarica o ingorgo), già in parole
  * @param {boolean} [sandbox]  partita in modalità sandbox: niente stelle, conta il punteggio
  */
-export function showGameOver(parent, values, best, actions, completed = false, culprit = '', sandbox = false) {
+export function showGameOver(parent, values, best, actions, completed = false, cause = '', sandbox = false) {
   const overlay = document.createElement('div');
   overlay.className = 'game-over';
 
@@ -33,8 +33,8 @@ export function showGameOver(parent, values, best, actions, completed = false, c
       ? 'Hai preso tutte e tre le stelle e hai vinto la Maratona: stella di platino!'
       : 'Hai preso tutte e tre le stelle.'
     : threeStars
-      ? `${culprit ? `La stazione ${culprit}` : 'Una stazione'} è rimasta sovraccarica troppo a lungo. Platino mancato: hai resistito ${values.daysAfterThree ?? 0} giorni su ${values.platinumDays} dopo la terza stella.`
-      : `${culprit ? `La stazione ${culprit}` : 'Una stazione'} è rimasta sovraccarica troppo a lungo.`;
+      ? `${cause} Platino mancato: hai resistito ${values.daysAfterThree ?? 0} giorni su ${values.platinumDays} dopo la terza stella.`
+      : cause;
   if (completed || threeStars) overlay.classList.add('completed');
   box.append(title, reason);
 

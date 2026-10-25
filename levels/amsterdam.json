@@ -1,0 +1,852 @@
+{
+  "nome": "Amsterdam",
+  "mondo": {
+    "larghezza": 920,
+    "altezza": 1840
+  },
+  "forme": [
+    "cerchio",
+    "quadrato",
+    "triangolo",
+    "pentagono",
+    "esagono",
+    "stella",
+    "rombo",
+    "croce"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 190,
+      "y": 160,
+      "larghezza": 430
+    },
+    {
+      "giorno": 3,
+      "x": 190,
+      "y": 160,
+      "larghezza": 430
+    },
+    {
+      "giorno": 8,
+      "x": 110,
+      "y": 60,
+      "larghezza": 620
+    },
+    {
+      "giorno": 14,
+      "x": 40,
+      "y": 20,
+      "larghezza": 800
+    },
+    {
+      "giorno": 20,
+      "x": 0,
+      "y": 0,
+      "larghezza": 920
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 546,
+      "y": 260,
+      "nome": "Centraal Station"
+    },
+    {
+      "forma": "quadrato",
+      "x": 496,
+      "y": 647,
+      "nome": "Rembrandtplein"
+    },
+    {
+      "forma": "triangolo",
+      "x": 235,
+      "y": 714,
+      "nome": "Leidseplein"
+    }
+  ],
+  "acqua": [
+    {
+      "tipo": "fiume",
+      "larghezza": 80,
+      "punti": [
+        [
+          -196,
+          120
+        ],
+        [
+          140,
+          154
+        ],
+        [
+          420,
+          168
+        ],
+        [
+          700,
+          176
+        ],
+        [
+          1036,
+          160
+        ]
+      ]
+    },
+    {
+      "tipo": "fiume",
+      "larghezza": 40,
+      "punti": [
+        [
+          840,
+          1946
+        ],
+        [
+          812,
+          1554
+        ],
+        [
+          798,
+          1274
+        ],
+        [
+          756,
+          994
+        ],
+        [
+          709,
+          837
+        ],
+        [
+          652,
+          679
+        ],
+        [
+          609,
+          560
+        ],
+        [
+          622,
+          378
+        ],
+        [
+          658,
+          168
+        ]
+      ]
+    },
+    {
+      "tipo": "fiume",
+      "larghezza": 30,
+      "punti": [
+        [
+          424,
+          154
+        ],
+        [
+          393,
+          175
+        ],
+        [
+          366,
+          200
+        ],
+        [
+          343,
+          230
+        ],
+        [
+          326,
+          262
+        ],
+        [
+          314,
+          298
+        ],
+        [
+          309,
+          334
+        ],
+        [
+          309,
+          371
+        ],
+        [
+          316,
+          408
+        ],
+        [
+          328,
+          443
+        ],
+        [
+          346,
+          475
+        ],
+        [
+          369,
+          504
+        ],
+        [
+          397,
+          529
+        ],
+        [
+          429,
+          549
+        ],
+        [
+          463,
+          563
+        ],
+        [
+          499,
+          572
+        ],
+        [
+          536,
+          574
+        ],
+        [
+          573,
+          570
+        ],
+        [
+          609,
+          560
+        ]
+      ]
+    },
+    {
+      "tipo": "fiume",
+      "larghezza": 30,
+      "punti": [
+        [
+          242,
+          154
+        ],
+        [
+          218,
+          196
+        ],
+        [
+          199,
+          242
+        ],
+        [
+          187,
+          289
+        ],
+        [
+          182,
+          338
+        ],
+        [
+          184,
+          386
+        ],
+        [
+          192,
+          434
+        ],
+        [
+          207,
+          481
+        ],
+        [
+          229,
+          525
+        ],
+        [
+          256,
+          565
+        ],
+        [
+          289,
+          602
+        ],
+        [
+          326,
+          633
+        ],
+        [
+          368,
+          659
+        ],
+        [
+          412,
+          679
+        ],
+        [
+          459,
+          692
+        ],
+        [
+          508,
+          699
+        ],
+        [
+          556,
+          699
+        ],
+        [
+          605,
+          692
+        ],
+        [
+          652,
+          679
+        ]
+      ]
+    },
+    {
+      "tipo": "fiume",
+      "larghezza": 36,
+      "punti": [
+        [
+          53,
+          154
+        ],
+        [
+          31,
+          217
+        ],
+        [
+          18,
+          282
+        ],
+        [
+          14,
+          348
+        ],
+        [
+          18,
+          414
+        ],
+        [
+          30,
+          480
+        ],
+        [
+          51,
+          543
+        ],
+        [
+          80,
+          603
+        ],
+        [
+          116,
+          658
+        ],
+        [
+          159,
+          709
+        ],
+        [
+          208,
+          754
+        ],
+        [
+          262,
+          792
+        ],
+        [
+          321,
+          823
+        ],
+        [
+          383,
+          846
+        ],
+        [
+          448,
+          861
+        ],
+        [
+          514,
+          868
+        ],
+        [
+          580,
+          866
+        ],
+        [
+          645,
+          855
+        ],
+        [
+          709,
+          837
+        ]
+      ]
+    }
+  ],
+  "terreno": {
+    "ville": [
+      {
+        "nome": "Vondelpark",
+        "punti": [
+          [
+            -14,
+            840
+          ],
+          [
+            154,
+            832
+          ],
+          [
+            182,
+            888
+          ],
+          [
+            140,
+            980
+          ],
+          [
+            -14,
+            988
+          ]
+        ]
+      },
+      {
+        "nome": "Museumplein",
+        "punti": [
+          [
+            202,
+            876
+          ],
+          [
+            280,
+            876
+          ],
+          [
+            294,
+            952
+          ],
+          [
+            210,
+            960
+          ]
+        ]
+      },
+      {
+        "nome": "Sarphatipark",
+        "punti": [
+          [
+            462,
+            1008
+          ],
+          [
+            532,
+            1002
+          ],
+          [
+            538,
+            1050
+          ],
+          [
+            462,
+            1056
+          ]
+        ]
+      },
+      {
+        "nome": "Artis",
+        "punti": [
+          [
+            784,
+            588
+          ],
+          [
+            882,
+            580
+          ],
+          [
+            896,
+            672
+          ],
+          [
+            790,
+            680
+          ]
+        ]
+      },
+      {
+        "nome": "Oosterpark",
+        "punti": [
+          [
+            818,
+            798
+          ],
+          [
+            910,
+            792
+          ],
+          [
+            910,
+            882
+          ],
+          [
+            826,
+            888
+          ]
+        ]
+      },
+      {
+        "nome": "Beatrixpark",
+        "punti": [
+          [
+            322,
+            1484
+          ],
+          [
+            448,
+            1476
+          ],
+          [
+            454,
+            1568
+          ],
+          [
+            330,
+            1576
+          ]
+        ]
+      },
+      {
+        "nome": "Amstelpark",
+        "punti": [
+          [
+            420,
+            1708
+          ],
+          [
+            574,
+            1700
+          ],
+          [
+            588,
+            1820
+          ],
+          [
+            434,
+            1828
+          ]
+        ]
+      }
+    ],
+    "colli": [],
+    "monumenti": [
+      {
+        "nome": "Palazzo Reale",
+        "icona": "colonne",
+        "x": 406,
+        "y": 420,
+        "raggio": 11
+      },
+      {
+        "nome": "Oude Kerk",
+        "icona": "torre",
+        "x": 526,
+        "y": 356,
+        "raggio": 9
+      },
+      {
+        "nome": "Westerkerk",
+        "icona": "torre",
+        "x": 266,
+        "y": 384,
+        "raggio": 10
+      },
+      {
+        "nome": "Munttoren",
+        "icona": "torre",
+        "x": 440,
+        "y": 608,
+        "raggio": 9
+      },
+      {
+        "nome": "Rijksmuseum",
+        "icona": "colonne",
+        "x": 280,
+        "y": 854,
+        "raggio": 12
+      },
+      {
+        "nome": "Concertgebouw",
+        "icona": "colonne",
+        "x": 154,
+        "y": 1022,
+        "raggio": 10
+      },
+      {
+        "nome": "NEMO",
+        "icona": "vele",
+        "x": 714,
+        "y": 232,
+        "raggio": 10
+      },
+      {
+        "nome": "Eye",
+        "icona": "cupola",
+        "x": 546,
+        "y": 81,
+        "raggio": 10
+      },
+      {
+        "nome": "A'DAM Toren",
+        "icona": "grattacielo",
+        "x": 448,
+        "y": 76,
+        "raggio": 10
+      },
+      {
+        "nome": "RAI",
+        "icona": "stadio",
+        "x": 378,
+        "y": 1386,
+        "raggio": 12
+      }
+    ]
+  },
+  "quartieri": [
+    {
+      "nome": "Dam",
+      "x": 434,
+      "y": 378
+    },
+    {
+      "nome": "Nieuwezijds",
+      "x": 378,
+      "y": 336
+    },
+    {
+      "nome": "De Wallen",
+      "x": 560,
+      "y": 392
+    },
+    {
+      "nome": "Nieuwmarkt",
+      "x": 594,
+      "y": 434
+    },
+    {
+      "nome": "Spui",
+      "x": 420,
+      "y": 504
+    },
+    {
+      "nome": "Kalverstraat",
+      "x": 490,
+      "y": 490
+    },
+    {
+      "nome": "Negen Straatjes",
+      "x": 280,
+      "y": 448
+    },
+    {
+      "nome": "Grachtengordel",
+      "x": 294,
+      "y": 280
+    },
+    {
+      "nome": "Gouden Bocht",
+      "x": 378,
+      "y": 602
+    },
+    {
+      "nome": "Reguliersgracht",
+      "x": 546,
+      "y": 636
+    },
+    {
+      "nome": "Herengracht",
+      "x": 322,
+      "y": 532
+    },
+    {
+      "nome": "Jordaan",
+      "x": 154,
+      "y": 336
+    },
+    {
+      "nome": "Noordermarkt",
+      "x": 182,
+      "y": 238
+    },
+    {
+      "nome": "Westerstraat",
+      "x": 126,
+      "y": 406
+    },
+    {
+      "nome": "Weteringbuurt",
+      "x": 350,
+      "y": 756
+    },
+    {
+      "nome": "Spiegelkwartier",
+      "x": 294,
+      "y": 700
+    },
+    {
+      "nome": "Prinsengracht",
+      "x": 140,
+      "y": 546
+    },
+    {
+      "nome": "Oud-West",
+      "x": 56,
+      "y": 644
+    },
+    {
+      "nome": "Museumkwartier",
+      "x": 238,
+      "y": 994
+    },
+    {
+      "nome": "De Pijp",
+      "x": 448,
+      "y": 952
+    },
+    {
+      "nome": "Albert Cuyp",
+      "x": 504,
+      "y": 910
+    },
+    {
+      "nome": "Oud-Zuid",
+      "x": 140,
+      "y": 1120
+    },
+    {
+      "nome": "Hoofddorpplein",
+      "x": 56,
+      "y": 1218
+    },
+    {
+      "nome": "Rivierenbuurt",
+      "x": 574,
+      "y": 1274
+    },
+    {
+      "nome": "Zuid",
+      "x": 210,
+      "y": 1358
+    },
+    {
+      "nome": "Stadionbuurt",
+      "x": 70,
+      "y": 1442
+    },
+    {
+      "nome": "Zuidas",
+      "x": 252,
+      "y": 1610
+    },
+    {
+      "nome": "Buitenveldert",
+      "x": 224,
+      "y": 1764
+    },
+    {
+      "nome": "Plantage",
+      "x": 770,
+      "y": 518
+    },
+    {
+      "nome": "Weesperzijde",
+      "x": 854,
+      "y": 1022
+    },
+    {
+      "nome": "Oost",
+      "x": 910,
+      "y": 714
+    },
+    {
+      "nome": "Oosterdok",
+      "x": 784,
+      "y": 280
+    },
+    {
+      "nome": "Betondorp",
+      "x": 910,
+      "y": 1358
+    },
+    {
+      "nome": "Noord",
+      "x": 336,
+      "y": 56
+    },
+    {
+      "nome": "Buiksloterham",
+      "x": 196,
+      "y": 70
+    },
+    {
+      "nome": "NDSM",
+      "x": 56,
+      "y": 48
+    },
+    {
+      "nome": "Overhoeks",
+      "x": 616,
+      "y": 70
+    }
+  ],
+  "stile": {
+    "ponte": "grachten",
+    "cavalcavia": "mattoni",
+    "rotonda": "tulipani"
+  },
+  "ponti": {
+    "iniziali": 3
+  },
+  "cavalcavia": {
+    "iniziali": 1
+  },
+  "crescita": {
+    "ogniMin": 45,
+    "ogniMax": 60,
+    "massimo": 12,
+    "distanzaMinima": 100,
+    "difficolta": 0.8
+  },
+  "congestione": {
+    "capienza": 6,
+    "tolleranza": 20
+  },
+  "tempo": {
+    "giorno": 20
+  },
+  "veicoli": {
+    "ogniMin": 7,
+    "ogniMax": 9,
+    "aumento": 0.02,
+    "aumentoMassimo": 0.5
+  },
+  "strade": {
+    "iniziali": 25,
+    "perGiorno": 5,
+    "lunghezzaTratto": 40
+  },
+  "premi": {
+    "strade": 15,
+    "capienza": 3,
+    "ponti": 1,
+    "cavalcavia": 1
+  },
+  "stelle": {
+    "viaggi": 250,
+    "giorni": 20,
+    "traffico": {
+      "soglia": 12
+    },
+    "platino": {
+      "giorni": 10
+    }
+  }
+}

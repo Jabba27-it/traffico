@@ -40,6 +40,7 @@ export const VEHICLE_TYPES = [
  * @property {number} speed
  * @property {{x: number, y: number, dx: number, dy: number}} pose  posizione all'ultimo passo
  * @property {number} departedAt  secondo di gioco in cui è partito
+ * @property {number} [stopped]  secondi di fila passati fermo in strada (per l'ingorgo)
  */
 
 /**

@@ -48,6 +48,13 @@ function edgeOverWater(graph, waters, e) {
 }
 
 /** @typedef {{x: number, y: number}} Point */
+
+/** Un veicolo fermo in strada da così tanti secondi fa scattare l'allarme ingorgo. */
+export const JAM_ALERT = 15;
+/** Fermo da così tanti secondi: l'ingorgo fa perdere la partita. */
+export const JAM_LOSS = 30;
+/** Sotto questa velocità un veicolo conta come fermo. */
+const JAM_SPEED = 0.5;
 /** @typedef {import('./roadBuilder.js').RoadPlan} RoadPlan */
 
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
@@ -123,6 +130,8 @@ export class Simulation {
     this.growthTimer = level.growth ? this.nextGrowthDelay() : Infinity;
     /** @type {Station | null} la stazione rimasta sovraccarica troppo a lungo */
     this.failedStation = null;
+    /** Dove un ingorgo ha fatto perdere la partita (null se non è successo). */
+    this.failedJam = null;
     /** Tratti di strada ancora disponibili. */
     this.roadBudget = level.roads.initial;
     /**
@@ -198,7 +207,7 @@ export class Simulation {
       lastGenerated: this.stations[this.stations.length - 1]?.generated ?? 0,
       trafficNow: Math.round(this.recentSlow * 100),
       trafficStreak: this.trafficStreak,
-      daysAfterThree: this.threeStarsAt === null ? null : Math.floor((this.elapsed - this.threeStarsAt) / this.level.dayLength + 1e-6),
+      daysAfterThree: this.threeStarsAt == null ? null : Math.floor((this.elapsed - this.threeStarsAt) / this.level.dayLength + 1e-6),
     };
   }
 
@@ -221,7 +230,7 @@ export class Simulation {
     // finché passano i giorni della Maratona (o finché non si perde); senza
     // platino il livello è completato e la partita finisce.
     if (goals.length > 0 && goals.every((_, i) => this.starsEarned[i])) {
-      if (this.threeStarsAt === null) this.threeStarsAt = this.elapsed;
+      if (this.threeStarsAt == null) this.threeStarsAt = this.elapsed;
       const platinum = this.platinumGoal();
       if (!platinum) this.completed = true;
       else if (platinum.reached) {
@@ -413,6 +422,17 @@ export class Simulation {
     return result;
   }
 
+  /**
+   * Gli ingorghi in allarme: i veicoli fermi in strada da almeno JAM_ALERT secondi,
+   * con quanto manca alla sconfitta (0..1).
+   * @returns {{x: number, y: number, progress: number}[]}
+   */
+  get jams() {
+    return this.vehicles
+      .filter((v) => (v.stopped ?? 0) >= JAM_ALERT)
+      .map((v) => ({ x: v.pose.x, y: v.pose.y, progress: Math.min(1, /** @type {number} */ (v.stopped) / JAM_LOSS) }));
+  }
+
   /** true se c'è una mossa da annullare. */
   get canUndo() {
     return this.lastMove !== null;
@@ -580,7 +600,7 @@ export class Simulation {
 
   /** true quando il livello è fallito: da lì la simulazione è ferma. */
   get failed() {
-    return this.failedStation !== null;
+    return this.failedStation !== null || this.failedJam !== null;
   }
 
   /** true se il tempo scorre: né livello finito (perso o completato) né premio in attesa di scelta. */
@@ -784,6 +804,12 @@ export class Simulation {
     }
 
     this.failedStation = updateCongestion(this.stations, dt, this.level.congestion.tolerance);
+
+    // Ingorgo: un veicolo fermo in strada troppo a lungo fa perdere la partita.
+    for (const v of this.vehicles) {
+      v.stopped = v.speed < JAM_SPEED ? (v.stopped ?? 0) + dt : 0;
+      if (v.stopped >= JAM_LOSS && !this.failedJam) this.failedJam = { x: v.pose.x, y: v.pose.y };
+    }
 
     // Le reti si controllano una volta al secondo: basta e costa poco.
     this.starTimer -= dt;
@@ -1142,7 +1168,8 @@ export class Simulation {
   spawnIncrease() {
     const { growth, growthMax, growthAfter, growthMaxAfter } = this.level.spawn;
     const day = this.elapsed / this.level.dayLength;
-    if (this.threeStarsAt === null) return Math.min(growth * day, growthMax);
+    // Anche prima che il costruttore l'abbia impostato (le stazioni iniziali si creano prima).
+    if (this.threeStarsAt == null) return Math.min(growth * day, growthMax);
     const startDay = this.threeStarsAt / this.level.dayLength;
     const atThree = Math.min(growth * startDay, growthMax);
     return Math.max(atThree, Math.min(atThree + growthAfter * (day - startDay), growthMaxAfter));

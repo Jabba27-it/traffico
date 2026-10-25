@@ -1,6 +1,6 @@
 import { RoadGraph } from './sim/graph.js';
 import { parseLevel, sandboxLevel } from './sim/level.js';
-import { Simulation } from './sim/simulation.js';
+import { Simulation, JAM_LOSS } from './sim/simulation.js';
 import { setupCanvas, fitCamera, scaleFor, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
 import { createCamera, cameraRect, zoomAround } from './render/camera.js';
 import { attachPinch } from './input/pinch.js';
@@ -14,7 +14,7 @@ import { drawGround, drawMonuments, drawTerrainNames } from './render/terrain.js
 import { drawStations, drawSelectable, stationAreas } from './render/stations.js';
 import { STATION_RADIUS } from './sim/stations.js';
 import { drawVehicles } from './render/vehicles.js';
-import { drawCongestion } from './render/congestion.js';
+import { drawCongestion, drawJams } from './render/congestion.js';
 import { attachRoadDrawing } from './input/drawRoad.js';
 import { createHud } from './ui/hud.js';
 import { showGameOver } from './ui/gameOver.js';
@@ -278,7 +278,11 @@ async function start() {
 
     // Con una stazione oltre la capienza si sente un battito, più fitto man mano
     // che il conto alla rovescia avanza (solo a gioco in corso).
-    const urgency = Math.max(0, ...sim.stations.filter((s) => waitingCount(s) > s.capacity).map((s) => s.overload / level.congestion.tolerance));
+    const urgency = Math.max(
+      0,
+      ...sim.stations.filter((s) => waitingCount(s) > s.capacity).map((s) => s.overload / level.congestion.tolerance),
+      ...sim.jams.map((j) => j.progress),
+    );
     if (urgency > 0 && running && sim.running && speed.speed() > 0) {
       if (now >= nextBeat) {
         playHeartbeat(urgency);
@@ -383,7 +387,10 @@ async function start() {
           .then((image) => showPhoto(document.body, image, `traffico-${LEVEL_NAME}.png`, `La mia ${level.name} in ${GAME_TITLE}`))
           .catch((err) => console.error(err));
       };
-      showGameOver(document.body, results, best, { onRetry: () => location.reload(), onMenu: goToMenu, onPhoto }, sim.completed, sim.failedStation?.name, SANDBOX);
+      const cause = sim.failedJam
+        ? `Un ingorgo ha tenuto fermi i veicoli per ${JAM_LOSS} secondi.`
+        : `${sim.failedStation?.name ? `La stazione ${sim.failedStation.name}` : 'Una stazione'} è rimasta sovraccarica troppo a lungo.`;
+      showGameOver(document.body, results, best, { onRetry: () => location.reload(), onMenu: goToMenu, onPhoto }, sim.completed, cause, SANDBOX);
     }
 
     const { ctx } = view;
@@ -425,6 +432,7 @@ async function start() {
     drawVehicles(ctx, elevated);
     // Torri, archi e cavi dei ponti coprono i veicoli che ci passano sotto.
     drawBridgeTops(ctx, graph, level.look);
+    drawJams(ctx, sim.jams, now / 1000);
     drawCongestion(ctx, sim.stations, level.congestion.tolerance, now / 1000);
     const labelScale = framed.width / level.view[0].width;
     drawTerrainNames(ctx, level.terrain, labelScale, stationAreas(ctx, sim.stations, labelScale));
@@ -434,6 +442,7 @@ async function start() {
     if (choosingStation) drawSelectable(ctx, sim.stations, now / 1000);
     // A partita persa, la stazione che ha fatto perdere pulsa in rosso.
     if (sim.failedStation) drawHint(ctx, sim.failedStation, now / 1000, labelScale * 1.4, STYLE.blockedText);
+    if (sim.failedJam) drawHint(ctx, sim.failedJam, now / 1000, labelScale * 1.4, STYLE.blockedText);
   }
 
   requestAnimationFrame((now) => {

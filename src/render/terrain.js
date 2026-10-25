@@ -338,28 +338,22 @@ export function drawMonument(ctx, m) {
       ctx.lineTo(x + s * 0.12, y + s * 0.4);
       ctx.stroke();
       break;
-    case 'gondola': { // scafo nero a mezzaluna, il "ferro" a pettine a prua e il gondoliere a poppa
-      ctx.moveTo(x - s * 1.05, y + s * 0.05);
-      ctx.quadraticCurveTo(x, y + s * 0.75, x + s * 1.05, y - s * 0.15);
-      ctx.quadraticCurveTo(x, y + s * 0.35, x - s * 1.05, y + s * 0.05);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(x + s * 1.0, y - s * 0.12);
-      ctx.lineTo(x + s * 1.1, y - s * 0.55);
-      for (const k of [0.2, 0.35, 0.5]) {
-        ctx.moveTo(x + s * 1.06, y - s * k);
-        ctx.lineTo(x + s * 0.88, y - s * k);
+    case 'case': // tre case strette sui canali, coi tetti a gradini e a punta
+      for (const [k, h] of [[-0.62, 0.95], [0, 1.15], [0.62, 0.85]]) {
+        const cx = x + k * s;
+        const top = y + s * 0.75 - h * s * 1.2;
+        ctx.moveTo(cx - s * 0.27, y + s * 0.75);
+        ctx.lineTo(cx - s * 0.27, top + s * 0.2);
+        ctx.lineTo(cx, top - s * 0.12);
+        ctx.lineTo(cx + s * 0.27, top + s * 0.2);
+        ctx.lineTo(cx + s * 0.27, y + s * 0.75);
+        ctx.moveTo(cx - s * 0.08, y + s * 0.75);
+        ctx.lineTo(cx - s * 0.08, y + s * 0.5);
+        ctx.lineTo(cx + s * 0.08, y + s * 0.5);
+        ctx.lineTo(cx + s * 0.08, y + s * 0.75);
       }
-      ctx.moveTo(x - s * 0.62, y + s * 0.2);
-      ctx.lineTo(x - s * 0.62, y - s * 0.4);
-      ctx.moveTo(x - s * 0.62, y - s * 0.25);
-      ctx.lineTo(x - s * 0.15, y + s * 0.55);
       ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(x - s * 0.62, y - s * 0.55, s * 0.13, 0, Math.PI * 2);
-      ctx.fill();
       break;
-    }
     case 'forme': // le tre forme delle stazioni
       ctx.arc(x - s * 0.55, y + s * 0.35, s * 0.32, 0, Math.PI * 2);
       ctx.rect(x + s * 0.25, y + s * 0.05, s * 0.6, s * 0.6);

@@ -21,7 +21,7 @@ const BRIDGE_COLORS = {
   arco: { rail: STYLE.harbourSteel, deck: STYLE.bridgeDeck },
   strallato: { rail: STYLE.white, deck: STYLE.bridgeDeck },
   bosforo: { rail: STYLE.bosphorusRail, deck: STYLE.bridgeDeck },
-  rialto: { rail: STYLE.istria, deck: STYLE.bridgeDeck },
+  grachten: { rail: STYLE.brick, deck: STYLE.bridgeDeck },
 };
 
 /** @type {Record<string, string>} colore dei parapetti dei cavalcavia */
@@ -32,7 +32,7 @@ const OVERPASS_RAILS = {
   arenaria: STYLE.sandstone,
   tropicale: STYLE.white,
   maiolica: STYLE.turquoise,
-  istria: STYLE.istria,
+  mattoni: STYLE.brick,
 };
 
 /** @param {Look} [look] */
@@ -105,7 +105,7 @@ export function drawBridgeDetails(ctx, bridges, look) {
     else if (kind === 'bosforo') suspensionBridge(ctx, length, pointAt, STYLE.bosphorusTower, 6, false);
     else if (kind === 'arco') archBridge(ctx, length, pointAt);
     else if (kind === 'strallato') cableStayedBridge(ctx, length, pointAt);
-    else if (kind === 'rialto') rialtoBridge(ctx, length, pointAt);
+    else if (kind === 'grachten') canalBridge(ctx, length, pointAt);
   }
 }
 
@@ -264,25 +264,22 @@ function cableStayedBridge(ctx, length, pointAt) {
 }
 
 /**
- * Venezia: ponte in pietra d'Istria con le due file di botteghe ai lati, come
- * a Rialto: piccoli tetti rossi lungo i parapetti, nella parte centrale.
+ * Amsterdam: il ponticello in mattoni sui canali, con le fioriere colorate in
+ * fila lungo i parapetti e le testate in mattone più chiaro alle rive.
  * @param {CanvasRenderingContext2D} ctx
  * @param {number} length
  * @param {(t: number) => ReturnType<ReturnType<typeof walker>['pointAt']>} pointAt
  */
-function rialtoBridge(ctx, length, pointAt) {
-  const shops = Math.max(1, Math.floor((length * 0.6) / 9));
-  for (let i = 0; i < shops; i++) {
-    const p = pointAt(0.2 + (0.6 * (i + 0.5)) / shops);
+function canalBridge(ctx, length, pointAt) {
+  const boxes = Math.max(2, Math.floor(length / 8));
+  for (let i = 0; i < boxes; i++) {
+    const p = pointAt((i + 0.5) / boxes);
     for (const side of [-1, 1]) {
-      ctx.fillStyle = STYLE.shopRoof;
-      block(ctx, p, 7, 5, side * (BRIDGE_HALF + 2));
-      ctx.fillStyle = STYLE.istriaEdge;
-      block(ctx, p, 7, 1, side * (BRIDGE_HALF + 2));
+      ctx.fillStyle = STYLE.tulips[(i + (side > 0 ? 1 : 0)) % 3];
+      block(ctx, p, 4, 3, side * (BRIDGE_HALF + 1.5));
     }
   }
-  // Le due testate in pietra bianca alle rive.
-  ctx.fillStyle = STYLE.istria;
+  ctx.fillStyle = STYLE.brickLight;
   for (const t of [0, 1]) for (const side of [-1, 1]) block(ctx, pointAt(t), 6, 5, side * (BRIDGE_HALF + 1));
 }
 
@@ -392,7 +389,7 @@ export function drawIsland(ctx, r, look) {
     onde: STYLE.white,
     fontana: STYLE.travertine,
     fontanaClassica: STYLE.travertine,
-    pozzo: STYLE.nyPaving,
+    tulipani: STYLE.grass,
   }[kind] ?? STYLE.island;
   disc(ri, ground);
   ctx.save();
@@ -495,27 +492,14 @@ export function drawIsland(ctx, r, look) {
       }
       ctx.stroke();
     }
-  } else if (kind === 'pozzo') {
-    // Venezia: un campo lastricato di masegni (lastre in diagonale) col pozzo
-    // al centro: la "vera da pozzo" in pietra d'Istria e la bocca scura.
-    ctx.strokeStyle = STYLE.istriaEdge;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let k = -2 * ri; k <= 2 * ri; k += ri * 0.32) {
-      ctx.moveTo(x + k - ri, y - ri);
-      ctx.lineTo(x + k + ri, y + ri);
-      ctx.moveTo(x + k + ri, y - ri);
-      ctx.lineTo(x + k - ri, y + ri);
+  } else if (kind === 'tulipani') {
+    // Amsterdam: un'aiuola di tulipani a strisce di colori diversi.
+    const rows = 5;
+    for (let r = 0; r < rows; r++) {
+      const yy = y - ri + ((r + 0.5) * 2 * ri) / rows;
+      const color = STYLE.tulips[r % STYLE.tulips.length];
+      for (let xx = x - ri; xx <= x + ri; xx += ri * 0.22) disc(ri * 0.08, color, xx - x, yy - y);
     }
-    ctx.stroke();
-    disc(ri * 0.36, STYLE.shadow, ri * 0.08, ri * 0.1);
-    disc(ri * 0.34, STYLE.istria);
-    ctx.lineWidth = 1.2;
-    ctx.strokeStyle = STYLE.istriaEdge;
-    ctx.beginPath();
-    ctx.arc(x, y, ri * 0.34, 0, Math.PI * 2);
-    ctx.stroke();
-    disc(ri * 0.17, STYLE.wellDark);
   } else if (kind === 'fontana') {
     // Istanbul: fontana ottomana ottagonale, acqua turchese e una piccola cupola.
     const octagon = (/** @type {number} */ rad, /** @type {string} */ fill) => {
