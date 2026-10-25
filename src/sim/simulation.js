@@ -3,7 +3,7 @@
 
 import { createRandom } from './random.js';
 import { shortestPaths, pathTo } from './pathfinding.js';
-import { pointOnVehicle, randomVehicleType } from './vehicles.js';
+import { pointOnVehicle, randomVehicleType, VEHICLE_TYPES } from './vehicles.js';
 import { LaneGeometry, projectOnLane } from './lanes.js';
 import { Traffic, SLOW } from './traffic.js';
 import { closestPointOnSegment, distance } from './geometry.js';
@@ -111,7 +111,13 @@ export class Simulation {
      * Quante volte il giocatore ha fatto ciascuna azione: serve al tutorial per
      * capire quando un esercizio è stato fatto.
      */
-    this.events = { removed: 0, roadType: 0, junction: 0, roundabout: 0 };
+    this.events = { removed: 0, roadType: 0, junction: 0, roundabout: 0, undo: 0, bridge: 0, reward: 0 };
+    /**
+     * Nel tutorial non si perde: quando si perderebbe, qui c'è il motivo
+     * ('station' o 'jam') e il tutorial lo mostra e rimette a posto lo scenario.
+     * @type {'station' | 'jam' | null}
+     */
+    this.wouldLose = null;
     /**
      * Per la terza stella: secondi-veicolo passati in strada, e quanti di questi
      * andando lenti (sotto la stessa soglia che vela di rosso le strade).
@@ -433,6 +439,41 @@ export class Simulation {
       .map((v) => ({ x: v.pose.x, y: v.pose.y, progress: Math.min(1, /** @type {number} */ (v.stopped) / JAM_LOSS) }));
   }
 
+  /**
+   * Tutorial, scenario dell'ingorgo: mette un furgone fermo sulla strada fra due
+   * stazioni, a metà del primo tratto. Resta fermo finché quella strada c'è.
+   * @param {number} fromStationId
+   * @param {number} toStationId
+   * @returns {boolean}  false se fra le due stazioni non c'è strada
+   */
+  parkVan(fromStationId, toStationId) {
+    const from = this.stations.find((s) => s.id === fromStationId);
+    const to = this.stations.find((s) => s.id === toStationId);
+    if (!from || !to) return false;
+    const path = pathTo(this.paths(from.nodeId), to.nodeId);
+    if (!path || path.length < 3) return false;
+    /** @type {Vehicle} */
+    const van = {
+      id: this.nextVehicleId++,
+      shape: to.shape,
+      type: VEHICLE_TYPES[1],
+      fromStationId: from.id,
+      toStationId: to.id,
+      path,
+      leg: 1,
+      phase: 'lane',
+      s: 0,
+      speed: 0,
+      pose: { x: from.x, y: from.y, dx: 1, dy: 0 },
+      departedAt: this.elapsed,
+      parked: true,
+    };
+    van.s = this.lanes.lane(path[1], path[2]).length / 2;
+    van.pose = pointOnVehicle(this.lanes, van);
+    this.vehicles.push(van);
+    return true;
+  }
+
   /** true se c'è una mossa da annullare. */
   get canUndo() {
     return this.lastMove !== null;
@@ -460,6 +501,7 @@ export class Simulation {
     this.bridgeBudget += before.budgets.bridge - after.bridge;
     this.overpassBudget += before.budgets.overpass - after.overpass;
     this.lastMove = null;
+    this.events.undo++;
     this.updateRoutes();
     return true;
   }
@@ -490,6 +532,7 @@ export class Simulation {
     const cost = this.roadCost(plan);
     this.roadBudget -= cost;
     this.bridgeBudget -= plan.bridges;
+    if (plan.bridges > 0) this.events.bridge++;
 
     // Ogni arco nuovo ricorda la sua parte del costo, così rimuoverlo
     // restituisce esattamente quanto era stato pagato.
@@ -614,6 +657,7 @@ export class Simulation {
     if (!this.rewardPending) return;
     this.overpassBudget += this.level.rewards.overpasses;
     this.rewardPending = false;
+    this.events.reward++;
   }
 
   /**
@@ -717,6 +761,7 @@ export class Simulation {
     if (!this.rewardPending) return;
     this.bridgeBudget += this.level.rewards.bridges;
     this.rewardPending = false;
+    this.events.reward++;
   }
 
   /** Premio di fine settimana: tratti di strada in più. */
@@ -725,6 +770,7 @@ export class Simulation {
     if (!this.rewardPending) return;
     this.roadBudget += this.level.rewards.roads;
     this.rewardPending = false;
+    this.events.reward++;
   }
 
   /**
@@ -738,6 +784,7 @@ export class Simulation {
     station.capacity += this.level.rewards.capacity;
     station.upgrades++;
     this.rewardPending = false;
+    this.events.reward++;
   }
 
   /** @param {number} dt  secondi */
@@ -803,12 +850,18 @@ export class Simulation {
       for (const v of arrived) this.recordTrip(v);
     }
 
-    this.failedStation = updateCongestion(this.stations, dt, this.level.congestion.tolerance);
+    const overloaded = updateCongestion(this.stations, dt, this.level.congestion.tolerance);
+    // Nel tutorial si prova senza perdere: la sconfitta diventa un avviso.
+    if (this.level.tutorial) {
+      if (overloaded) this.wouldLose = 'station';
+    } else this.failedStation = overloaded;
 
     // Ingorgo: un veicolo fermo in strada troppo a lungo fa perdere la partita.
     for (const v of this.vehicles) {
       v.stopped = v.speed < JAM_SPEED ? (v.stopped ?? 0) + dt : 0;
-      if (v.stopped >= JAM_LOSS && !this.failedJam) this.failedJam = { x: v.pose.x, y: v.pose.y };
+      if (v.stopped < JAM_LOSS) continue;
+      if (this.level.tutorial) this.wouldLose = 'jam';
+      else if (!this.failedJam) this.failedJam = { x: v.pose.x, y: v.pose.y };
     }
 
     // Le reti si controllano una volta al secondo: basta e costa poco.
@@ -1033,6 +1086,8 @@ export class Simulation {
     this.vehicles = this.vehicles.filter((v) => {
       if (this.reroute(v)) return true;
       this.traffic.forget(v);
+      // Il furgone fermo del tutorial non torna in coda: sparisce con la sua strada.
+      if (v.parked) return false;
       // Torna in testa alla coda come "rientrato": riparte per primo e non conta
       // per il sovraccarico, così rifare una strada non fa perdere la partita.
       const origin = this.stations.find((s) => s.id === v.fromStationId);

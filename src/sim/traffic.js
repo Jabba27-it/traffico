@@ -82,7 +82,7 @@ export class Traffic {
     this.indexVehicles(vehicles);
     this.grantPermissions();
 
-    for (const v of vehicles) v.speed = this.safeSpeed(v, dt);
+    for (const v of vehicles) v.speed = v.parked ? 0 : this.safeSpeed(v, dt);
 
     /** @type {Vehicle[]} */
     const arrived = [];

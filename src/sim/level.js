@@ -84,15 +84,19 @@ import { emptyTerrain } from './terrain.js';
  * @typedef {Object} TutorialStep
  * @property {string} title
  * @property {string} text
- * @property {'avanti' | 'collega' | 'viaggi' | 'rimuovi' | 'tipoStrada' | 'incrocio' | 'rotonda' | 'zoom' | 'fine'} goal
+ * @property {'avanti' | 'collega' | 'viaggi' | 'rimuovi' | 'tipoStrada' | 'incrocio' | 'rotonda' | 'zoom' | 'annulla' | 'ponte' | 'premio' | 'velocita' | 'stelle' | 'salva' | 'sblocca' | 'fine'} goal
  * @property {number} count          per 'viaggi': quanti; per 'collega': le due stazioni (indici in `stations` del passo o del livello)
  * @property {StationDef[]} addStations  stazioni che compaiono all'inizio del passo
  * @property {{x: number, y: number}[] | null} road  strada già costruita all'inizio del passo (per l'esercizio di rimozione)
  * @property {{x: number, y: number} | null} hint    dove indicare con un cerchio che pulsa
+ * @property {boolean} popup  la stazione che compare nel passo si presenta col suo pop-up
+ * @property {number} queue   veicoli già in coda nella stazione che compare (scenario "stazione piena")
+ * @property {number | null} tolerance  secondi di sovraccarico prima della sconfitta, solo in questo passo
+ * @property {{x: number, y: number}[] | null} van  furgone fermo (scenario "ingorgo"): stazione di partenza e d'arrivo
  */
 
 /** Gli obiettivi possibili di un passo del tutorial. */
-const TUTORIAL_GOALS = ['avanti', 'collega', 'viaggi', 'rimuovi', 'tipoStrada', 'incrocio', 'rotonda', 'zoom', 'fine'];
+const TUTORIAL_GOALS = ['avanti', 'collega', 'viaggi', 'rimuovi', 'tipoStrada', 'incrocio', 'rotonda', 'zoom', 'annulla', 'ponte', 'premio', 'velocita', 'stelle', 'salva', 'sblocca', 'fine'];
 
 /**
  * @typedef {Object} Level
@@ -345,6 +349,10 @@ function parseTutorial(list) {
       }),
       road: Array.isArray(t.strada) ? t.strada.map(point).filter(Boolean) : null,
       hint: point(t.punta),
+      popup: t.popup === true,
+      queue: isNum(t.coda) ? t.coda : 0,
+      tolerance: isNum(t.tolleranza) ? t.tolleranza : null,
+      van: Array.isArray(t.furgone) ? t.furgone.map(point).filter(Boolean) : null,
     };
   });
 }

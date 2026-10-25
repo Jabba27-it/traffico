@@ -154,12 +154,17 @@ async function start() {
       zoomAround(camera, sim.view, zoom, anchor, screen, (r) => scaleFor(view, r), view),
   });
   const hasWater = level.waters.length > 0;
+  /** Quante volte sono stati aperti gli obiettivi delle stelle (serve al tutorial). */
+  let goalsOpened = 0;
   const hud = createHud(document.body, {
     bridges: hasWater,
     stars: level.stars !== null,
     // Nei livelli contano le stelle, in sandbox solo il punteggio.
     score: SANDBOX,
-    onStarsTap: () => showGoals(document.body, sim.starGoals(), sim.platinumGoal()),
+    onStarsTap: () => {
+      goalsOpened++;
+      showGoals(document.body, sim.starGoals(), sim.platinumGoal());
+    },
   });
   const speed = createSpeedControls(document.body);
   const tutorial = level.tutorial
@@ -170,6 +175,16 @@ async function start() {
           if (where === 'roma') location.search = '?livello=roma';
           else goToMenu();
         },
+        speed: () => speed.speed(),
+        goalsOpened: () => goalsOpened,
+        popup: (station) => showStationPopup(document.body, station),
+        wouldLose: (kind) =>
+          showNotice(
+            document.body,
+            kind === 'station'
+              ? { title: 'Qui avresti perso', text: 'La stazione è rimasta piena troppo a lungo: in una partita vera sarebbe finita. Riprova: collegala prima che l\'arco si chiuda.' }
+              : { title: 'Qui avresti perso', text: `Un veicolo è rimasto fermo per ${JAM_LOSS} secondi: in una partita vera sarebbe finita. Riprova: togli la strada bloccata prima che l\'arco si chiuda.` },
+          ),
       })
     : null;
   /** true mentre si chiede se uscire: il gioco resta fermo. */
@@ -188,17 +203,15 @@ async function start() {
   document.body.appendChild(menuButton);
   unlockAudioOnTouch();
   createMuteButton(document.body);
-  // Annulla l'ultima mossa (non nel tutorial, per non confondere gli esercizi).
-  const undoButton = tutorial
-    ? null
-    : createUndoButton(document.body, {
-        canUndo: () => sim.canUndo && !gameOverShown && !choosingStation && !sim.rewardPending,
-        onUndo: () => {
-          if (!sim.undo()) return;
-          playRemove();
-          showToast(document.body, 'Mossa annullata');
-        },
-      });
+  // Annulla l'ultima mossa.
+  const undoButton = createUndoButton(document.body, {
+    canUndo: () => sim.canUndo && !gameOverShown && !choosingStation && !sim.rewardPending,
+    onUndo: () => {
+      if (!sim.undo()) return;
+      playRemove();
+      showToast(document.body, 'Mossa annullata');
+    },
+  });
 
   let lastTime = performance.now();
   /** Tratti della strada che si sta disegnando, per il tic a ogni tratto nuovo. */
@@ -353,6 +366,7 @@ async function start() {
     }
     // Nel tutorial le stazioni nuove le presenta già il riquadro delle istruzioni.
     if (sim.stations.length > knownStations) {
+      // Nel tutorial le stazioni le presenta il passo che le fa comparire.
       if (!tutorial) showStationPopup(document.body, sim.stations[sim.stations.length - 1]);
       playStation();
       knownStations = sim.stations.length;
@@ -373,7 +387,7 @@ async function start() {
       slowTraffic: sim.slowTraffic,
     };
     hud.update(results);
-    undoButton?.update();
+    undoButton.update();
     if ((sim.failed || sim.completed) && !gameOverShown) {
       gameOverShown = true;
       const best = SANDBOX

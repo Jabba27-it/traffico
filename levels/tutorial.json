@@ -1,87 +1,155 @@
 {
   "nome": "Tutorial",
   "mondo": { "larghezza": 520, "altezza": 1040 },
-  "forme": ["cerchio", "quadrato", "triangolo"],
+  "forme": ["cerchio", "quadrato", "triangolo", "pentagono", "stella", "esagono", "rombo"],
   "stazioni": [
     { "forma": "cerchio",  "x": 120, "y": 330 },
     { "forma": "quadrato", "x": 400, "y": 330 }
   ],
+  "acqua": [
+    { "tipo": "fiume", "larghezza": 40, "punti": [[-40, 608], [140, 592], [300, 606], [560, 590]] }
+  ],
+  "terreno": {
+    "ville": [
+      { "nome": "Giardino", "punti": [[200, 140], [320, 140], [330, 212], [195, 215]] }
+    ],
+    "monumenti": [
+      { "nome": "Torre", "icona": "torre", "x": 95, "y": 180, "raggio": 12 }
+    ]
+  },
   "congestione": { "capienza": 6, "tolleranza": 1000000 },
   "tempo": { "giorno": 120 },
   "veicoli": { "ogniMin": 4, "ogniMax": 6 },
   "strade": { "iniziali": 80, "perGiorno": 5, "lunghezzaTratto": 40 },
-  "premi": { "strade": 15, "capienza": 3, "cavalcavia": 1 },
+  "premi": { "strade": 15, "capienza": 3, "ponti": 1, "cavalcavia": 1 },
+  "ponti": { "iniziali": 2 },
   "cavalcavia": { "iniziali": 1 },
+  "stelle": { "viaggi": 500, "giorni": 30, "traffico": { "soglia": 12 }, "platino": { "giorni": 10 } },
   "tutorial": [
     {
       "titolo": "Benvenuto in città",
-      "testo": "Ogni stazione ha una forma. I veicoli partono da una stazione e vogliono arrivare a una stazione della forma disegnata sul loro tetto.",
+      "testo": "Ogni stazione ha una forma. I veicoli partono da una stazione e vogliono arrivare a una stazione della forma disegnata sul loro tetto, sulla strada più rapida.",
       "obiettivo": "avanti"
     },
     {
       "titolo": "Disegna una strada",
-      "testo": "Trascina il dito dal cerchio al quadrato per collegarli.",
+      "testo": "Trascina il dito dal cerchio al quadrato per collegarli. Mentre disegni, il numero vicino al dito dice quanti tratti di strada costa.",
       "obiettivo": "collega",
       "punta": [260, 330]
     },
     {
       "titolo": "I veicoli",
-      "testo": "Il cerchio manda veicoli verso il quadrato e viceversa. Chi aspetta di partire resta in coda: le forme grigie sopra la stazione.",
+      "testo": "Il cerchio manda veicoli verso il quadrato e viceversa. Ognuno sta nella sua corsia, tiene la distanza e rallenta in curva. Aspetta tre viaggi.",
       "obiettivo": "viaggi",
       "quanti": 3
     },
     {
-      "titolo": "Code e congestione",
-      "testo": "L'anello intorno a una stazione passa dal verde al rosso quando la coda si allunga. Se resta piena troppo a lungo, la partita è persa: qui nel tutorial no.",
+      "titolo": "Code e capienza",
+      "testo": "Chi aspetta di partire resta in coda: le forme grigie sopra la stazione. L'anello intorno alla stazione va dal verde al rosso man mano che la coda si allunga verso la capienza (6 veicoli).",
       "obiettivo": "avanti"
+    },
+    {
+      "titolo": "Una stazione nuova",
+      "testo": "Col tempo nascono stazioni nuove, col nome del quartiere: si presentano con un riquadro, che chiudi con un tocco. Collegala alla strada, non a un'altra stazione: le stazioni non si attraversano, ci si entra solo per arrivare.",
+      "obiettivo": "collega",
+      "stazioni": [{ "forma": "stella", "x": 440, "y": 160, "nome": "Borgo" }],
+      "popup": true,
+      "punta": [300, 330]
     },
     {
       "titolo": "Togli una strada",
       "testo": "Questa strada non serve. Tieni il dito fermo sopra di lei finché diventa rossa, poi alza il dito: i tratti ti vengono restituiti.",
       "obiettivo": "rimuovi",
-      "strada": [[150, 640], [370, 640]],
-      "punta": [260, 640]
+      "strada": [[150, 455], [370, 455]],
+      "punta": [260, 455]
+    },
+    {
+      "titolo": "Annulla",
+      "testo": "Sbagliato? Disegna una strada qualsiasi, poi tocca la freccia curva in basso a sinistra: l'ultima mossa sparisce e ti tornano i tratti.",
+      "obiettivo": "annulla"
+    },
+    {
+      "titolo": "Parchi e monumenti",
+      "testo": "Nei parchi e sui monumenti non si costruisce. Prova a collegare il pentagono passando dritto nel Giardino: la strada diventa rossa e ti spiega perché. Poi passaci attorno.",
+      "obiettivo": "collega",
+      "stazioni": [{ "forma": "pentagono", "x": 260, "y": 85 }],
+      "punta": [260, 175]
+    },
+    {
+      "titolo": "Fiumi e ponti",
+      "testo": "Una strada che attraversa il fiume diventa un ponte e consuma un ponte (in alto vedi quanti ne restano). Un ponte può essere lungo al massimo il doppio del fiume: attraversalo dritto. Collega il triangolo oltre il fiume.",
+      "obiettivo": "ponte",
+      "stazioni": [{ "forma": "triangolo", "x": 160, "y": 690 }],
+      "punta": [160, 600]
     },
     {
       "titolo": "Incroci e precedenze",
-      "testo": "È comparso un triangolo. Collegalo alla strada che c'è già: nasce un incrocio, e chi arriva dalla laterale dà la precedenza.",
+      "testo": "Collega il nuovo triangolo alla strada che c'è già: nasce un incrocio. La strada più dritta è la principale; chi arriva dalla laterale (col triangolo bianco) dà la precedenza.",
       "obiettivo": "viaggi",
       "quanti": 1,
-      "stazioni": [{ "forma": "triangolo", "x": 260, "y": 600 }],
-      "punta": [260, 460]
+      "stazioni": [{ "forma": "triangolo", "x": 340, "y": 505 }],
+      "punta": [340, 420]
     },
     {
       "titolo": "Sensi unici e superstrade",
-      "testo": "Dai un tocco breve su una strada: diventa a senso unico. Altri tocchi la girano, la fanno superstrada (più veloce) e la riportano normale.",
+      "testo": "Dai un tocco breve su una strada: diventa a senso unico. Altri tocchi la girano, la fanno superstrada (più veloce, con la precedenza, costa altrettanti tratti) e la riportano normale.",
       "obiettivo": "tipoStrada",
-      "punta": [190, 330]
+      "punta": [250, 330]
     },
     {
       "titolo": "Cavalcavia",
-      "testo": "Qui due strade si incrociano a croce. Tocca l'incrocio: diventa un cavalcavia e le strade si scavalcano, senza precedenze. Un altro tocco lo toglie.",
+      "testo": "Qui due strade si incrociano a croce. Tocca l'incrocio: diventa un cavalcavia e le strade si scavalcano, senza precedenze. Un altro tocco lo toglie. I cavalcavia sono pochi: ne arrivano coi premi.",
       "obiettivo": "incrocio",
       "strada": [[190, 250], [190, 410]],
       "punta": [190, 330]
     },
     {
       "titolo": "Rotonde",
-      "testo": "Disegna un cerchio intorno all'incrocio: diventa una rotonda, nel verso in cui l'hai disegnato. Guidando a destra conviene il senso antiorario.",
+      "testo": "Disegna un cerchio intorno a un incrocio: diventa una rotonda, nel verso in cui l'hai disegnata (guidando a destra conviene il senso antiorario). Una rotonda più grande disegnata sopra sostituisce quella sotto; un tocco al centro la toglie.",
       "obiettivo": "rotonda",
       "punta": [260, 330]
     },
     {
-      "titolo": "Risorse e premi",
-      "testo": "In alto vedi i tratti di strada, i ponti e i cavalcavia rimasti: ne arrivano altri ogni giorno. A fine settimana scegli un premio.",
-      "obiettivo": "avanti"
+      "titolo": "Come si perde: stazione piena",
+      "testo": "Il Mercato è pieno! Se una stazione supera la capienza parte il conto alla rovescia: l'arco scuro si chiude e, quando è chiuso, la partita è persa. Collegala in fretta, così i veicoli partono e la coda scende.",
+      "obiettivo": "salva",
+      "stazioni": [{ "forma": "esagono", "x": 460, "y": 520, "nome": "Mercato" }],
+      "coda": 9,
+      "tolleranza": 25,
+      "punta": [460, 520]
+    },
+    {
+      "titolo": "Come si perde: ingorgo",
+      "testo": "Un furgone si è fermato in mezzo alla strada del Porto. Un veicolo fermo in strada da 15 secondi fa scattare l'allarme rosso; a 30 secondi la partita è persa. Sblocca la situazione: togli quella strada con una pressione lunga.",
+      "obiettivo": "sblocca",
+      "stazioni": [{ "forma": "rombo", "x": 70, "y": 525, "nome": "Porto" }],
+      "strada": [[120, 330], [70, 525]],
+      "furgone": [[120, 330], [70, 525]],
+      "punta": [95, 430]
+    },
+    {
+      "titolo": "Giorni, risorse e premi",
+      "testo": "In alto vedi il giorno e i tratti di strada, i ponti e i cavalcavia che ti restano: ogni giorno arrivano altri tratti. A fine settimana scegli un premio fra tre carte. Scegline uno adesso.",
+      "obiettivo": "premio"
+    },
+    {
+      "titolo": "Pausa e velocità",
+      "testo": "In basso a destra: pausa, velocità normale e velocità doppia. Prova la velocità doppia.",
+      "obiettivo": "velocita"
+    },
+    {
+      "titolo": "Le stelle",
+      "testo": "Ogni città ha tre stelle: abbastanza viaggi, abbastanza giorni, poco traffico lento. Presa la terza, la partita continua per il platino: resisti ancora 10 giorni. Tocca le stelle in alto per vedere gli obiettivi.",
+      "obiettivo": "stelle"
     },
     {
       "titolo": "Avvicinati",
-      "testo": "Allarga due dita sullo schermo per fare zoom, e muovile insieme per spostarti.",
+      "testo": "Con due dita puoi allontanare le dita per ingrandire e spostare la mappa. Prova.",
       "obiettivo": "zoom"
     },
     {
       "titolo": "Sei pronto!",
-      "testo": "Hai visto tutto quello che serve. A Roma le stazioni compaiono da sole e il Tevere si attraversa solo con i ponti: buona fortuna!",
+      "testo": "Ogni città ha un livello con le stelle e la modalità Senza fine: lì non ci sono stelle, si va avanti finché non si perde e conta il record di punti. Buon divertimento!",
       "obiettivo": "fine"
     }
   ]

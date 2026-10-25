@@ -196,7 +196,7 @@ function weightedPick(random, items, weights) {
  * @param {RoadGraph} graph
  * @param {{x: number, y: number, radius: number}[]} roundabouts
  */
-function clearOfRoads(p, graph, roundabouts) {
+export function clearOfRoads(p, graph, roundabouts) {
   const reach = STATION_RADIUS + ROAD_WIDTH / 2 + ROAD_MARGIN;
   for (const r of roundabouts) if (distance(r, p) < r.radius + reach) return false;
   for (const e of graph.edges.values()) {
