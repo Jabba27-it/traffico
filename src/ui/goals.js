@@ -1,4 +1,4 @@
-// Riquadro con gli obiettivi delle tre stelle e a che punto sei.
+// Riquadro con gli obiettivi delle stelle (e del platino) e a che punto sei.
 // Si chiude toccandolo o da solo dopo qualche secondo.
 
 /** @typedef {import('../sim/stars.js').StarGoal} StarGoal */
@@ -8,10 +8,9 @@ const DURATION = 5000;
 /**
  * @param {HTMLElement} parent
  * @param {StarGoal[]} goals
- * @param {number | null} [efficiency]  efficienza dei viaggi in percentuale, se già misurata
  * @param {StarGoal | null} [platinum]  la stella di platino, se il livello ce l'ha
  */
-export function showGoals(parent, goals, efficiency = null, platinum = null) {
+export function showGoals(parent, goals, platinum = null) {
   parent.querySelector('.goals')?.remove();
   const box = document.createElement('div');
   box.className = 'goals';
@@ -33,13 +32,6 @@ export function showGoals(parent, goals, efficiency = null, platinum = null) {
     row.append(star, text);
     box.appendChild(row);
   }
-  const info = document.createElement('div');
-  info.className = 'goals-progress goals-info';
-  info.textContent =
-    efficiency === null
-      ? 'Efficienza dei viaggi: si misura dal primo arrivo'
-      : `Efficienza dei viaggi: ${efficiency}% (100% = linea d'aria alla massima velocità)`;
-  box.appendChild(info);
   const close = () => box.remove();
   box.addEventListener('click', close);
   setTimeout(close, DURATION);

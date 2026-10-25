@@ -12,8 +12,8 @@
  * @property {number} overpasses   cavalcavia disponibili
  * @property {boolean[]} stars     stelle guadagnate
  * @property {boolean} [platinum]  stella di platino presa (assente se il livello non ce l'ha)
- * @property {number | null} [platinumMin]  efficienza chiesta per il platino
- * @property {number | null} [efficiency]  efficienza dei viaggi in percentuale
+ * @property {number | null} [platinumDays]  giorni da resistere dopo la terza stella per il platino
+ * @property {number | null} [daysAfterThree]  giorni resistiti dopo la terza stella
  * @property {number | null} [slowTraffic]  traffico lento medio in percentuale
  */
 

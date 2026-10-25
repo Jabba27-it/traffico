@@ -1,5 +1,5 @@
 // Le tre stelle del livello: viaggi, giorni sopravvissuti, poco traffico lento per un po' di fila.
-// Più la stella di platino: viaggi efficienti, da prendere dopo la terza.
+// Più la stella di platino (Maratona): resistere ancora qualche giorno dopo la terza.
 
 /** @typedef {import('./level.js').Stars} Stars */
 
@@ -11,7 +11,7 @@
  * @property {number} lastGenerated  veicoli generati dall'ultima stazione nata
  * @property {number} trafficNow     traffico lento attuale, in percentuale
  * @property {number} trafficStreak  secondi di gioco di fila col traffico attuale sotto la soglia
- * @property {number | null} efficiency  efficienza dei viaggi in percentuale, null finché nessuno è arrivato
+ * @property {number | null} daysAfterThree  giorni interi passati dalla terza stella (null se non c'è ancora)
  */
 
 /**
@@ -70,17 +70,17 @@ function trafficGoal(goal, s) {
 }
 
 /**
- * La stella di platino: dopo le tre stelle si continua a giocare, e arriva
- * quando l'efficienza dei viaggi di tutta la partita raggiunge quella chiesta.
- * @param {number} min  efficienza minima in percentuale
+ * La stella di platino, Maratona: presa la terza stella la partita continua, e
+ * il platino arriva dopo aver resistito ancora un certo numero di giorni.
+ * @param {number} days  giorni da resistere dopo la terza stella
  * @param {StarState} s
  * @returns {StarGoal}
  */
-export function platinumGoal(min, s) {
+export function platinumGoal(days, s) {
   return {
-    label: `Platino: dopo le tre stelle, efficienza dei viaggi almeno ${min}%`,
-    progress: s.efficiency === null ? 'si misura dal primo arrivo' : `ora ${s.efficiency}%`,
-    reached: s.efficiency !== null && s.efficiency >= min,
-    lasting: false,
+    label: `Platino, Maratona: resisti ${days} giorni dopo la terza stella`,
+    progress: s.daysAfterThree === null ? 'prima prendi le tre stelle' : `${Math.min(s.daysAfterThree, days)}/${days} giorni`,
+    reached: s.daysAfterThree !== null && s.daysAfterThree >= days,
+    lasting: true,
   };
 }

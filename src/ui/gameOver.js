@@ -30,10 +30,10 @@ export function showGameOver(parent, values, best, actions, completed = false, c
   const reason = document.createElement('p');
   reason.textContent = completed
     ? values.platinum
-      ? 'Hai preso tutte e tre le stelle, e anche quella di platino!'
+      ? 'Hai preso tutte e tre le stelle e hai vinto la Maratona: stella di platino!'
       : 'Hai preso tutte e tre le stelle.'
     : threeStars
-      ? `${culprit ? `La stazione ${culprit}` : 'Una stazione'} è rimasta sovraccarica troppo a lungo. Platino mancato: efficienza ${values.efficiency ?? 0}%, ne serviva ${values.platinumMin}%.`
+      ? `${culprit ? `La stazione ${culprit}` : 'Una stazione'} è rimasta sovraccarica troppo a lungo. Platino mancato: hai resistito ${values.daysAfterThree ?? 0} giorni su ${values.platinumDays} dopo la terza stella.`
       : `${culprit ? `La stazione ${culprit}` : 'Una stazione'} è rimasta sovraccarica troppo a lungo.`;
   if (completed || threeStars) overlay.classList.add('completed');
   box.append(title, reason);
@@ -52,7 +52,6 @@ export function showGameOver(parent, values, best, actions, completed = false, c
     ...(sandbox ? [['Punti', String(values.score)]] : []),
     ['Giorni', String(values.day - 1)],
     ['Viaggi', String(values.trips)],
-    ['Efficienza', values.efficiency == null ? '–' : `${values.efficiency}%`],
     ['Traffico lento', values.slowTraffic == null ? '–' : `${values.slowTraffic}%`],
   ]) {
     const item = document.createElement('div');

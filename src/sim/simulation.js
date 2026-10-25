@@ -105,9 +105,6 @@ export class Simulation {
      * capire quando un esercizio è stato fatto.
      */
     this.events = { removed: 0, roadType: 0, junction: 0, roundabout: 0 };
-    /** Per l'efficienza: somma dei tempi minimi e dei tempi reali dei viaggi. */
-    this.idealTime = 0;
-    this.actualTime = 0;
     /**
      * Per la terza stella: secondi-veicolo passati in strada, e quanti di questi
      * andando lenti (sotto la stessa soglia che vela di rosso le strade).
@@ -164,8 +161,10 @@ export class Simulation {
     this.starsAnnounced = [false, false, false];
     /** true quando sono state prese tutte le stelle: la partita è vinta e finisce. */
     this.completed = false;
-    /** Stella di platino: si prende dopo le tre stelle, quando l'efficienza arriva alla soglia. */
+    /** Stella di platino: si prende resistendo qualche giorno dopo le tre stelle. */
     this.platinum = false;
+    /** Secondo di gioco in cui sono arrivate tutte e tre le stelle (null se non ancora). */
+    this.threeStarsAt = null;
     /** @type {{index: number, label: string} | null} l'ultima stella guadagnata */
     this.lastStar = null;
     this.starTimer = 0;
@@ -177,7 +176,8 @@ export class Simulation {
    */
   starGoals() {
     if (!this.level.stars) return [];
-    return starGoals(this.level.stars, this.starState());
+    // Una stella presa resta presa: anche negli obiettivi risulta fatta.
+    return starGoals(this.level.stars, this.starState()).map((g, i) => (this.starsEarned[i] ? { ...g, reached: true } : g));
   }
 
   /**
@@ -185,8 +185,8 @@ export class Simulation {
    * @returns {import('./stars.js').StarGoal | null}
    */
   platinumGoal() {
-    const min = this.level.stars?.platinum;
-    return min == null ? null : platinumGoal(min, this.starState());
+    const days = this.level.stars?.platinum;
+    return days == null ? null : platinumGoal(days, this.starState());
   }
 
   /** @returns {import('./stars.js').StarState} */
@@ -198,7 +198,7 @@ export class Simulation {
       lastGenerated: this.stations[this.stations.length - 1]?.generated ?? 0,
       trafficNow: Math.round(this.recentSlow * 100),
       trafficStreak: this.trafficStreak,
-      efficiency: this.efficiency,
+      daysAfterThree: this.threeStarsAt === null ? null : Math.floor((this.elapsed - this.threeStarsAt) / this.level.dayLength + 1e-6),
     };
   }
 
@@ -218,9 +218,10 @@ export class Simulation {
       }
     });
     // Tutte e tre le stelle: se il livello ha il platino si continua a giocare
-    // finché l'efficienza arriva alla soglia (o finché non si perde); senza
+    // finché passano i giorni della Maratona (o finché non si perde); senza
     // platino il livello è completato e la partita finisce.
     if (goals.length > 0 && goals.every((_, i) => this.starsEarned[i])) {
+      if (this.threeStarsAt === null) this.threeStarsAt = this.elapsed;
       const platinum = this.platinumGoal();
       if (!platinum) this.completed = true;
       else if (platinum.reached) {
@@ -283,25 +284,11 @@ export class Simulation {
   }
 
   /**
-   * Somma il viaggio alle misure d'efficienza: il tempo che ci ha messo e il
-   * tempo minimo (in linea d'aria, alla sua velocità massima).
+   * Conta il viaggio per la stazione da cui è partito.
    * @param {Vehicle} v
    */
   recordTrip(v) {
     this.tripsFrom.set(v.fromStationId, (this.tripsFrom.get(v.fromStationId) ?? 0) + 1);
-    const from = this.stations.find((s) => s.id === v.fromStationId);
-    const to = this.stations.find((s) => s.id === v.toStationId);
-    if (!from || !to) return;
-    this.idealTime += Math.hypot(to.x - from.x, to.y - from.y) / v.type.maxSpeed;
-    this.actualTime += Math.max(1e-3, this.elapsed - v.departedAt);
-  }
-
-  /**
-   * Efficienza dei viaggi in percentuale: 100 = tutti in linea d'aria alla
-   * velocità massima. null finché nessuno è arrivato.
-   */
-  get efficiency() {
-    return this.actualTime > 0 ? Math.round((100 * this.idealTime) / this.actualTime) : null;
   }
 
   /**
@@ -786,7 +773,8 @@ export class Simulation {
     }
     this.recentSlow += ((this.vehicles.length ? slowNow / this.vehicles.length : 0) - this.recentSlow) * Math.min(1, dt / RECENT_TRAFFIC);
     const trafficGoal = this.level.stars?.traffic;
-    if (trafficGoal && this.trafficMeasured) {
+    // Presa la terza stella, il traffico non si misura più: la stella resta.
+    if (trafficGoal && this.trafficMeasured && !this.starsEarned[2]) {
       this.trafficStreak = this.recentSlow * 100 <= trafficGoal.max ? this.trafficStreak + dt : 0;
     }
     if (arrived.size > 0) {
@@ -1143,8 +1131,20 @@ export class Simulation {
 
   /** Secondi al prossimo veicolo di una stazione: col passare dei giorni nascono un po' più spesso, fino a un massimo. */
   nextSpawnDelay() {
-    const { min, max, growth, growthMax } = this.level.spawn;
+    return (this.level.spawn.min + this.random() * (this.level.spawn.max - this.level.spawn.min)) / (1 + this.spawnIncrease());
+  }
+
+  /**
+   * Quanti veicoli in più nascono rispetto all'inizio (0.5 = +50%): fino alla
+   * terza stella sale un po' ogni giorno fino al suo tetto; dopo la terza stella
+   * sale più in fretta fino a un tetto più alto (la Maratona del platino).
+   */
+  spawnIncrease() {
+    const { growth, growthMax, growthAfter, growthMaxAfter } = this.level.spawn;
     const day = this.elapsed / this.level.dayLength;
-    return (min + this.random() * (max - min)) / (1 + Math.min(growth * day, growthMax));
+    if (this.threeStarsAt === null) return Math.min(growth * day, growthMax);
+    const startDay = this.threeStarsAt / this.level.dayLength;
+    const atThree = Math.min(growth * startDay, growthMax);
+    return Math.max(atThree, Math.min(atThree + growthAfter * (day - startDay), growthMaxAfter));
   }
 }

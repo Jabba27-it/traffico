@@ -159,7 +159,7 @@ async function start() {
     stars: level.stars !== null,
     // Nei livelli contano le stelle, in sandbox solo il punteggio.
     score: SANDBOX,
-    onStarsTap: () => showGoals(document.body, sim.starGoals(), sim.efficiency, sim.platinumGoal()),
+    onStarsTap: () => showGoals(document.body, sim.starGoals(), sim.platinumGoal()),
   });
   const speed = createSpeedControls(document.body);
   const tutorial = level.tutorial
@@ -296,7 +296,7 @@ async function start() {
       if (!SANDBOX) saveRecord(/** @type {string} */ (LEVEL_NAME), 0, sim.starsEarned, sim.platinum);
       const min = level.stars?.platinum;
       if (min != null && sim.starsEarned.every(Boolean) && !sim.completed) {
-        setTimeout(() => showToast(document.body, `Tre stelle! Continua per il platino: efficienza al ${min}%`), 2500);
+        setTimeout(() => showToast(document.body, `Tre stelle! Resisti altri ${min} giorni per il platino`), 2500);
       }
     }
 
@@ -364,8 +364,8 @@ async function start() {
       overpasses: sim.overpassBudget,
       stars: sim.starsEarned,
       platinum: level.stars?.platinum != null ? sim.platinum : undefined,
-      platinumMin: level.stars?.platinum ?? null,
-      efficiency: sim.efficiency,
+      platinumDays: level.stars?.platinum ?? null,
+      daysAfterThree: sim.starState().daysAfterThree,
       slowTraffic: sim.slowTraffic,
     };
     hud.update(results);

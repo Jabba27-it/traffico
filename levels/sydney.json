@@ -1637,8 +1637,6 @@
     "traffico": {
       "soglia": 12
     },
-    "platino": {
-      "efficienza": 55
-    }
+    "platino": { "giorni": 10 }
   }
 }

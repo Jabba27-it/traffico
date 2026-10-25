@@ -76,7 +76,7 @@ import { emptyTerrain } from './terrain.js';
  * @property {number} trips  prima stella: viaggi completati
  * @property {number} days   seconda stella: giorni sopravvissuti
  * @property {TrafficGoal} traffic  terza stella
- * @property {number | null} platinum  stella di platino: efficienza minima dei viaggi (%) quando si prende la terza stella
+ * @property {number | null} platinum  stella di platino (Maratona): giorni da resistere dopo la terza stella
  */
 
 /**
@@ -115,9 +115,11 @@ const TUTORIAL_GOALS = ['avanti', 'collega', 'viaggi', 'rimuovi', 'tipoStrada', 
  * @property {TutorialStep[] | null} tutorial  passi guidati (solo nel livello tutorial)
  * @property {number} overpasses  cavalcavia disponibili all'inizio
  * @property {Look} look  aspetto di ponti, cavalcavia e rotonde, tipico della città
- * @property {{min: number, max: number, growth: number, growthMax: number}} spawn  secondi fra un veicolo nuovo e il successivo, per stazione;
- *   growth = quanti veicoli in più nascono ogni giorno che passa (0.02 = +2% al giorno),
- *   fino al massimo growthMax (0.5 = al più +50%)
+ * @property {{min: number, max: number, growth: number, growthMax: number, growthAfter: number, growthMaxAfter: number}} spawn
+ *   secondi fra un veicolo nuovo e il successivo, per stazione; growth = quanti veicoli
+ *   in più nascono ogni giorno che passa (0.02 = +2% al giorno), fino al massimo
+ *   growthMax (0.5 = al più +50%). Dopo la terza stella si sale di growthAfter al
+ *   giorno fino a growthMaxAfter (+3% al giorno, al più +65%).
  * @property {{name: string, x: number, y: number}[]} districts
  *   quartieri: una stazione nata a caso prende il nome del quartiere più vicino
  */
@@ -267,7 +269,7 @@ export function parseLevel(json) {
       after: isNum(t.veicoli) ? t.veicoli : 6,
       hold: isNum(t.secondi) ? t.secondi : 40,
     };
-    const platinum = isNum(st.platino?.efficienza) ? st.platino.efficienza : null;
+    const platinum = isNum(st.platino?.giorni) ? st.platino.giorni : null;
     stars = { trips: st.viaggi, days: st.giorni, traffic, platinum };
   }
 
@@ -290,6 +292,8 @@ export function parseLevel(json) {
     max: isNum(vh.ogniMax) && vh.ogniMax >= spawnMin ? vh.ogniMax : spawnMin + 2,
     growth: isNum(vh.aumento) && vh.aumento >= 0 ? vh.aumento : 0,
     growthMax: isNum(vh.aumentoMassimo) && vh.aumentoMassimo >= 0 ? vh.aumentoMassimo : Infinity,
+    growthAfter: isNum(vh.aumentoDopoStelle) && vh.aumentoDopoStelle >= 0 ? vh.aumentoDopoStelle : 0.03,
+    growthMaxAfter: isNum(vh.massimoDopoStelle) && vh.massimoDopoStelle >= 0 ? vh.massimoDopoStelle : 0.65,
   };
 
   const terrain = parseTerrain(json.terreno);
