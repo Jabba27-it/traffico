@@ -455,6 +455,9 @@ async function start() {
     const hint = tutorial?.hint();
     if (hint) drawHint(ctx, hint, now / 1000, labelScale);
     if (choosingStation) drawSelectable(ctx, sim.stations, now / 1000);
+    // Allarme ingorgo: gli stessi cerchi rossi che si allargano della sconfitta,
+    // così il veicolo fermo si nota subito anche da lontano.
+    if (sim.running) for (const j of sim.jams) drawHint(ctx, j, now / 1000, labelScale * 1.4, STYLE.blockedText);
     // A partita persa, la stazione che ha fatto perdere pulsa in rosso.
     if (sim.failedStation) drawHint(ctx, sim.failedStation, now / 1000, labelScale * 1.4, STYLE.blockedText);
     if (sim.failedJam) drawHint(ctx, sim.failedJam, now / 1000, labelScale * 1.4, STYLE.blockedText);
