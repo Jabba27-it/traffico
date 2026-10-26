@@ -12,7 +12,9 @@
   "stazioni": [
     { "forma": "cerchio",   "x": 290, "y": 620,  "nome": "San Pietro" },
     { "forma": "quadrato",  "x": 620, "y": 840,  "nome": "Colosseo" },
-    { "forma": "triangolo", "x": 640, "y": 550,  "nome": "Termini" }
+    { "forma": "triangolo", "x": 640, "y": 550,  "nome": "Termini" },
+    { "forma": "stella", "x": 465, "y": 195, "nome": "Stadio Olimpico", "tipo": "stadio", "giorno": 6 },
+    { "forma": "esagono", "x": 145, "y": 1405, "nome": "Aeroporto di Fiumicino", "tipo": "aeroporto", "giorno": 10 }
   ],
   "acqua": [
     {

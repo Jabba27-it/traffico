@@ -64,6 +64,22 @@
       "x": 313,
       "y": 1112,
       "nome": "Sultanahmet"
+    },
+    {
+      "forma": "stella",
+      "x": 565,
+      "y": 640,
+      "nome": "Stadio del Beşiktaş",
+      "tipo": "stadio",
+      "giorno": 6
+    },
+    {
+      "forma": "esagono",
+      "x": 395,
+      "y": 900,
+      "nome": "Galataport",
+      "tipo": "porto",
+      "giorno": 10
     }
   ],
   "acqua": [

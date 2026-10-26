@@ -119,13 +119,14 @@ export function pointOnVehicle(lanes, v) {
 /**
  * Un tipo di veicolo a caso, secondo il peso di ciascuno.
  * @param {() => number} random
+ * @param {number[]} [weights]  pesi diversi da quelli di base, nell'ordine di VEHICLE_TYPES
  * @returns {VehicleType}
  */
-export function randomVehicleType(random) {
-  const total = VEHICLE_TYPES.reduce((a, t) => a + t.weight, 0);
+export function randomVehicleType(random, weights = VEHICLE_TYPES.map((t) => t.weight)) {
+  const total = weights.reduce((a, w) => a + w, 0);
   let r = random() * total;
-  for (const t of VEHICLE_TYPES) {
-    r -= t.weight;
+  for (const [i, t] of VEHICLE_TYPES.entries()) {
+    r -= weights[i];
     if (r < 0) return t;
   }
   return VEHICLE_TYPES[0];

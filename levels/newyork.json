@@ -64,6 +64,22 @@
       "x": 670,
       "y": 791,
       "nome": "Long Island City"
+    },
+    {
+      "forma": "stella",
+      "x": 699,
+      "y": 424,
+      "nome": "Yankee Stadium",
+      "tipo": "stadio",
+      "giorno": 6
+    },
+    {
+      "forma": "esagono",
+      "x": 530,
+      "y": 1290,
+      "nome": "Porto di Red Hook",
+      "tipo": "porto",
+      "giorno": 10
     }
   ],
   "acqua": [
@@ -673,13 +689,6 @@
         "x": 305,
         "y": 1290,
         "raggio": 12
-      },
-      {
-        "nome": "Yankee Stadium",
-        "icona": "stadio",
-        "x": 699,
-        "y": 424,
-        "raggio": 18
       },
       {
         "nome": "Brooklyn Museum",

@@ -354,6 +354,17 @@ export function drawMonument(ctx, m) {
       }
       ctx.stroke();
       break;
+    case 'ancora': // fusto con l'anello in alto, la traversa e i bracci curvi
+      ctx.arc(x, y - s * 0.75, s * 0.2, 0, Math.PI * 2);
+      ctx.moveTo(x, y - s * 0.55);
+      ctx.lineTo(x, y + s * 0.85);
+      ctx.moveTo(x - s * 0.45, y - s * 0.3);
+      ctx.lineTo(x + s * 0.45, y - s * 0.3);
+      ctx.moveTo(x - s * 0.8, y + s * 0.2);
+      ctx.quadraticCurveTo(x - s * 0.7, y + s * 0.85, x, y + s * 0.85);
+      ctx.quadraticCurveTo(x + s * 0.7, y + s * 0.85, x + s * 0.8, y + s * 0.2);
+      ctx.stroke();
+      break;
     case 'forme': // le tre forme delle stazioni
       ctx.arc(x - s * 0.55, y + s * 0.35, s * 0.32, 0, Math.PI * 2);
       ctx.rect(x + s * 0.25, y + s * 0.05, s * 0.6, s * 0.6);

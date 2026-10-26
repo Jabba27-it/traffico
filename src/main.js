@@ -11,7 +11,7 @@ import { STYLE } from './render/style.js';
 import { drawHint } from './render/hint.js';
 import { createTutorial } from './ui/tutorial.js';
 import { drawGround, drawMonuments, drawTerrainNames } from './render/terrain.js';
-import { drawStations, drawSelectable, drawUpcoming, stationAreas } from './render/stations.js';
+import { drawStations, drawSelectable, drawUpcoming, drawMatch, stationAreas } from './render/stations.js';
 import { STATION_RADIUS } from './sim/stations.js';
 import { drawVehicles } from './render/vehicles.js';
 import { drawCongestion, drawJams } from './render/congestion.js';
@@ -455,7 +455,12 @@ async function start() {
     drawTerrainNames(ctx, level.terrain, labelScale, stationAreas(ctx, sim.stations, labelScale));
     drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed, labelScale);
     // La stazione che sta per nascere, in anteprima.
-    if (sim.upcoming) drawUpcoming(ctx, sim.upcoming.def, 1 - (sim.upcoming.at - sim.elapsed) / STATION_PREVIEW, now / 1000);
+    for (const up of sim.upcoming) drawUpcoming(ctx, up.def, 1 - (up.at - sim.elapsed) / STATION_PREVIEW, now / 1000);
+    // La partita allo stadio: il fischietto e la scritta con quello che succede.
+    for (const s of sim.stations) {
+      const match = sim.matchOf(s);
+      if (match) drawMatch(ctx, s, match, now / 1000, labelScale);
+    }
     const hint = tutorial?.hint();
     if (hint) drawHint(ctx, hint, now / 1000, labelScale);
     if (choosingStation) drawSelectable(ctx, sim.stations, now / 1000);

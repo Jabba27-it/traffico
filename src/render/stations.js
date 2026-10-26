@@ -1,6 +1,7 @@
 // Disegno delle stazioni: una forma piena con un colore per ogni tipo.
 
 import { STATION_RADIUS } from '../sim/stations.js';
+import { drawMonument } from './terrain.js';
 
 /** @typedef {import('../sim/stations.js').Station} Station */
 /** @typedef {import('../sim/stations.js').Shape} Shape */
@@ -30,6 +31,14 @@ const QUEUE_ITEM_RADIUS = 5;
 const QUEUE_SPACING = 13;
 const QUEUE_PER_ROW = 6;
 const QUEUE_MAX_ROWS = 2;
+/** Stadi, porti e aeroporti si disegnano più grandi delle stazioni normali. */
+const SPECIAL_SCALE = 1.35;
+/** L'icona di ogni stazione speciale, nel tondo accanto alla forma. */
+const SPECIAL_ICONS = { stadio: 'stadio', porto: 'ancora', aeroporto: 'aereo' };
+/** Raggio del tondo con l'icona. */
+const BADGE_RADIUS = 9;
+/** Colore delle scritte e del fischietto della partita. */
+const MATCH_COLOR = '#c0392b';
 
 /**
  * Lo spazio che ogni stazione occupa sulla mappa: la forma con l'anello, la
@@ -40,17 +49,18 @@ const QUEUE_MAX_ROWS = 2;
  * @returns {{x: number, y: number, width: number, height: number}[]}
  */
 export function stationAreas(ctx, stations, labelScale = 1) {
-  const ring = STATION_RADIUS + 12;
   const queueHeight = QUEUE_MAX_ROWS * QUEUE_SPACING + QUEUE_ITEM_RADIUS;
   const queueWidth = QUEUE_PER_ROW * QUEUE_SPACING;
   const areas = [];
   for (const s of stations) {
+    const ring = STATION_RADIUS * (s.kind ? SPECIAL_SCALE : 1) + 12;
     areas.push({ x: s.x - ring, y: s.y - ring - queueHeight, width: 2 * ring, height: 2 * ring + queueHeight });
     areas.push({ x: s.x - queueWidth / 2, y: s.y - ring - queueHeight, width: queueWidth, height: queueHeight });
     if (!s.name) continue;
     ctx.font = `${s.landmark ? 600 : 400} ${11 * labelScale}px system-ui, sans-serif`;
     const w = ctx.measureText(s.name).width + 6 * labelScale;
-    areas.push({ x: s.x - w / 2, y: s.y + STATION_RADIUS + 12, width: w, height: 14 * labelScale });
+    // Sotto il nome dello stadio c'è anche la scritta della partita.
+    areas.push({ x: s.x - w / 2, y: s.y + ring, width: w, height: (s.kind === 'stadio' ? 28 : 14) * labelScale });
   }
   return areas;
 }
@@ -69,7 +79,7 @@ export function drawStations(ctx, stations, transit, time, labelScale = 1) {
   for (const s of stations) {
     const grow = Math.min(1, (time - s.bornAt) / APPEAR_TIME);
     // Leggero rimbalzo: supera la misura finale e poi torna indietro.
-    const scale = grow < 1 ? 1 - (1 - grow) ** 3 + Math.sin(grow * Math.PI) * 0.15 : 1;
+    const scale = (grow < 1 ? 1 - (1 - grow) ** 3 + Math.sin(grow * Math.PI) * 0.15 : 1) * (s.kind ? SPECIAL_SCALE : 1);
     ctx.beginPath();
     traceShape(ctx, s.shape, s.x, s.y, STATION_RADIUS * scale);
     ctx.fillStyle = SHAPE_COLORS[s.shape];
@@ -82,6 +92,13 @@ export function drawStations(ctx, stations, transit, time, labelScale = 1) {
       traceShape(ctx, s.shape, s.x, s.y, STATION_RADIUS * scale * 0.6);
       ctx.stroke();
       ctx.lineWidth = 3;
+    }
+    // Stadi, porti e aeroporti: il tondo con l'icona, in alto a destra.
+    if (s.kind) {
+      const r = STATION_RADIUS * SPECIAL_SCALE * 0.85;
+      drawMonument(ctx, { x: s.x + r, y: s.y - r, radius: BADGE_RADIUS * Math.min(1, grow), icon: SPECIAL_ICONS[s.kind] });
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = OUTLINE;
     }
   }
   for (const s of stations) drawQueue(ctx, s, [...s.queue, ...(transit.get(s.id) ?? [])]);
@@ -96,10 +113,68 @@ export function drawStations(ctx, stations, transit, time, labelScale = 1) {
     if (!s.name) continue;
     ctx.font = `${s.landmark ? 600 : 400} ${11 * labelScale}px system-ui, sans-serif`;
     ctx.fillStyle = s.landmark ? NAME_COLOR : DISTRICT_COLOR;
-    const y = s.y + STATION_RADIUS + 12;
+    const y = s.y + STATION_RADIUS * (s.kind ? SPECIAL_SCALE : 1) + 12;
     ctx.strokeText(s.name, s.x, y);
     ctx.fillText(s.name, s.x, y);
   }
+}
+
+/** @typedef {{phase: 'avviso' | 'arrivo' | 'partita' | 'uscita', done: number, left: number}} Match */
+
+/** Cosa dice la scritta sotto lo stadio in ogni fase della partita. */
+const MATCH_TEXT = {
+  avviso: (/** @type {Match} */ m) => `Partita fra ${Math.ceil(m.left)} s`,
+  arrivo: () => 'Arrivano i tifosi',
+  partita: () => 'Partita in corso',
+  uscita: () => 'Fine partita: escono tutti',
+};
+
+/**
+ * La partita allo stadio: il fischietto che pulsa sopra lo stadio (con l'arco del
+ * conto alla rovescia durante l'avviso) e una scritta sotto il nome.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Station} s
+ * @param {Match} m
+ * @param {number} time  secondi, per la pulsazione
+ * @param {number} labelScale
+ */
+export function drawMatch(ctx, s, m, time, labelScale = 1) {
+  const pulse = 0.5 + 0.5 * Math.sin(time * 6);
+  const r = STATION_RADIUS * SPECIAL_SCALE;
+  const bx = s.x - r * 0.85;
+  const by = s.y - r * 0.85;
+  ctx.save();
+  // Il tondo bianco col fischietto.
+  ctx.beginPath();
+  ctx.arc(bx, by, BADGE_RADIUS + pulse * 1.5, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = MATCH_COLOR;
+  ctx.stroke();
+  ctx.fillStyle = MATCH_COLOR;
+  ctx.beginPath();
+  ctx.arc(bx + 1.5, by + 1, 3.6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(bx - 5, by - 2.6, 5.5, 3.2);
+  // Durante l'avviso, l'arco che si chiude quando arrivano i tifosi.
+  if (m.phase === 'avviso') {
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(bx, by, BADGE_RADIUS + 4, -Math.PI / 2, -Math.PI / 2 + m.done * Math.PI * 2);
+    ctx.stroke();
+  }
+  // La scritta sotto il nome.
+  ctx.font = `600 ${10 * labelScale}px system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.lineWidth = 3 * labelScale;
+  ctx.strokeStyle = 'rgba(242, 239, 232, 0.9)';
+  const text = MATCH_TEXT[m.phase](m);
+  const y = s.y + r + 12 + 14 * labelScale;
+  ctx.strokeText(text, s.x, y);
+  ctx.fillText(text, s.x, y);
+  ctx.restore();
 }
 
 /**

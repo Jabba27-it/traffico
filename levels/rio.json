@@ -64,6 +64,22 @@
       "x": 593,
       "y": 1154,
       "nome": "Praia de Botafogo"
+    },
+    {
+      "forma": "stella",
+      "x": 73,
+      "y": 822,
+      "nome": "Maracanã",
+      "tipo": "stadio",
+      "giorno": 6
+    },
+    {
+      "forma": "esagono",
+      "x": 754,
+      "y": 816,
+      "nome": "Aeroporto Santos Dumont",
+      "tipo": "aeroporto",
+      "giorno": 10
     }
   ],
   "acqua": [
@@ -536,13 +552,6 @@
         "raggio": 12
       },
       {
-        "nome": "Maracanã",
-        "icona": "stadio",
-        "x": 73,
-        "y": 822,
-        "raggio": 20
-      },
-      {
         "nome": "Theatro Municipal",
         "icona": "colonne",
         "x": 619,
@@ -562,13 +571,6 @@
         "x": 668,
         "y": 655,
         "raggio": 9
-      },
-      {
-        "nome": "Aeroporto Santos Dumont",
-        "icona": "aereo",
-        "x": 754,
-        "y": 816,
-        "raggio": 30
       }
     ]
   },

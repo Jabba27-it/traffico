@@ -64,6 +64,22 @@
       "x": 320,
       "y": 672,
       "nome": "Central"
+    },
+    {
+      "forma": "stella",
+      "x": 442,
+      "y": 742,
+      "nome": "Sydney Cricket Ground",
+      "tipo": "stadio",
+      "giorno": 6
+    },
+    {
+      "forma": "esagono",
+      "x": 314,
+      "y": 1165,
+      "nome": "Aeroporto di Sydney",
+      "tipo": "aeroporto",
+      "giorno": 10
     }
   ],
   "acqua": [
@@ -1130,20 +1146,6 @@
         "x": 347,
         "y": 605,
         "raggio": 9
-      },
-      {
-        "nome": "Sydney Cricket Ground",
-        "icona": "stadio",
-        "x": 442,
-        "y": 742,
-        "raggio": 16
-      },
-      {
-        "nome": "Aeroporto",
-        "icona": "aereo",
-        "x": 314,
-        "y": 1165,
-        "raggio": 42
       }
     ]
   },

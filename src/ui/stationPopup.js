@@ -32,7 +32,7 @@ export function showStationPopup(parent, station) {
   const text = document.createElement('div');
   const label = document.createElement('div');
   label.className = 'station-popup-label';
-  label.textContent = 'Nuova stazione';
+  label.textContent = { stadio: 'Nuovo stadio', porto: 'Nuovo porto', aeroporto: 'Nuovo aeroporto' }[station.kind ?? ''] ?? 'Nuova stazione';
   const name = document.createElement('div');
   name.className = 'station-popup-name';
   name.textContent = station.name ?? station.shape;

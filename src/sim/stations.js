@@ -32,6 +32,10 @@ export const STATION_RADIUS = 15;
  * @property {string} [name]   nome del luogo o del quartiere
  * @property {boolean} [landmark]  true per i luoghi fissi del livello
  * @property {boolean} [bridgeGift]  è nata su una terra nuova e ha portato un ponte
+ * @property {import('./specials.js').SpecialKind} [kind]  stadio, porto o aeroporto
+ * @property {number} [matchCycle]  stadio: la partita di cui si contano tifosi e uscite
+ * @property {number} [fans]  stadio: tifosi già mandati in questa partita
+ * @property {number} [out]  stadio: veicoli già usciti in questa partita
  */
 
 /**
@@ -75,5 +79,6 @@ export function createStation(graph, def, id, bornAt, capacity) {
     upgrades: 0,
     ...(def.name ? { name: def.name } : {}),
     ...(def.landmark ? { landmark: true } : {}),
+    ...(def.kind ? { kind: def.kind } : {}),
   };
 }

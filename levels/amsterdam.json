@@ -64,6 +64,14 @@
       "x": 235,
       "y": 714,
       "nome": "Leidseplein"
+    },
+    {
+      "forma": "esagono",
+      "x": 775,
+      "y": 265,
+      "nome": "Passenger Terminal",
+      "tipo": "porto",
+      "giorno": 10
     }
   ],
   "acqua": [

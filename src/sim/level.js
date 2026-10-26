@@ -1,6 +1,7 @@
 // Lettura e controllo di un file di livello (vedi levels/*.json).
 
 import { SHAPES } from './stations.js';
+import { SPECIAL_KINDS } from './specials.js';
 import { emptyTerrain } from './terrain.js';
 
 /** @typedef {import('./stations.js').Shape} Shape */
@@ -12,6 +13,8 @@ import { emptyTerrain } from './terrain.js';
  * @property {number} y
  * @property {string} [name]  nome del luogo, scritto sotto la stazione
  * @property {boolean} [landmark]  true per i luoghi fissi del livello (non per i quartieri)
+ * @property {import('./specials.js').SpecialKind} [kind]  stadio, porto o aeroporto (voce "tipo")
+ * @property {number} [day]  giorno da cui può comparire (voce "giorno"), oltre a dover entrare nella vista
  */
 
 /**
@@ -143,7 +146,15 @@ export function parseLevel(json) {
   const stations = json.stazioni.map((/** @type {any} */ s, /** @type {number} */ i) => {
     checkShape(s?.forma, `Stazione ${i + 1}`);
     if (!isNum(s.x) || !isNum(s.y)) throw new Error(`Stazione ${i + 1}: mancano "x" o "y"`);
-    return { shape: s.forma, x: s.x, y: s.y, ...(typeof s.nome === 'string' ? { name: s.nome, landmark: true } : {}) };
+    if (s.tipo !== undefined && !SPECIAL_KINDS.includes(s.tipo)) throw new Error(`Stazione ${i + 1}: "tipo" dev'essere ${SPECIAL_KINDS.join(', ')}`);
+    return {
+      shape: s.forma,
+      x: s.x,
+      y: s.y,
+      ...(typeof s.nome === 'string' ? { name: s.nome, landmark: true } : {}),
+      ...(s.tipo ? { kind: s.tipo } : {}),
+      ...(isNum(s.giorno) ? { day: s.giorno } : {}),
+    };
   });
 
   /** @type {ViewKey[]} */

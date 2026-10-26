@@ -49,7 +49,7 @@ const STATION_SNAP = STATION_RADIUS + 8;
  * @property {Water[]} waters
  * @property {{x: number, y: number, width: number, height: number}} bounds  dove si può costruire
  * @property {import('./terrain.js').Terrain} terrain  ville e monumenti, dove non si costruisce
- * @property {Point | null} [upcoming]  la stazione in anteprima: il suo posto è riservato
+ * @property {Point[]} [upcoming]  le stazioni in anteprima: il loro posto è riservato
  */
 
 /** @typedef {import('./water.js').Water} Water */
@@ -77,8 +77,9 @@ export function planRoad(graph, points, limits) {
   const blockedAt = (/** @type {Point} */ p, /** @type {number} */ i) => {
     if (p.x < b.x || p.y < b.y || p.x > b.x + b.width || p.y > b.y + b.height) return 'outside';
     const mid = i > 0 ? { x: (p.x + points[i - 1].x) / 2, y: (p.y + points[i - 1].y) / 2 } : p;
-    const up = limits.upcoming;
-    if (up && Math.min(Math.hypot(p.x - up.x, p.y - up.y), Math.hypot(mid.x - up.x, mid.y - up.y)) < STATION_CLEARANCE + UPCOMING_MARGIN) return 'upcoming';
+    for (const up of limits.upcoming ?? []) {
+      if (Math.min(Math.hypot(p.x - up.x, p.y - up.y), Math.hypot(mid.x - up.x, mid.y - up.y)) < STATION_CLEARANCE + UPCOMING_MARGIN) return 'upcoming';
+    }
     return obstacleAt(limits.terrain, p, ROAD_WIDTH / 2) ?? obstacleAt(limits.terrain, mid, ROAD_WIDTH / 2);
   };
   const firstBlocked = points.findIndex((p, i) => blockedAt(p, i) !== null);

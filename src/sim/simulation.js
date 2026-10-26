@@ -18,6 +18,7 @@ import { starGoals, platinumGoal } from './stars.js';
 import { buildOverpass, overpassPairs, removeOverpass } from './overpass.js';
 import { drawnCircle, buildRoundabout, removeRoundabout, ringCost, ringPoints, clipAtRings } from './roundabout.js';
 import { obstacleAt } from './terrain.js';
+import { SPECIAL_CAPACITY, SPAWN_FACTOR, HEAVY_MIX, MATCH, matchState } from './specials.js';
 
 /** @typedef {import('./roadEditing.js').RoadPiece} RoadPiece */
 /** @typedef {import('./graph.js').RoadEdge} RoadEdge */
@@ -140,10 +141,11 @@ export class Simulation {
     /** Secondi alla prossima stazione nuova. */
     this.growthTimer = level.growth ? this.nextGrowthDelay() : Infinity;
     /**
-     * La stazione che sta per nascere, in anteprima: dove, di che forma e quando.
-     * @type {{def: StationDef, at: number} | null}
+     * Le stazioni che stanno per nascere, in anteprima: dove, di che forma e quando.
+     * Al più una nata a caso, più le speciali (stadi, porti, aeroporti) arrivate al loro giorno.
+     * @type {{def: StationDef, at: number}[]}
      */
-    this.upcoming = null;
+    this.upcoming = [];
     /** @type {Station | null} la stazione rimasta sovraccarica troppo a lungo */
     this.failedStation = null;
     /** Dove un ingorgo ha fatto perdere la partita (null se non è successo). */
@@ -278,9 +280,13 @@ export class Simulation {
    */
   revealStations(bornAt) {
     const view = this.view;
+    const day = this.elapsed / this.level.dayLength + 1;
     this.hiddenStations = this.hiddenStations.filter((def) => {
       if (!rectContains(view, def, FIXED_STATION_MARGIN) || this.isReserved(def)) return true;
-      this.addStation(def, bornAt);
+      if (def.day !== undefined && day < def.day) return true;
+      // Stadi, porti e aeroporti si annunciano con l'anteprima, come le stazioni nate a caso.
+      if (def.kind && bornAt !== -Infinity) this.upcoming.push({ def, at: this.elapsed + STATION_PREVIEW });
+      else this.addStation(def, bornAt);
       return false;
     });
   }
@@ -290,7 +296,8 @@ export class Simulation {
    * @param {number} bornAt
    */
   addStation(def, bornAt) {
-    const station = createStation(this.graph, def, this.stations.length + 1, bornAt, this.level.congestion.capacity);
+    const capacity = this.level.congestion.capacity * (def.kind ? SPECIAL_CAPACITY : 1);
+    const station = createStation(this.graph, def, this.stations.length + 1, bornAt, capacity);
     this.stations.push(station);
     // Prima stazione su una terra nuova: arriva il ponte per collegarla.
     const land = landOf(landsOf(this.level), station);
@@ -301,7 +308,7 @@ export class Simulation {
       }
       this.landsWithStations.add(land);
     }
-    this.spawnTimers.set(station.id, this.nextSpawnDelay());
+    this.spawnTimers.set(station.id, this.nextSpawnDelay(station));
     this.departTimers.set(station.id, 0);
   }
 
@@ -310,23 +317,24 @@ export class Simulation {
    * (una strada tornata con l'annulla) si rinuncia e se ne sceglie un'altra.
    */
   hatchUpcoming() {
-    const up = this.upcoming;
-    if (!up || this.elapsed < up.at) return;
-    this.upcoming = null;
-    if (clearOfRoads(up.def, this.graph, this.roundabouts.values())) this.addStation(up.def, this.elapsed);
-    else this.growthTimer = GROWTH_RETRY;
+    for (const up of this.upcoming.filter((u) => this.elapsed >= u.at)) {
+      this.upcoming.splice(this.upcoming.indexOf(up), 1);
+      // Le speciali nascono comunque al loro posto: le strade che ci passano entrano nella stazione.
+      if (up.def.kind || clearOfRoads(up.def, this.graph, this.roundabouts.values())) this.addStation(up.def, this.elapsed);
+      else this.growthTimer = GROWTH_RETRY;
+    }
   }
 
   /** Fa comparire una stazione nuova quando è il momento, se c'è posto. */
   grow() {
     const growth = this.level.growth;
-    if (!growth || this.upcoming || this.stations.length >= growth.max) return;
+    if (!growth || this.upcoming.some((u) => !u.def.kind) || this.stations.length + this.upcoming.length >= growth.max) return;
     const i = SPAWN_INSET;
     const area = insetRect(this.view, i.left, i.top, i.right, i.bottom);
     const def = pickNewStation(this.random, this.level, this.stations, area, this.graph, (p) => !this.isReserved(p), this.roundabouts.values());
     if (def) {
       // Prima si vede in anteprima, poi nasce (vedi hatchUpcoming).
-      this.upcoming = { def, at: this.elapsed + STATION_PREVIEW };
+      this.upcoming.push({ def, at: this.elapsed + STATION_PREVIEW });
       this.growthTimer = this.nextGrowthDelay();
     } else {
       this.growthTimer = GROWTH_RETRY;
@@ -392,7 +400,7 @@ export class Simulation {
       waters: this.level.waters,
       bounds: this.view,
       terrain: this.level.terrain,
-      upcoming: this.upcoming?.def ?? null,
+      upcoming: this.upcoming.map((u) => u.def),
     });
   }
 
@@ -606,8 +614,7 @@ export class Simulation {
    */
   makeRoundabout(circle) {
     if (this.stations.some((st) => Math.hypot(st.x - circle.x, st.y - circle.y) < circle.radius + STATION_RADIUS)) return 'roundabout-station';
-    const up = this.upcoming?.def;
-    if (up && Math.hypot(up.x - circle.x, up.y - circle.y) < circle.radius + STATION_CLEARANCE) return 'roundabout-upcoming';
+    if (this.upcoming.some((u) => Math.hypot(u.def.x - circle.x, u.def.y - circle.y) < circle.radius + STATION_CLEARANCE)) return 'roundabout-upcoming';
     const view = this.view;
     const blocked = ringPoints(circle).some(
       (p) => isInWater(this.level.waters, p) || obstacleAt(this.level.terrain, p, 6) !== null || !rectContains(view, p),
@@ -858,9 +865,10 @@ export class Simulation {
     if (this.graph.version !== this.routedVersion) this.updateRoutes();
 
     for (const station of this.stations) {
+      if (station.kind === 'stadio') this.playMatch(station);
       const spawn = /** @type {number} */ (this.spawnTimers.get(station.id)) - dt;
       if (spawn <= 0) this.enqueue(station);
-      this.spawnTimers.set(station.id, spawn > 0 ? spawn : spawn + this.nextSpawnDelay());
+      this.spawnTimers.set(station.id, spawn > 0 ? spawn : spawn + this.nextSpawnDelay(station));
 
       // Anche se nessuno può partire si riprova dopo DEPART_INTERVAL,
       // così il percorso non si ricalcola a ogni passo.
@@ -968,7 +976,7 @@ export class Simulation {
       const v = {
         id: this.nextVehicleId,
         shape,
-        type: randomVehicleType(this.random),
+        type: randomVehicleType(this.random, origin.kind === 'porto' || origin.kind === 'aeroporto' ? HEAVY_MIX[origin.kind] : undefined),
         fromStationId: origin.id,
         toStationId: target.id,
         path: /** @type {number[]} */ (pathTo(paths, target.nodeId)),
@@ -1254,9 +1262,52 @@ export class Simulation {
     return min + this.random() * (max - min);
   }
 
-  /** Secondi al prossimo veicolo di una stazione: col passare dei giorni nascono un po' più spesso, fino a un massimo. */
-  nextSpawnDelay() {
-    return (this.level.spawn.min + this.random() * (this.level.spawn.max - this.level.spawn.min)) / (1 + this.spawnIncrease());
+  /**
+   * Secondi al prossimo veicolo di una stazione: col passare dei giorni nascono
+   * un po' più spesso, fino a un massimo. Porti e aeroporti il doppio, lo stadio
+   * (fuori dalle partite) un terzo.
+   * @param {Station} [station]
+   */
+  nextSpawnDelay(station) {
+    const factor = station?.kind ? SPAWN_FACTOR[station.kind] : 1;
+    return (this.level.spawn.min + this.random() * (this.level.spawn.max - this.level.spawn.min)) / (1 + this.spawnIncrease()) / factor;
+  }
+
+  /**
+   * A che punto è la partita di uno stadio (null se non è uno stadio o non si gioca).
+   * @param {Station} station
+   */
+  matchOf(station) {
+    return station.kind === 'stadio' ? matchState(station, this.elapsed, this.level.dayLength) : null;
+  }
+
+  /**
+   * La partita allo stadio: mentre arrivano i tifosi le altre stazioni mandano
+   * veicoli in più della forma dello stadio; alla fine lo stadio si svuota tutto insieme.
+   * @param {Station} stadium
+   */
+  playMatch(stadium) {
+    const m = this.matchOf(stadium);
+    if (!m) return;
+    if (stadium.matchCycle !== m.cycle) {
+      stadium.matchCycle = m.cycle;
+      stadium.fans = 0;
+      stadium.out = 0;
+    }
+    if (m.phase === 'arrivo') {
+      const others = this.stations.filter((s) => s !== stadium && s.shape !== stadium.shape);
+      while (others.length > 0 && (stadium.fans ?? 0) < Math.ceil(m.done * MATCH.fans)) {
+        const from = others[Math.floor(this.random() * others.length)];
+        from.queue.push(stadium.shape);
+        from.generated++;
+        stadium.fans = (stadium.fans ?? 0) + 1;
+      }
+    } else if (m.phase === 'uscita') {
+      while ((stadium.out ?? 0) < Math.ceil(m.done * MATCH.out)) {
+        this.enqueue(stadium);
+        stadium.out = (stadium.out ?? 0) + 1;
+      }
+    }
   }
 
   /**
