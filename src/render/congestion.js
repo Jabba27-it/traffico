@@ -10,9 +10,7 @@ import { stationLoad } from '../sim/congestion.js';
 const RING_RADIUS = STATION_RADIUS + 7;
 const RING_WIDTH = 4;
 const COUNTDOWN_COLOR = '#3d4047';
-/** Raggio del cerchio d'allarme intorno a un veicolo fermo in un ingorgo. */
-const JAM_RADIUS = 13;
-const JAM_FILL = 'rgba(224, 69, 58, 0.25)';
+/** Colore del contorno che pulsa intorno a un veicolo fermo in un ingorgo. */
 const JAM_RING = 'rgb(224, 69, 58)';
 
 /** Verde, giallo, rosso: il colore dell'anello in base al carico (0..1). */
@@ -68,30 +66,26 @@ function ringColor(load) {
 }
 
 /**
- * Ingorghi in allarme: un cerchio rosso che pulsa intorno al veicolo fermo e
- * un arco che si riempie fino alla sconfitta, come per le stazioni piene.
+ * Ingorghi in allarme: il veicolo fermo pulsa di rosso (un contorno intorno alla
+ * sua sagoma, niente cerchi che coprono la strada), sempre più in fretta man
+ * mano che si avvicina la sconfitta.
  * @param {CanvasRenderingContext2D} ctx
- * @param {{x: number, y: number, progress: number}[]} jams
+ * @param {{x: number, y: number, dx: number, dy: number, length: number, width: number, progress: number}[]} jams
  * @param {number} time  secondi, per la pulsazione
  */
 export function drawJams(ctx, jams, time) {
-  ctx.lineCap = 'round';
   for (const j of jams) {
-    ctx.globalAlpha = 0.45 + 0.4 * Math.sin(time * 8) ** 2;
-    ctx.fillStyle = JAM_FILL;
-    ctx.beginPath();
-    ctx.arc(j.x, j.y, JAM_RADIUS, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.lineWidth = RING_WIDTH;
+    const pulse = Math.sin(time * (6 + 10 * j.progress)) ** 2;
+    ctx.save();
+    ctx.translate(j.x, j.y);
+    ctx.rotate(Math.atan2(j.dy, j.dx));
+    ctx.globalAlpha = 0.5 + 0.5 * pulse;
     ctx.strokeStyle = JAM_RING;
+    ctx.lineWidth = 3;
+    const grow = 2 + 1.5 * pulse;
     ctx.beginPath();
-    ctx.arc(j.x, j.y, JAM_RADIUS, 0, Math.PI * 2);
+    ctx.roundRect(-j.length / 2 - grow, -j.width / 2 - grow, j.length + 2 * grow, j.width + 2 * grow, 3);
     ctx.stroke();
-    const start = -Math.PI / 2;
-    ctx.strokeStyle = COUNTDOWN_COLOR;
-    ctx.beginPath();
-    ctx.arc(j.x, j.y, JAM_RADIUS, start, start + j.progress * Math.PI * 2);
-    ctx.stroke();
+    ctx.restore();
   }
 }

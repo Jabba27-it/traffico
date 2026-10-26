@@ -444,9 +444,10 @@ async function start() {
     drawVehicles(ctx, sim.vehicles.filter((v) => !elevated.includes(v)));
     drawOverpasses(ctx, graph, level.look);
     drawVehicles(ctx, elevated);
+    // Veicoli fermi da troppo: il contorno pulsa di rosso (allarme ingorgo).
+    drawJams(ctx, sim.jams, now / 1000);
     // Torri, archi e cavi dei ponti coprono i veicoli che ci passano sotto.
     drawBridgeTops(ctx, graph, level.look);
-    drawJams(ctx, sim.jams, now / 1000);
     drawCongestion(ctx, sim.stations, level.congestion.tolerance, now / 1000);
     const labelScale = framed.width / level.view[0].width;
     drawTerrainNames(ctx, level.terrain, labelScale, stationAreas(ctx, sim.stations, labelScale));

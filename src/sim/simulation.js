@@ -430,13 +430,18 @@ export class Simulation {
 
   /**
    * Gli ingorghi in allarme: i veicoli fermi in strada da almeno JAM_ALERT secondi,
-   * con quanto manca alla sconfitta (0..1).
-   * @returns {{x: number, y: number, progress: number}[]}
+   * con la loro sagoma e quanto manca alla sconfitta (0..1).
+   * @returns {{x: number, y: number, dx: number, dy: number, length: number, width: number, progress: number}[]}
    */
   get jams() {
     return this.vehicles
       .filter((v) => (v.stopped ?? 0) >= JAM_ALERT)
-      .map((v) => ({ x: v.pose.x, y: v.pose.y, progress: Math.min(1, /** @type {number} */ (v.stopped) / JAM_LOSS) }));
+      .map((v) => ({
+        ...v.pose,
+        length: v.type.length,
+        width: v.type.width,
+        progress: Math.min(1, /** @type {number} */ (v.stopped) / JAM_LOSS),
+      }));
   }
 
   /**

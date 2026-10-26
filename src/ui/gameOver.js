@@ -88,7 +88,10 @@ export function showGameOver(parent, values, best, actions, completed = false, c
   menu.className = 'secondary';
   menu.addEventListener('click', actions.onMenu);
 
-  box.append(retry, look, photo, menu);
+  const buttons = document.createElement('div');
+  buttons.className = 'game-over-buttons';
+  buttons.append(retry, menu, look, photo);
+  box.appendChild(buttons);
   overlay.appendChild(box);
   parent.appendChild(overlay);
 
