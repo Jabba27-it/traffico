@@ -28,6 +28,7 @@ import { showMenu, parseIndex, GAME_TITLE } from './ui/menu.js';
 import { cityPhoto } from './render/photo.js';
 import { showPhoto } from './ui/photo.js';
 import { saveRecord, SANDBOX_SUFFIX } from './ui/records.js';
+import { todayKey, isDayKey, dailySeed, dayLabel, saveDaily, shareText } from './ui/daily.js';
 import { askConfirm } from './ui/confirm.js';
 import { createMuteButton } from './ui/mute.js';
 import { createUndoButton } from './ui/undo.js';
@@ -38,6 +39,13 @@ import { waitingCount } from './sim/congestion.js';
 const LEVEL_PARAM = new URLSearchParams(location.search).get('livello');
 // ?livello=roma&modalita=sandbox: si gioca finché non si perde, conta solo il punteggio.
 const SANDBOX = new URLSearchParams(location.search).get('modalita') === 'sandbox';
+// ?livello=roma&modalita=sfida&data=2026-10-26: la sfida del giorno, con le regole
+// della modalità senza fine e il seme che viene dalla data.
+const DAILY = new URLSearchParams(location.search).get('modalita') === 'sfida';
+const DAY_PARAM = new URLSearchParams(location.search).get('data') ?? '';
+const DAY_KEY = isDayKey(DAY_PARAM) ? DAY_PARAM : todayKey();
+/** Senza fine o sfida: niente stelle, si va avanti finché non si perde e conta il punteggio. */
+const ENDLESS = SANDBOX || DAILY;
 
 // Copia del gioco sul telefono, per giocare anche offline (funziona su https e in locale).
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -95,8 +103,9 @@ async function start() {
     try {
       const res = await fetch(INDEX_URL);
       if (!res.ok) throw new Error(`Impossibile caricare ${INDEX_URL} (${res.status})`);
-      showMenu(document.body, parseIndex(await res.json()), (file, sandbox) => {
-        location.search = `?livello=${file}${sandbox ? '&modalita=sandbox' : ''}`;
+      showMenu(document.body, parseIndex(await res.json()), (file, mode) => {
+        location.search =
+          mode === 'sfida' ? `?livello=${file}&modalita=sfida&data=${todayKey()}` : `?livello=${file}${mode === 'sandbox' ? '&modalita=sandbox' : ''}`;
       });
     } catch (err) {
       showError(err instanceof Error ? err.message : String(err));
@@ -109,7 +118,7 @@ async function start() {
     const res = await fetch(LEVEL_URL);
     if (!res.ok) throw new Error(`Impossibile caricare ${LEVEL_URL} (${res.status})`);
     level = parseLevel(await res.json());
-    if (SANDBOX) level = sandboxLevel(level);
+    if (ENDLESS) level = sandboxLevel(level);
   } catch (err) {
     showError(err instanceof Error ? err.message : String(err));
     return;
@@ -117,7 +126,8 @@ async function start() {
 
   const view = setupCanvas(canvas);
   const graph = new RoadGraph();
-  const sim = new Simulation(graph, level, Date.now());
+  // Nella sfida del giorno il seme è la data: le stazioni nascono uguali per tutti.
+  const sim = new Simulation(graph, level, DAILY ? dailySeed(DAY_KEY) : Date.now());
   const camera = createCamera();
   // La telecamera si riallinea anche al tocco, non solo quando si disegna:
   // così il dito cade sempre dove si vede, anche se un fotogramma è in ritardo.
@@ -161,8 +171,8 @@ async function start() {
   const hud = createHud(document.body, {
     bridges: hasWater,
     stars: level.stars !== null,
-    // Nei livelli contano le stelle, in sandbox solo il punteggio.
-    score: SANDBOX,
+    // Nei livelli contano le stelle, senza fine e nella sfida solo il punteggio.
+    score: ENDLESS,
     onStarsTap: () => {
       goalsOpened++;
       showGoals(document.body, sim.starGoals(), sim.platinumGoal());
@@ -312,7 +322,7 @@ async function start() {
       playStar();
       showToast(document.body, `★ ${STAR_NAMES[lastStar.index]} stella: ${lastStar.label}`);
       // Le stelle si salvano subito: restano anche se poi si esce dalla partita.
-      if (!SANDBOX) saveRecord(/** @type {string} */ (LEVEL_NAME), 0, sim.starsEarned, sim.platinum);
+      if (!ENDLESS) saveRecord(/** @type {string} */ (LEVEL_NAME), 0, sim.starsEarned, sim.platinum);
       const min = level.stars?.platinum;
       if (min != null && sim.starsEarned.every(Boolean) && !sim.completed) {
         setTimeout(() => showToast(document.body, `Tre stelle! Resisti altri ${min} giorni per il platino`), 2500);
@@ -392,13 +402,17 @@ async function start() {
     undoButton.update();
     if ((sim.failed || sim.completed) && !gameOverShown) {
       gameOverShown = true;
-      const best = SANDBOX
+      const daily = DAILY ? saveDaily(DAY_KEY, sim.score) : null;
+      const best = daily
+        ? { record: { score: daily.best, stars: [false, false, false], platinum: false }, newBest: daily.newBest }
+        : SANDBOX
         ? saveRecord(`${LEVEL_NAME}${SANDBOX_SUFFIX}`, sim.score, [false, false, false])
         : level.stars
           ? saveRecord(/** @type {string} */ (LEVEL_NAME), sim.score, sim.starsEarned, sim.platinum)
           : null;
       const onPhoto = () => {
-        const info = { game: GAME_TITLE, city: level.name, days: results.day - 1, trips: sim.trips, stars: sim.starsEarned, platinum: sim.platinum, score: SANDBOX ? sim.score : undefined };
+        const city = DAILY ? `${level.name} · Sfida del ${dayLabel(DAY_KEY)}` : level.name;
+        const info = { game: GAME_TITLE, city, days: results.day - 1, trips: sim.trips, stars: sim.starsEarned, platinum: sim.platinum, score: ENDLESS ? sim.score : undefined };
         cityPhoto(level, sim, info)
           .then((image) => showPhoto(document.body, image, `traffico-${LEVEL_NAME}.png`, `La mia ${level.name} in ${GAME_TITLE}`))
           .catch((err) => console.error(err));
@@ -406,7 +420,17 @@ async function start() {
       const cause = sim.failedJam
         ? `Un ingorgo ha tenuto fermi i veicoli per ${JAM_LOSS} secondi.`
         : `${sim.failedStation?.name ? `La stazione ${sim.failedStation.name}` : 'Una stazione'} è rimasta sovraccarica troppo a lungo.`;
-      showGameOver(document.body, results, best, { onRetry: () => location.reload(), onMenu: goToMenu, onPhoto }, sim.completed, cause, SANDBOX);
+      // Sfida del giorno: il risultato si condivide (o si copia, se il telefono non sa condividere).
+      const onShare = DAILY
+        ? () => {
+            const text = shareText(GAME_TITLE, DAY_KEY, level.name, sim.score, results.day - 1);
+            const url = location.origin + location.pathname;
+            if (navigator.share) navigator.share({ text, url }).catch(() => {});
+            else navigator.clipboard?.writeText(`${text} ${url}`).then(() => showToast(document.body, 'Risultato copiato'), () => {});
+          }
+        : undefined;
+      const title = DAILY ? `Sfida del ${dayLabel(DAY_KEY)}` : undefined;
+      showGameOver(document.body, results, best, { onRetry: () => location.reload(), onMenu: goToMenu, onPhoto, onShare }, sim.completed, cause, ENDLESS, title);
     }
 
     const { ctx } = view;

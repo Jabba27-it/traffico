@@ -11,12 +11,14 @@ import { starsHtml } from './hud.js';
  * @param {HTMLElement} parent
  * @param {HudValues} values
  * @param {{ record: LevelRecord, newBest: boolean } | null} best  null se il livello non ha stelle
- * @param {{ onRetry: () => void, onMenu: () => void, onPhoto: () => void }} actions
+ * @param {{ onRetry: () => void, onMenu: () => void, onPhoto: () => void, onShare?: () => void }} actions
+ *   onShare solo nella sfida del giorno: il tasto Condividi
  * @param {boolean} [completed]  true se la partita finisce perché il livello è completato
  * @param {string} [cause]  perché si è perso (stazione sovraccarica o ingorgo), già in parole
  * @param {boolean} [sandbox]  partita in modalità sandbox: niente stelle, conta il punteggio
+ * @param {string} [heading]  titolo al posto di "Partita finita" (es. "Sfida del 26 ottobre")
  */
-export function showGameOver(parent, values, best, actions, completed = false, cause = '', sandbox = false) {
+export function showGameOver(parent, values, best, actions, completed = false, cause = '', sandbox = false, heading) {
   const overlay = document.createElement('div');
   overlay.className = 'game-over';
 
@@ -26,7 +28,7 @@ export function showGameOver(parent, values, best, actions, completed = false, c
   const title = document.createElement('h1');
   // Persa dopo le tre stelle: le stelle restano, è mancato solo il platino.
   const threeStars = !sandbox && values.stars.length > 0 && values.stars.every(Boolean);
-  title.textContent = completed ? 'Livello completato!' : sandbox ? 'Partita finita' : threeStars ? 'Tre stelle prese' : 'Livello fallito';
+  title.textContent = completed ? 'Livello completato!' : sandbox ? heading ?? 'Partita finita' : threeStars ? 'Tre stelle prese' : 'Livello fallito';
   const reason = document.createElement('p');
   reason.textContent = completed
     ? values.platinum
@@ -69,7 +71,8 @@ export function showGameOver(parent, values, best, actions, completed = false, c
   if (best && sandbox) {
     const record = document.createElement('p');
     record.className = 'game-over-record';
-    record.textContent = best.newBest ? `Nuovo record: ${values.score} punti!` : `Record: ${best.record.score}`;
+    const today = heading ? ' di oggi' : '';
+    record.textContent = best.newBest ? `Nuovo record${today}: ${values.score} punti!` : `Record${today}: ${best.record.score}`;
     box.appendChild(record);
   }
 
@@ -90,6 +93,13 @@ export function showGameOver(parent, values, best, actions, completed = false, c
 
   const buttons = document.createElement('div');
   buttons.className = 'game-over-buttons';
+  if (actions.onShare) {
+    const share = document.createElement('button');
+    share.textContent = 'Condividi il risultato';
+    share.className = 'game-over-share';
+    share.addEventListener('click', actions.onShare);
+    buttons.appendChild(share);
+  }
   buttons.append(retry, menu, look, photo);
   box.appendChild(buttons);
   overlay.appendChild(box);

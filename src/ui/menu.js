@@ -1,10 +1,11 @@
-// Schermata iniziale: nome del gioco ed elenco delle città, tutto in una schermata
-// del telefono senza scorrere: per ogni città le stelle del livello e due tasti,
-// Livello e Sandbox (col record della sandbox).
+// Schermata iniziale: nome del gioco, la sfida del giorno ed elenco delle città,
+// tutto in una schermata del telefono senza scorrere: per ogni città le stelle del
+// livello e due tasti, Livello e Senza fine (col record della modalità senza fine).
 
 import { starsHtml } from './hud.js';
 import { loadRecord, SANDBOX_SUFFIX } from './records.js';
 import { drawMonument } from '../render/terrain.js';
+import { todayKey, dailyCity, dayLabel, loadDailyBest, dailyStreak } from './daily.js';
 
 /** Lato in pixel a cui si disegna il monumento: il CSS lo rimpicciolisce secondo lo schermo. */
 const ICON_SIZE = 72;
@@ -24,7 +25,7 @@ export const GAME_TITLE = 'Traffico';
 /**
  * @param {HTMLElement} parent
  * @param {LevelEntry[]} levels
- * @param {(file: string, sandbox: boolean) => void} onPick  sandbox true se si sceglie la sandbox
+ * @param {(file: string, mode: 'livello' | 'sandbox' | 'sfida') => void} onPick  la città e la modalità scelte
  */
 export function showMenu(parent, levels, onPick) {
   const root = document.createElement('div');
@@ -35,6 +36,44 @@ export function showMenu(parent, levels, onPick) {
   const subtitle = document.createElement('p');
   subtitle.textContent = 'Scegli una città';
   root.append(title, subtitle);
+
+  // In cima la sfida del giorno: la città di oggi, il record di oggi e la serie.
+  const today = todayKey();
+  const city = dailyCity(levels, today);
+  if (city) {
+    const card = document.createElement('div');
+    card.className = 'menu-card menu-daily';
+    if (city.icon) card.appendChild(monumentIcon(city.icon));
+    const head = document.createElement('div');
+    head.className = 'menu-head';
+    const name = document.createElement('span');
+    name.className = 'menu-name';
+    name.textContent = 'Sfida di oggi';
+    head.appendChild(name);
+    const streak = dailyStreak(today);
+    if (streak > 0) {
+      const badge = document.createElement('span');
+      badge.className = 'menu-streak';
+      badge.textContent = `🔥 ${streak} ${streak === 1 ? 'giorno' : 'giorni'}`;
+      badge.title = 'Giorni di fila in cui hai giocato la sfida';
+      head.appendChild(badge);
+    }
+    card.appendChild(head);
+    const best = loadDailyBest(today);
+    const recordLine = document.createElement('div');
+    recordLine.className = 'menu-record';
+    recordLine.textContent = best > 0 ? `${city.name} · record ${best} punti` : `${city.name} · ${dayLabel(today)}`;
+    card.appendChild(recordLine);
+    const modes = document.createElement('div');
+    modes.className = 'menu-modes';
+    const play = document.createElement('button');
+    play.className = 'menu-mode menu-mode-daily';
+    play.textContent = best > 0 ? 'Riprova la sfida' : 'Gioca la sfida';
+    play.addEventListener('click', () => onPick(city.file, 'sfida'));
+    modes.appendChild(play);
+    card.appendChild(modes);
+    root.appendChild(card);
+  }
 
   for (const level of levels) {
     const record = loadRecord(level.file);
@@ -71,13 +110,13 @@ export function showMenu(parent, levels, onPick) {
     const play = document.createElement('button');
     play.className = 'menu-mode';
     play.textContent = level.sandbox ? 'Livello' : 'Gioca';
-    play.addEventListener('click', () => onPick(level.file, false));
+    play.addEventListener('click', () => onPick(level.file, 'livello'));
     modes.appendChild(play);
     if (level.sandbox) {
       const sandbox = document.createElement('button');
       sandbox.className = 'menu-mode menu-mode-sandbox';
       sandbox.textContent = 'Senza fine';
-      sandbox.addEventListener('click', () => onPick(level.file, true));
+      sandbox.addEventListener('click', () => onPick(level.file, 'sandbox'));
       modes.appendChild(sandbox);
     }
     card.appendChild(modes);

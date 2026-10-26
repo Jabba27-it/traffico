@@ -248,6 +248,7 @@
     /* I quattro tasti in due righe: così il riquadro sta anche negli schermi bassi */
     .game-over-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .game-over-buttons button { padding: 12px 6px; font-size: 15px; }
+    .game-over-buttons .game-over-share { grid-column: 1 / -1; }
     .map-review button + button { margin-top: 8px; }
     .game-over button.secondary { background: #ece2d0; color: var(--ink); }
     .game-over[hidden], .map-review[hidden] { display: none; }
@@ -377,6 +378,10 @@
     }
     .menu-mode small { margin-left: 4px; font-size: 0.78em; font-weight: 400; opacity: 0.8; }
     .menu-mode-sandbox { background: #6f9fb8; }
+    /* Sfida del giorno: la scheda in evidenza in cima */
+    .menu-daily { box-shadow: 0 0 0 2px var(--accent), 0 4px 14px rgba(0, 0, 0, 0.07); }
+    .menu-mode-daily { background: var(--accent); }
+    .menu-streak { font-size: clamp(11px, 1.7vh, 16px); font-weight: 600; white-space: nowrap; color: var(--accent); }
     /* Livello prende solo il posto che gli serve: alla sandbox resta spazio per il record */
     .menu-mode:not(.menu-mode-sandbox):not(:only-child) { flex: 0 0 auto; padding-left: clamp(10px, 3.5vw, 18px); padding-right: clamp(10px, 3.5vw, 18px); }
     .menu-mode:active { transform: scale(0.97); }

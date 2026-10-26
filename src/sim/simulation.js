@@ -94,6 +94,10 @@ export class Simulation {
     this.graph = graph;
     this.level = level;
     this.random = createRandom(seed);
+    /** Il seme della partita: da lui vengono anche i dadi delle stazioni nuove. */
+    this.seed = seed;
+    /** Stazioni nate a caso finora e tentativi falliti per la prossima (per i loro dadi). */
+    this.growthDraws = { born: 0, tries: 0 };
     /**
      * Zone della mappa coperte dall'interfaccia (pannello, pulsanti), in
      * coordinate di mondo: lì non nascono stazioni. Le aggiorna chi disegna.
@@ -139,7 +143,7 @@ export class Simulation {
     /** @type {Map<number, number>} secondi alla prossima partenza possibile, per stazione */
     this.departTimers = new Map();
     /** Secondi alla prossima stazione nuova. */
-    this.growthTimer = level.growth ? this.nextGrowthDelay() : Infinity;
+    this.growthTimer = level.growth ? this.nextGrowthDelay(this.growthRandom()) : Infinity;
     /**
      * Le stazioni che stanno per nascere, in anteprima: dove, di che forma e quando.
      * Al più una nata a caso, più le speciali (stadi, porti, aeroporti) arrivate al loro giorno.
@@ -331,13 +335,16 @@ export class Simulation {
     if (!growth || this.upcoming.some((u) => !u.def.kind) || this.stations.length + this.upcoming.length >= growth.max) return;
     const i = SPAWN_INSET;
     const area = insetRect(this.view, i.left, i.top, i.right, i.bottom);
-    const def = pickNewStation(this.random, this.level, this.stations, area, this.graph, (p) => !this.isReserved(p), this.roundabouts.values());
+    const random = this.growthRandom();
+    const def = pickNewStation(random, this.level, this.stations, area, this.graph, (p) => !this.isReserved(p), this.roundabouts.values());
     if (def) {
       // Prima si vede in anteprima, poi nasce (vedi hatchUpcoming).
       this.upcoming.push({ def, at: this.elapsed + STATION_PREVIEW });
-      this.growthTimer = this.nextGrowthDelay();
+      this.growthTimer = this.nextGrowthDelay(random);
+      this.growthDraws = { born: this.growthDraws.born + 1, tries: 0 };
     } else {
       this.growthTimer = GROWTH_RETRY;
+      this.growthDraws.tries++;
     }
   }
 
@@ -1256,10 +1263,24 @@ export class Simulation {
     return target;
   }
 
-  /** Secondi alla prossima stazione nuova, a caso nell'intervallo del livello. */
-  nextGrowthDelay() {
+  /**
+   * Secondi alla prossima stazione nuova, a caso nell'intervallo del livello.
+   * @param {() => number} random
+   */
+  nextGrowthDelay(random) {
     const { intervalMin: min, intervalMax: max } = /** @type {import('./level.js').Growth} */ (this.level.growth);
-    return min + this.random() * (max - min);
+    return min + random() * (max - min);
+  }
+
+  /**
+   * Il dado della prossima stazione nuova. Ogni stazione ha il suo, che dipende
+   * solo dal seme e da quante ne sono nate prima: così, con lo stesso seme (la
+   * sfida del giorno), le stazioni nascono uguali qualunque cosa si costruisca e
+   * qualunque veicolo parta.
+   */
+  growthRandom() {
+    const { born, tries } = this.growthDraws;
+    return createRandom(Math.imul(this.seed ^ 0x9e3779b9, 31) + born * 1009 + tries * 7919);
   }
 
   /**
