@@ -1,6 +1,6 @@
 import { RoadGraph } from './sim/graph.js';
 import { parseLevel, sandboxLevel } from './sim/level.js';
-import { Simulation, JAM_LOSS } from './sim/simulation.js';
+import { Simulation, JAM_LOSS, STATION_PREVIEW } from './sim/simulation.js';
 import { setupCanvas, fitCamera, scaleFor, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
 import { createCamera, cameraRect, zoomAround } from './render/camera.js';
 import { attachPinch } from './input/pinch.js';
@@ -11,7 +11,7 @@ import { STYLE } from './render/style.js';
 import { drawHint } from './render/hint.js';
 import { createTutorial } from './ui/tutorial.js';
 import { drawGround, drawMonuments, drawTerrainNames } from './render/terrain.js';
-import { drawStations, drawSelectable, stationAreas } from './render/stations.js';
+import { drawStations, drawSelectable, drawUpcoming, stationAreas } from './render/stations.js';
 import { STATION_RADIUS } from './sim/stations.js';
 import { drawVehicles } from './render/vehicles.js';
 import { drawCongestion, drawJams } from './render/congestion.js';
@@ -71,6 +71,8 @@ const BUILD_PROBLEMS = {
   'cut-outside': { title: 'Fuori città', text: 'Si costruisce solo nella parte visibile della città, che si allarga con i giorni.' },
   'cut-villa': { title: 'C\'è un parco', text: 'Nei parchi e nelle ville non si costruisce: passaci attorno.' },
   'cut-monument': { title: 'C\'è un monumento', text: 'Sui monumenti non si costruisce: passaci attorno.' },
+  'cut-upcoming': { title: 'Qui nasce una stazione', text: 'Fra pochi secondi qui compare una stazione nuova: il posto è riservato, passaci attorno.' },
+  'roundabout-upcoming': { title: 'Qui nasce una stazione', text: 'Fra pochi secondi qui compare una stazione nuova: la rotonda non può contenerla.' },
   'roundabout-too-expensive': { title: 'Tratti di strada finiti', text: 'L\'anello della rotonda costa più tratti di quelli che hai.' },
   'roundabout-station': { title: 'Una stazione nel cerchio', text: 'La rotonda non può contenere una stazione: disegna il cerchio intorno a un incrocio.' },
   'roundabout-blocked': { title: 'Qui la rotonda non ci sta', text: 'L\'anello passerebbe sull\'acqua, su un parco, su un monumento o fuori città.' },
@@ -452,6 +454,8 @@ async function start() {
     const labelScale = framed.width / level.view[0].width;
     drawTerrainNames(ctx, level.terrain, labelScale, stationAreas(ctx, sim.stations, labelScale));
     drawStations(ctx, sim.stations, sim.transitShapes(), sim.elapsed, labelScale);
+    // La stazione che sta per nascere, in anteprima.
+    if (sim.upcoming) drawUpcoming(ctx, sim.upcoming.def, 1 - (sim.upcoming.at - sim.elapsed) / STATION_PREVIEW, now / 1000);
     const hint = tutorial?.hint();
     if (hint) drawHint(ctx, hint, now / 1000, labelScale);
     if (choosingStation) drawSelectable(ctx, sim.stations, now / 1000);

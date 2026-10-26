@@ -103,6 +103,40 @@ export function drawStations(ctx, stations, transit, time, labelScale = 1) {
 }
 
 /**
+ * La stazione che sta per nascere: la sua forma tratteggiata che pulsa e un
+ * arco che si chiude quando nasce. Lì non si costruisce.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {{x: number, y: number, shape: Shape}} upcoming
+ * @param {number} progress  da 0 (appena comparsa) a 1 (nasce)
+ * @param {number} time  secondi, per la pulsazione
+ */
+export function drawUpcoming(ctx, upcoming, progress, time) {
+  const { x, y, shape } = upcoming;
+  const color = SHAPE_COLORS[shape];
+  const pulse = 0.5 + 0.5 * Math.sin(time * 6);
+  ctx.save();
+  // La forma tratteggiata, appena velata: qui nasce la stazione.
+  ctx.beginPath();
+  traceShape(ctx, shape, x, y, STATION_RADIUS);
+  ctx.globalAlpha = 0.15 + 0.1 * pulse;
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.globalAlpha = 0.6 + 0.4 * pulse;
+  ctx.setLineDash([4, 3]);
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = color;
+  ctx.stroke();
+  // L'arco che si riempie fino alla nascita.
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 0.9;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(x, y, STATION_RADIUS + 7, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/**
  * Mentre si sceglie la stazione da migliorare: un alone che pulsa intorno a tutte.
  * @param {CanvasRenderingContext2D} ctx
  * @param {Station[]} stations

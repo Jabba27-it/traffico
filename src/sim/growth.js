@@ -21,6 +21,8 @@ import { obstacleAt } from './terrain.js';
 const ATTEMPTS = 80;
 /** Spazio minimo fra il bordo di una stazione e il bordo di una strada. */
 const ROAD_MARGIN = 6;
+/** Distanza minima fra il centro di una stazione nuova e l'asse di una strada. */
+export const STATION_CLEARANCE = STATION_RADIUS + ROAD_WIDTH / 2 + ROAD_MARGIN;
 /** Spazio minimo fra il bordo di una stazione e la riva. */
 const WATER_MARGIN = 16;
 /** Peso di "sta sulla stessa terra (riva o isola) delle altre stazioni della sua forma". */
@@ -197,7 +199,7 @@ function weightedPick(random, items, weights) {
  * @param {{x: number, y: number, radius: number}[]} roundabouts
  */
 export function clearOfRoads(p, graph, roundabouts) {
-  const reach = STATION_RADIUS + ROAD_WIDTH / 2 + ROAD_MARGIN;
+  const reach = STATION_CLEARANCE;
   for (const r of roundabouts) if (distance(r, p) < r.radius + reach) return false;
   for (const e of graph.edges.values()) {
     const a = graph.nodes.get(e.a);

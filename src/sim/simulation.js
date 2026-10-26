@@ -8,7 +8,7 @@ import { LaneGeometry, projectOnLane } from './lanes.js';
 import { Traffic, SLOW } from './traffic.js';
 import { closestPointOnSegment, distance } from './geometry.js';
 import { STATION_RADIUS, createStation } from './stations.js';
-import { pickNewStation } from './growth.js';
+import { pickNewStation, clearOfRoads, STATION_CLEARANCE } from './growth.js';
 import { updateCongestion } from './congestion.js';
 import { planRoad, buildPlannedRoad } from './roadBuilder.js';
 import { findRoadPiece, removeRoadPiece, removeIsolatedNodes, edgeLength, orderedChain, pieceType, setPieceType } from './roadEditing.js';
@@ -69,6 +69,11 @@ const JAM_SPEED = 0.5;
 const DEPART_INTERVAL = 1;
 /** Se non c'è posto per una stazione nuova, si riprova dopo tanti secondi. */
 const GROWTH_RETRY = 1;
+/**
+ * Secondi di gioco in cui una stazione nuova si vede in anteprima prima di
+ * nascere: il suo posto è riservato e lì non si costruisce.
+ */
+export const STATION_PREVIEW = 5;
 /**
  * Ritardo stimato per ogni incrocio attraversato, in unità di strada: i veicoli
  * preferiscono i percorsi con meno incroci a parità di lunghezza.
@@ -134,6 +139,11 @@ export class Simulation {
     this.departTimers = new Map();
     /** Secondi alla prossima stazione nuova. */
     this.growthTimer = level.growth ? this.nextGrowthDelay() : Infinity;
+    /**
+     * La stazione che sta per nascere, in anteprima: dove, di che forma e quando.
+     * @type {{def: StationDef, at: number} | null}
+     */
+    this.upcoming = null;
     /** @type {Station | null} la stazione rimasta sovraccarica troppo a lungo */
     this.failedStation = null;
     /** Dove un ingorgo ha fatto perdere la partita (null se non è successo). */
@@ -295,15 +305,28 @@ export class Simulation {
     this.departTimers.set(station.id, 0);
   }
 
+  /**
+   * Finita l'anteprima, la stazione nasce. Se intanto il posto si è occupato
+   * (una strada tornata con l'annulla) si rinuncia e se ne sceglie un'altra.
+   */
+  hatchUpcoming() {
+    const up = this.upcoming;
+    if (!up || this.elapsed < up.at) return;
+    this.upcoming = null;
+    if (clearOfRoads(up.def, this.graph, this.roundabouts.values())) this.addStation(up.def, this.elapsed);
+    else this.growthTimer = GROWTH_RETRY;
+  }
+
   /** Fa comparire una stazione nuova quando è il momento, se c'è posto. */
   grow() {
     const growth = this.level.growth;
-    if (!growth || this.stations.length >= growth.max) return;
+    if (!growth || this.upcoming || this.stations.length >= growth.max) return;
     const i = SPAWN_INSET;
     const area = insetRect(this.view, i.left, i.top, i.right, i.bottom);
     const def = pickNewStation(this.random, this.level, this.stations, area, this.graph, (p) => !this.isReserved(p), this.roundabouts.values());
     if (def) {
-      this.addStation(def, this.elapsed);
+      // Prima si vede in anteprima, poi nasce (vedi hatchUpcoming).
+      this.upcoming = { def, at: this.elapsed + STATION_PREVIEW };
       this.growthTimer = this.nextGrowthDelay();
     } else {
       this.growthTimer = GROWTH_RETRY;
@@ -369,6 +392,7 @@ export class Simulation {
       waters: this.level.waters,
       bounds: this.view,
       terrain: this.level.terrain,
+      upcoming: this.upcoming?.def ?? null,
     });
   }
 
@@ -582,6 +606,8 @@ export class Simulation {
    */
   makeRoundabout(circle) {
     if (this.stations.some((st) => Math.hypot(st.x - circle.x, st.y - circle.y) < circle.radius + STATION_RADIUS)) return 'roundabout-station';
+    const up = this.upcoming?.def;
+    if (up && Math.hypot(up.x - circle.x, up.y - circle.y) < circle.radius + STATION_CLEARANCE) return 'roundabout-upcoming';
     const view = this.view;
     const blocked = ringPoints(circle).some(
       (p) => isInWater(this.level.waters, p) || obstacleAt(this.level.terrain, p, 6) !== null || !rectContains(view, p),
@@ -825,6 +851,7 @@ export class Simulation {
     // La vista si allarga: le stazioni fisse raggiunte compaiono.
     this.revealStations(this.elapsed);
 
+    this.hatchUpcoming();
     this.growthTimer -= dt;
     if (this.growthTimer <= 0) this.grow();
 
