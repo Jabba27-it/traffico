@@ -31,6 +31,7 @@ export const STATION_RADIUS = 15;
  * @property {number} upgrades quante volte è stata migliorata col premio settimanale
  * @property {string} [name]   nome del luogo o del quartiere
  * @property {boolean} [landmark]  true per i luoghi fissi del livello
+ * @property {boolean} [bridgeGift]  è nata su una terra nuova e ha portato un ponte
  */
 
 /**

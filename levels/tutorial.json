@@ -22,7 +22,6 @@
   "veicoli": { "ogniMin": 4, "ogniMax": 6 },
   "strade": { "iniziali": 80, "perGiorno": 5, "lunghezzaTratto": 40 },
   "premi": { "strade": 15, "capienza": 3, "ponti": 1, "cavalcavia": 1 },
-  "ponti": { "iniziali": 2 },
   "cavalcavia": { "iniziali": 1 },
   "stelle": { "viaggi": 500, "giorni": 30, "traffico": { "soglia": 12 }, "platino": { "giorni": 10 } },
   "tutorial": [
@@ -77,9 +76,10 @@
     },
     {
       "titolo": "Fiumi e ponti",
-      "testo": "Una strada che attraversa il fiume diventa un ponte e consuma un ponte (in alto vedi quanti ne restano). Un ponte può essere lungo al massimo il doppio del fiume: attraversalo dritto. Collega il triangolo oltre il fiume.",
+      "testo": "Quando nasce una stazione su una riva nuova ricevi un ponte per raggiungerla; altri ponti arrivano coi premi. Una strada che attraversa il fiume diventa un ponte e lo consuma (in alto vedi quanti ne restano). Un ponte può essere lungo al massimo il doppio del fiume: attraversalo dritto. Collega il triangolo oltre il fiume.",
       "obiettivo": "ponte",
-      "stazioni": [{ "forma": "triangolo", "x": 160, "y": 690 }],
+      "stazioni": [{ "forma": "triangolo", "x": 160, "y": 690, "nome": "Oltrefiume" }],
+      "popup": true,
       "punta": [160, 600]
     },
     {

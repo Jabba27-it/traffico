@@ -247,19 +247,3 @@ export function landsOf(level) {
   }
   return map;
 }
-
-/** Celle sotto cui una terra è solo uno scoglio: lì non nascono stazioni. */
-const SMALL_LAND = 150;
-
-/**
- * Quante terre "vere" (rive e isole abbastanza grandi da avere stazioni) ci sono.
- * Per collegarle tutte servono almeno questo numero meno uno di ponti.
- * @param {{waters: Water[], world: {width: number, height: number}}} level
- */
-export function countLands(level) {
-  const map = landsOf(level);
-  /** @type {Map<number, number>} */
-  const cells = new Map();
-  for (const l of map.labels) if (l >= 0) cells.set(l, (cells.get(l) ?? 0) + 1);
-  return [...cells.values()].filter((n) => n >= SMALL_LAND).length;
-}

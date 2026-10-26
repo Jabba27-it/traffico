@@ -12,7 +12,7 @@ import { pickNewStation } from './growth.js';
 import { updateCongestion } from './congestion.js';
 import { planRoad, buildPlannedRoad } from './roadBuilder.js';
 import { findRoadPiece, removeRoadPiece, removeIsolatedNodes, edgeLength, orderedChain, pieceType, setPieceType } from './roadEditing.js';
-import { isInWater, lengthInWater, countLands } from './water.js';
+import { isInWater, lengthInWater, landOf, landsOf } from './water.js';
 import { viewAt, insetRect, rectContains } from './view.js';
 import { starGoals, platinumGoal } from './stars.js';
 import { buildOverpass, overpassPairs, removeOverpass } from './overpass.js';
@@ -145,11 +145,14 @@ export class Simulation {
      * piccoli (es. archi di una rotonda) i decimali si sommano invece di perdersi.
      */
     this.roadCredit = 0;
-    /** Ponti ancora disponibili. */
-    // Almeno un ponte per ogni collegamento fra le terre (rive e isole): con tre
-    // terre ne servono due, così si può sempre arrivare a tutte le stazioni.
-    // Un livello può rinunciarci (New York: i ponti arrivano coi premi).
-    this.bridgeBudget = level.bridgesPerLand ? Math.max(level.bridges, countLands(level) - 1) : level.bridges;
+    /**
+     * Ponti ancora disponibili. Si parte senza (salvo i ponti in più del livello):
+     * ogni stazione che nasce su una terra nuova ne porta uno, il minimo per
+     * raggiungerla; gli altri, per non passare tutti dallo stesso, sono premi.
+     */
+    this.bridgeBudget = level.bridges;
+    /** Le terre (rive e isole) su cui c'è già almeno una stazione. */
+    this.landsWithStations = new Set();
     /** Cavalcavia ancora disponibili. */
     this.overpassBudget = level.overpasses;
     /** @type {Map<number, import('./roundabout.js').Roundabout>} */
@@ -279,6 +282,15 @@ export class Simulation {
   addStation(def, bornAt) {
     const station = createStation(this.graph, def, this.stations.length + 1, bornAt, this.level.congestion.capacity);
     this.stations.push(station);
+    // Prima stazione su una terra nuova: arriva il ponte per collegarla.
+    const land = landOf(landsOf(this.level), station);
+    if (land >= 0 && !this.landsWithStations.has(land)) {
+      if (this.landsWithStations.size > 0) {
+        this.bridgeBudget++;
+        station.bridgeGift = true;
+      }
+      this.landsWithStations.add(land);
+    }
     this.spawnTimers.set(station.id, this.nextSpawnDelay());
     this.departTimers.set(station.id, 0);
   }

@@ -112,8 +112,7 @@ const TUTORIAL_GOALS = ['avanti', 'collega', 'viaggi', 'rimuovi', 'tipoStrada', 
  * @property {Roads} roads
  * @property {Rewards} rewards
  * @property {import('./water.js').Water[]} waters
- * @property {number} bridges  ponti disponibili all'inizio
- * @property {boolean} bridgesPerLand  almeno un ponte per collegare ogni terra (voce "minimoTerre", di base sì)
+ * @property {number} bridges  ponti in più all'inizio, oltre a quelli che arrivano con le rive nuove (di base nessuno)
  * @property {Stars | null} stars
  * @property {import('./terrain.js').Terrain} terrain  ville, colli, monumenti e mura
  * @property {TutorialStep[] | null} tutorial  passi guidati (solo nel livello tutorial)
@@ -257,7 +256,7 @@ export function parseLevel(json) {
       waters.push({ kind: 'river', width: a.larghezza, points: a.punti.map((/** @type {number[]} */ q) => ({ x: q[0], y: q[1] })) });
     });
   }
-  const bridges = isNum(json.ponti?.iniziali) ? json.ponti.iniziali : waters.length > 0 ? 2 : 0;
+  const bridges = isNum(json.ponti?.iniziali) ? json.ponti.iniziali : 0;
 
   /** @type {Stars | null} */
   let stars = null;
@@ -313,7 +312,6 @@ export function parseLevel(json) {
     view,
     waters,
     bridges,
-    bridgesPerLand: json.ponti?.minimoTerre !== false,
     look: parseLook(json.stile),
     congestion,
     dayLength,

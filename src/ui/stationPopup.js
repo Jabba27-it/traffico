@@ -37,6 +37,12 @@ export function showStationPopup(parent, station) {
   name.className = 'station-popup-name';
   name.textContent = station.name ?? station.shape;
   text.append(label, name);
+  if (station.bridgeGift) {
+    const gift = document.createElement('div');
+    gift.className = 'station-popup-label';
+    gift.textContent = 'Riva nuova: +1 ponte';
+    text.appendChild(gift);
+  }
 
   const close = document.createElement('div');
   close.className = 'station-popup-close';
