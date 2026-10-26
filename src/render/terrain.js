@@ -354,6 +354,18 @@ export function drawMonument(ctx, m) {
       }
       ctx.stroke();
       break;
+    case 'vulcano': // il Vesuvio: il cono con la cima mozza e il pennacchio di fumo
+      ctx.moveTo(x - s, y + s * 0.7);
+      ctx.lineTo(x - s * 0.25, y - s * 0.35);
+      ctx.lineTo(x + s * 0.25, y - s * 0.35);
+      ctx.lineTo(x + s, y + s * 0.7);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x - s * 0.1, y - s * 0.6, s * 0.18, 0, Math.PI * 2);
+      ctx.arc(x + s * 0.2, y - s * 0.8, s * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+      break;
     case 'ancora': // fusto con l'anello in alto, la traversa e i bracci curvi
       ctx.arc(x, y - s * 0.75, s * 0.2, 0, Math.PI * 2);
       ctx.moveTo(x, y - s * 0.55);

@@ -165,7 +165,8 @@ async function start() {
     zoomAround: (zoom, anchor, screen) =>
       zoomAround(camera, sim.view, zoom, anchor, screen, (r) => scaleFor(view, r), view),
   });
-  const hasWater = level.waters.length > 0;
+  // Ponti solo dove c'è acqua da attraversare: fiumi e baie, non il mare aperto.
+  const hasWater = level.waters.some((w) => w.kind === 'river' || w.kind === 'bay');
   /** Quante volte sono stati aperti gli obiettivi delle stelle (serve al tutorial). */
   let goalsOpened = 0;
   const hud = createHud(document.body, {

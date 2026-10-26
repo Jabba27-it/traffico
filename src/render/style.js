@@ -68,6 +68,9 @@ export const STYLE = {
   brick: '#8e3b2e',
   brickLight: '#b0573f',
   tulips: ['#d64545', '#f0c040', '#e98bb0', '#f1ede5'],
+  tufo: '#d9b45a',
+  piperno: '#6b6862',
+  lava: '#55524d',
 
   // Scritte sulla mappa
   label: '#3d3833',

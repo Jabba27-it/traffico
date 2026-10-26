@@ -33,6 +33,7 @@ const OVERPASS_RAILS = {
   tropicale: STYLE.white,
   maiolica: STYLE.turquoise,
   mattoni: STYLE.brick,
+  tufo: STYLE.tufo,
 };
 
 /** @param {Look} [look] */
@@ -314,6 +315,11 @@ export function drawOverpassDetails(ctx, decks, look, layer) {
         }
       }
     }
+    if (kind === 'tufo' && layer === 'over') {
+      // Napoli: parapetti in tufo giallo con le cornici in piperno grigio alle testate.
+      ctx.fillStyle = STYLE.piperno;
+      for (const t of [0.06, 0.94]) for (const side of [-1, 1]) block(ctx, pointAt(t), 4, 3, side * (ROAD_WIDTH / 2 + 1));
+    }
     if (kind === 'maiolica' && layer === 'over') {
       // Piastrelle bianche sui parapetti turchesi.
       ctx.fillStyle = STYLE.white;
@@ -390,6 +396,7 @@ export function drawIsland(ctx, r, look) {
     fontana: STYLE.travertine,
     fontanaClassica: STYLE.travertine,
     tulipani: STYLE.grass,
+    plebiscito: STYLE.lava,
   }[kind] ?? STYLE.island;
   disc(ri, ground);
   ctx.save();
@@ -500,6 +507,24 @@ export function drawIsland(ctx, r, look) {
       const color = STYLE.tulips[r % STYLE.tulips.length];
       for (let xx = x - ri; xx <= x + ri; xx += ri * 0.22) disc(ri * 0.08, color, xx - x, yy - y);
     }
+  } else if (kind === 'plebiscito') {
+    // Napoli: piazza del Plebiscito, il basolato di pietra lavica, l'emiciclo del
+    // colonnato e la cupola di San Francesco di Paola al centro.
+    ctx.strokeStyle = STYLE.piperno;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let k = -ri; k <= ri; k += ri * 0.3) {
+      ctx.moveTo(x - ri, y + k);
+      ctx.lineTo(x + ri, y + k);
+    }
+    ctx.stroke();
+    for (let i = 0; i <= 10; i++) {
+      const a = Math.PI * (1.05 + (i / 10) * 0.9);
+      disc(ri * 0.07, STYLE.white, Math.cos(a) * ri * 0.72, Math.sin(a) * ri * 0.72);
+    }
+    disc(ri * 0.3, STYLE.travertineDark);
+    disc(ri * 0.2, STYLE.travertine);
+    disc(ri * 0.07, STYLE.white);
   } else if (kind === 'fontana') {
     // Istanbul: fontana ottomana ottagonale, acqua turchese e una piccola cupola.
     const octagon = (/** @type {number} */ rad, /** @type {string} */ fill) => {

@@ -1,0 +1,735 @@
+{
+  "nome": "Napoli",
+  "mondo": {
+    "larghezza": 920,
+    "altezza": 1840
+  },
+  "forme": [
+    "cerchio",
+    "quadrato",
+    "triangolo",
+    "pentagono",
+    "esagono",
+    "stella",
+    "rombo",
+    "croce"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 390,
+      "y": 720,
+      "larghezza": 460
+    },
+    {
+      "giorno": 3,
+      "x": 390,
+      "y": 720,
+      "larghezza": 460
+    },
+    {
+      "giorno": 9,
+      "x": 280,
+      "y": 560,
+      "larghezza": 640,
+      "nome": "Il Vomero e Capodimonte"
+    },
+    {
+      "giorno": 16,
+      "x": 100,
+      "y": 200,
+      "larghezza": 820,
+      "nome": "Posillipo e Secondigliano"
+    },
+    {
+      "giorno": 23,
+      "x": 0,
+      "y": 0,
+      "larghezza": 920,
+      "nome": "Fuorigrotta e Scampia"
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 769,
+      "y": 964,
+      "nome": "Napoli Centrale"
+    },
+    {
+      "forma": "quadrato",
+      "x": 580,
+      "y": 1005,
+      "nome": "Piazza Dante"
+    },
+    {
+      "forma": "triangolo",
+      "x": 465,
+      "y": 1105,
+      "nome": "Piazza Amedeo"
+    },
+    {
+      "forma": "stella",
+      "x": 101,
+      "y": 1238,
+      "nome": "Stadio Maradona",
+      "tipo": "stadio",
+      "giorno": 6
+    },
+    {
+      "forma": "esagono",
+      "x": 652,
+      "y": 1125,
+      "nome": "Molo Beverello",
+      "tipo": "porto",
+      "giorno": 10
+    }
+  ],
+  "acqua": [
+    {
+      "tipo": "mare",
+      "spiaggia": false,
+      "punti": [
+        [
+          -330,
+          1295
+        ],
+        [
+          0,
+          1305
+        ],
+        [
+          40,
+          1345
+        ],
+        [
+          85,
+          1395
+        ],
+        [
+          140,
+          1420
+        ],
+        [
+          195,
+          1395
+        ],
+        [
+          245,
+          1355
+        ],
+        [
+          290,
+          1295
+        ],
+        [
+          325,
+          1245
+        ],
+        [
+          370,
+          1225
+        ],
+        [
+          430,
+          1202
+        ],
+        [
+          510,
+          1195
+        ],
+        [
+          545,
+          1200
+        ],
+        [
+          565,
+          1192
+        ],
+        [
+          585,
+          1180
+        ],
+        [
+          615,
+          1162
+        ],
+        [
+          665,
+          1150
+        ],
+        [
+          720,
+          1130
+        ],
+        [
+          780,
+          1120
+        ],
+        [
+          850,
+          1120
+        ],
+        [
+          930,
+          1130
+        ],
+        [
+          1170,
+          1150
+        ],
+        [
+          1170,
+          2350
+        ],
+        [
+          -330,
+          2350
+        ]
+      ]
+    }
+  ],
+  "terreno": {
+    "ville": [
+      {
+        "nome": "Bosco di Capodimonte",
+        "punti": [
+          [
+            550,
+            800
+          ],
+          [
+            640,
+            805
+          ],
+          [
+            650,
+            750
+          ],
+          [
+            620,
+            710
+          ],
+          [
+            555,
+            720
+          ]
+        ]
+      },
+      {
+        "nome": "Villa Comunale",
+        "punti": [
+          [
+            390,
+            1180
+          ],
+          [
+            505,
+            1170
+          ],
+          [
+            505,
+            1158
+          ],
+          [
+            390,
+            1167
+          ]
+        ]
+      },
+      {
+        "nome": "Villa Floridiana",
+        "punti": [
+          [
+            398,
+            1108
+          ],
+          [
+            430,
+            1105
+          ],
+          [
+            432,
+            1086
+          ],
+          [
+            400,
+            1086
+          ]
+        ]
+      },
+      {
+        "nome": "Parco Virgiliano",
+        "punti": [
+          [
+            115,
+            1370
+          ],
+          [
+            150,
+            1365
+          ],
+          [
+            155,
+            1392
+          ],
+          [
+            122,
+            1397
+          ]
+        ]
+      },
+      {
+        "nome": "Mostra d'Oltremare",
+        "punti": [
+          [
+            135,
+            1205
+          ],
+          [
+            185,
+            1200
+          ],
+          [
+            190,
+            1162
+          ],
+          [
+            140,
+            1162
+          ]
+        ]
+      },
+      {
+        "nome": "Cimitero di Poggioreale",
+        "punti": [
+          [
+            845,
+            895
+          ],
+          [
+            905,
+            890
+          ],
+          [
+            910,
+            835
+          ],
+          [
+            850,
+            835
+          ]
+        ]
+      },
+      {
+        "nome": "Orto Botanico",
+        "punti": [
+          [
+            682,
+            938
+          ],
+          [
+            715,
+            936
+          ],
+          [
+            715,
+            914
+          ],
+          [
+            682,
+            915
+          ]
+        ]
+      },
+      {
+        "nome": "Parco dei Camaldoli",
+        "punti": [
+          [
+            270,
+            850
+          ],
+          [
+            330,
+            845
+          ],
+          [
+            330,
+            800
+          ],
+          [
+            275,
+            800
+          ]
+        ]
+      }
+    ],
+    "colli": [
+      {
+        "nome": "Vomero",
+        "x": 440,
+        "y": 1050,
+        "raggio": 75
+      },
+      {
+        "nome": "Posillipo",
+        "x": 230,
+        "y": 1310,
+        "raggio": 90
+      },
+      {
+        "nome": "Capodimonte",
+        "x": 600,
+        "y": 850,
+        "raggio": 60
+      },
+      {
+        "nome": "Camaldoli",
+        "x": 310,
+        "y": 830,
+        "raggio": 100
+      }
+    ],
+    "monumenti": [
+      {
+        "nome": "Maschio Angioino",
+        "icona": "castello",
+        "x": 603,
+        "y": 1122,
+        "raggio": 14
+      },
+      {
+        "nome": "Castel dell'Ovo",
+        "icona": "castello",
+        "x": 558,
+        "y": 1235,
+        "raggio": 12
+      },
+      {
+        "nome": "Castel Sant'Elmo",
+        "icona": "castello",
+        "x": 487,
+        "y": 1063,
+        "raggio": 12
+      },
+      {
+        "nome": "Plebiscito",
+        "icona": "cupola",
+        "x": 568,
+        "y": 1150,
+        "raggio": 11
+      },
+      {
+        "nome": "Duomo",
+        "icona": "cupola",
+        "x": 662,
+        "y": 965,
+        "raggio": 10
+      },
+      {
+        "nome": "Museo Archeologico",
+        "icona": "colonne",
+        "x": 584,
+        "y": 955,
+        "raggio": 10
+      },
+      {
+        "nome": "Reggia di Capodimonte",
+        "icona": "colonne",
+        "x": 584,
+        "y": 815,
+        "raggio": 12
+      },
+      {
+        "nome": "Albergo dei Poveri",
+        "icona": "colonne",
+        "x": 705,
+        "y": 895,
+        "raggio": 10
+      },
+      {
+        "nome": "Centro Direzionale",
+        "icona": "grattacielo",
+        "x": 866,
+        "y": 905,
+        "raggio": 11
+      }
+    ]
+  },
+  "quartieri": [
+    {
+      "nome": "San Ferdinando",
+      "x": 580,
+      "y": 1110
+    },
+    {
+      "nome": "Quartieri Spagnoli",
+      "x": 545,
+      "y": 1075
+    },
+    {
+      "nome": "Chiaia",
+      "x": 475,
+      "y": 1145
+    },
+    {
+      "nome": "Mergellina",
+      "x": 345,
+      "y": 1200
+    },
+    {
+      "nome": "Porto",
+      "x": 655,
+      "y": 1075
+    },
+    {
+      "nome": "Pendino",
+      "x": 670,
+      "y": 1030
+    },
+    {
+      "nome": "Mercato",
+      "x": 730,
+      "y": 1045
+    },
+    {
+      "nome": "Avvocata",
+      "x": 570,
+      "y": 975
+    },
+    {
+      "nome": "Materdei",
+      "x": 560,
+      "y": 920
+    },
+    {
+      "nome": "Stella",
+      "x": 610,
+      "y": 915
+    },
+    {
+      "nome": "Rione Sanità",
+      "x": 605,
+      "y": 875
+    },
+    {
+      "nome": "San Carlo all'Arena",
+      "x": 670,
+      "y": 850
+    },
+    {
+      "nome": "Vasto",
+      "x": 780,
+      "y": 920
+    },
+    {
+      "nome": "Vomero",
+      "x": 440,
+      "y": 1035
+    },
+    {
+      "nome": "Arenella",
+      "x": 450,
+      "y": 950
+    },
+    {
+      "nome": "Rione Alto",
+      "x": 395,
+      "y": 880
+    },
+    {
+      "nome": "Colli Aminei",
+      "x": 510,
+      "y": 785
+    },
+    {
+      "nome": "Posillipo",
+      "x": 240,
+      "y": 1285
+    },
+    {
+      "nome": "Marechiaro",
+      "x": 180,
+      "y": 1370
+    },
+    {
+      "nome": "Fuorigrotta",
+      "x": 170,
+      "y": 1145
+    },
+    {
+      "nome": "Rione Traiano",
+      "x": 140,
+      "y": 1050
+    },
+    {
+      "nome": "Soccavo",
+      "x": 200,
+      "y": 1015
+    },
+    {
+      "nome": "Pianura",
+      "x": 60,
+      "y": 910
+    },
+    {
+      "nome": "Chiaiano",
+      "x": 420,
+      "y": 650
+    },
+    {
+      "nome": "Marianella",
+      "x": 490,
+      "y": 590
+    },
+    {
+      "nome": "Piscinola",
+      "x": 535,
+      "y": 540
+    },
+    {
+      "nome": "Miano",
+      "x": 610,
+      "y": 630
+    },
+    {
+      "nome": "Secondigliano",
+      "x": 720,
+      "y": 510
+    },
+    {
+      "nome": "Scampia",
+      "x": 640,
+      "y": 420
+    },
+    {
+      "nome": "Capodichino",
+      "x": 840,
+      "y": 670
+    },
+    {
+      "nome": "San Pietro a Patierno",
+      "x": 860,
+      "y": 560
+    },
+    {
+      "nome": "Ponti Rossi",
+      "x": 700,
+      "y": 790
+    },
+    {
+      "nome": "Doganella",
+      "x": 770,
+      "y": 820
+    },
+    {
+      "nome": "Marano",
+      "x": 240,
+      "y": 360
+    },
+    {
+      "nome": "Mugnano",
+      "x": 350,
+      "y": 260
+    },
+    {
+      "nome": "Calvizzano",
+      "x": 180,
+      "y": 200
+    },
+    {
+      "nome": "Villaricca",
+      "x": 90,
+      "y": 150
+    },
+    {
+      "nome": "Melito",
+      "x": 450,
+      "y": 210
+    },
+    {
+      "nome": "Arzano",
+      "x": 750,
+      "y": 270
+    },
+    {
+      "nome": "Casavatore",
+      "x": 830,
+      "y": 390
+    },
+    {
+      "nome": "Grumo Nevano",
+      "x": 660,
+      "y": 60
+    },
+    {
+      "nome": "Frattamaggiore",
+      "x": 770,
+      "y": 50
+    },
+    {
+      "nome": "Poggioreale",
+      "x": 880,
+      "y": 950
+    },
+    {
+      "nome": "Gianturco",
+      "x": 820,
+      "y": 1020
+    },
+    {
+      "nome": "Zona Industriale",
+      "x": 870,
+      "y": 1065
+    }
+  ],
+  "stile": {
+    "ponte": "semplice",
+    "cavalcavia": "tufo",
+    "rotonda": "plebiscito"
+  },
+  "cavalcavia": {
+    "iniziali": 1
+  },
+  "crescita": {
+    "ogniMin": 45,
+    "ogniMax": 60,
+    "massimo": 12,
+    "distanzaMinima": 100,
+    "difficolta": 0.8
+  },
+  "congestione": {
+    "capienza": 6,
+    "tolleranza": 20
+  },
+  "tempo": {
+    "giorno": 20
+  },
+  "veicoli": {
+    "ogniMin": 6,
+    "ogniMax": 8,
+    "aumento": 0.02,
+    "aumentoMassimo": 0.5
+  },
+  "strade": {
+    "iniziali": 20,
+    "perGiorno": 4,
+    "lunghezzaTratto": 40
+  },
+  "premi": {
+    "strade": 15,
+    "capienza": 3,
+    "ponti": 1,
+    "cavalcavia": 1
+  },
+  "stelle": {
+    "viaggi": 360,
+    "giorni": 25,
+    "traffico": {
+      "soglia": 12
+    },
+    "platino": {
+      "giorni": 10
+    }
+  }
+}

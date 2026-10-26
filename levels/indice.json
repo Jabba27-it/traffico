@@ -6,6 +6,7 @@
     { "file": "sydney", "nome": "Sydney", "descrizione": "Il porto, le baie e Botany Bay", "icona": "vele" },
     { "file": "rio", "nome": "Rio de Janeiro", "descrizione": "La baia, la Lagoa e i morros fra le spiagge", "icona": "cristo" },
     { "file": "istanbul", "nome": "Istanbul", "descrizione": "Il Bosforo fra due continenti e il Corno d'Oro", "icona": "moschea" },
-    { "file": "amsterdam", "nome": "Amsterdam", "descrizione": "L'anello dei canali, l'Amstel e l'IJ", "icona": "case" }
+    { "file": "amsterdam", "nome": "Amsterdam", "descrizione": "L'anello dei canali, l'Amstel e l'IJ", "icona": "case" },
+    { "file": "napoli", "nome": "Napoli", "descrizione": "Il golfo, i colli e il porto", "icona": "vulcano" }
   ]
 }
