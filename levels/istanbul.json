@@ -687,14 +687,14 @@
     "giorno": 20
   },
   "veicoli": {
-    "ogniMin": 7,
-    "ogniMax": 9,
+    "ogniMin": 6,
+    "ogniMax": 8,
     "aumento": 0.02,
     "aumentoMassimo": 0.5
   },
   "strade": {
-    "iniziali": 25,
-    "perGiorno": 5,
+    "iniziali": 20,
+    "perGiorno": 4,
     "lunghezzaTratto": 40
   },
   "premi": {
