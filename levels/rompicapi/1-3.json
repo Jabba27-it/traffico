@@ -81,7 +81,7 @@
     "tolleranza": 1000000
   },
   "rompicapo": {
-    "testo": "Il parco divide nord e sud: nei parchi non si costruisce, bisogna girargli intorno. Anche Est ha traffico: con i tratti contati conviene servirlo con la stessa strada, attaccandolo con un pezzetto.",
+    "testo": "Fai una strada da Nord a Sud che gira intorno al parco dal lato di Est. Poi collega Est a quella strada con un pezzetto corto. Attenzione: la strada non deve passare dentro Est, perché le stazioni non si attraversano.",
     "programma": [
       {
         "da": "Nord",
