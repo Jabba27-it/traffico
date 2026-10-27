@@ -1,5 +1,5 @@
 {
-  "nome": "Il giro lungo",
+  "nome": "Il ponte sbagliato",
   "mondo": {
     "larghezza": 400,
     "altezza": 800
@@ -20,24 +20,39 @@
     {
       "forma": "cerchio",
       "x": 200,
-      "y": 114,
+      "y": 122,
       "nome": "Nord"
     },
     {
       "forma": "quadrato",
       "x": 200,
-      "y": 446,
+      "y": 438,
       "nome": "Sud"
     }
   ],
-  "acqua": [],
+  "acqua": [
+    {
+      "tipo": "fiume",
+      "larghezza": 36,
+      "punti": [
+        [
+          -40,
+          280
+        ],
+        [
+          440,
+          280
+        ]
+      ]
+    }
+  ],
   "terreno": {
     "ville": [],
     "colli": [],
     "monumenti": []
   },
   "strade": {
-    "iniziali": 12,
+    "iniziali": 0,
     "perGiorno": 0,
     "lunghezzaTratto": 40
   },
@@ -52,7 +67,7 @@
     "tolleranza": 1000000
   },
   "rompicapo": {
-    "testo": "Per andare da nord a sud la strada fa avanti e indietro sul lato est: così il tempo non basta. Hai 3 mosse.",
+    "testo": "Il ponte c'è, ma laggiù in fondo: per andare da Nord a Sud tutti fanno il giro. Non ne hai altri, e hai 3 mosse.",
     "programma": [
       {
         "da": "Nord",
@@ -68,71 +83,53 @@
         "inizio": 0.6
       }
     ],
-    "tempo": 26,
+    "tempo": 24,
     "stelle": {
-      "mosse": 1,
+      "mosse": 2,
       "tempo": 23
     },
     "strade": [
       [
         [
           200,
-          114
+          122
         ],
         [
-          300,
-          118
+          70,
+          153
         ],
         [
-          370,
-          161
-        ],
-        [
-          270,
-          201
-        ],
-        [
-          370,
-          240
-        ],
-        [
-          270,
+          45,
           280
         ],
         [
-          370,
-          320
-        ],
-        [
-          270,
-          359
-        ],
-        [
-          370,
-          399
-        ],
-        [
-          300,
-          442
+          70,
+          407
         ],
         [
           200,
-          446
+          438
         ]
       ]
     ],
     "mosse": 3,
-    "consiglio": "Una strada dritta da Nord a Sud: il giro lungo resta, ma nessuno lo usa più.",
+    "consiglio": "Togli la strada col ponte lontano con una pressione lunga: il ponte e i tratti ti tornano indietro. Poi rifai la strada dritta da Nord a Sud, col ponte nel mezzo.",
     "soluzione": [
+      {
+        "togli": [
+          52,
+          225
+        ]
+      },
       {
         "strada": [
           [
             200,
-            114
+            122
           ],
           [
             200,
-            446
+            438
           ]
         ]
       }

@@ -9,6 +9,7 @@ import { distanceToWater } from '../sim/water.js';
 
 /** @typedef {import('../sim/graph.js').RoadGraph} RoadGraph */
 /** @typedef {import('../sim/graph.js').RoadEdge} RoadEdge */
+/** @typedef {import('../sim/graph.js').RoadNode} RoadNode */
 /** @typedef {{x: number, y: number}} Point */
 
 /** Opacità massima della velatura rossa del traffico: tenue, come richiesto. */
@@ -159,7 +160,7 @@ export function drawRoads(ctx, graph, congestion, look) {
   strokeChains(ctx, bridges, ROAD_WIDTH + 6, colors.rail);
   strokeChains(ctx, bridges, ROAD_WIDTH - 2, colors.deck);
   ctx.lineCap = 'round';
-  drawOneWayArrows(ctx, graph, [...graph.edges.values()].filter((e) => e.oneWay));
+  drawOneWayArrows(ctx, graph);
 
   // Traffico: una velatura rossa leggera dove i veicoli vanno piano.
   if (!congestion || congestion.size === 0) return;
@@ -276,6 +277,45 @@ export function drawSolution(ctx, steps, time) {
   }
   ctx.setLineDash([]);
   for (const st of steps) {
+    if ('oneWay' in st) {
+      // Il verso giusto: una freccia lungo la strada. Si tocca la strada finché
+      // le sue frecce vanno come questa.
+      const { from, to } = st.oneWay;
+      const len = Math.hypot(to.x - from.x, to.y - from.y) || 1;
+      const ux = (to.x - from.x) / len, uy = (to.y - from.y) / len;
+      const shift = ((time * 30) % 20) - 10; // la freccia scivola nel verso giusto
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(from.x + ux * 6, from.y + uy * 6);
+      ctx.lineTo(to.x - ux * 6, to.y - uy * 6);
+      ctx.stroke();
+      const hx = (from.x + to.x) / 2 + ux * shift, hy = (from.y + to.y) / 2 + uy * shift;
+      ctx.beginPath();
+      ctx.moveTo(hx + ux * 9, hy + uy * 9);
+      ctx.lineTo(hx - ux * 5 - uy * 8, hy - uy * 5 + ux * 8);
+      ctx.lineTo(hx - ux * 5 + uy * 8, hy - uy * 5 - ux * 8);
+      ctx.closePath();
+      ctx.fill();
+    } else if ('remove' in st) {
+      // Da togliere: una croce che pulsa, con un cerchio come per i tocchi.
+      const pulse = 0.5 + 0.5 * Math.sin(time * 5);
+      const { x, y } = st.remove;
+      ctx.globalAlpha = 0.5 + 0.5 * pulse;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(x - 9, y - 9);
+      ctx.lineTo(x + 9, y + 9);
+      ctx.moveTo(x + 9, y - 9);
+      ctx.lineTo(x - 9, y + 9);
+      ctx.stroke();
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, 16 + pulse * 3, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+  for (const st of steps) {
     if (!('tap' in st)) continue;
     const pulse = 0.5 + 0.5 * Math.sin(time * 5);
     ctx.globalAlpha = 0.5 + 0.5 * pulse;
@@ -317,32 +357,51 @@ export function vehiclesOnDecks(graph, vehicles) {
 const DECK_REACH = 2;
 
 /**
- * Frecce sui sensi unici: una ogni due archi circa, nel verso di marcia.
+ * Frecce sui sensi unici: lungo ogni strada a senso unico, una ogni ARROW_SPACING
+ * circa e sempre almeno una (prima andavano su un arco sì e uno no, e una strada
+ * corta di un arco solo poteva restare senza freccia).
  * @param {CanvasRenderingContext2D} ctx
  * @param {RoadGraph} graph
- * @param {RoadEdge[]} edges
  */
-function drawOneWayArrows(ctx, graph, edges) {
+function drawOneWayArrows(ctx, graph) {
   ctx.fillStyle = STYLE.arrow;
-  for (const e of edges) {
-    if (e.id % 2) continue; // non su ogni arco: sarebbero troppe
-    const a = graph.nodes.get(e.a);
-    const b = graph.nodes.get(e.b);
-    if (!a || !b) continue;
-    const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-    const dx = (b.x - a.x) / len;
-    const dy = (b.y - a.y) / len;
-    const mx = (a.x + b.x) / 2;
-    const my = (a.y + b.y) / 2;
-    ctx.beginPath();
-    ctx.moveTo(mx + dx * 5, my + dy * 5);
-    ctx.lineTo(mx - dx * 3 - dy * 4.5, my - dy * 3 + dx * 4.5);
-    ctx.lineTo(mx - dx * 1, my - dy * 1);
-    ctx.lineTo(mx - dx * 3 + dy * 4.5, my - dy * 3 - dx * 4.5);
-    ctx.closePath();
-    ctx.fill();
+  for (const c of roadChains(graph)) {
+    if (!c.oneWay || c.points.length < 2) continue;
+    // I pezzi della fila, ognuno nel verso di marcia del suo arco.
+    const segments = [];
+    let total = 0;
+    for (let i = 1; i < c.points.length; i++) {
+      const p = /** @type {RoadNode} */ (c.points[i - 1]);
+      const q = /** @type {RoadNode} */ (c.points[i]);
+      const e = graph.getEdge(p.id, q.id) ?? graph.getEdge(q.id, p.id);
+      const forward = !e || e.a === p.id;
+      const len = Math.hypot(q.x - p.x, q.y - p.y);
+      segments.push({ a: forward ? p : q, b: forward ? q : p, from: total, len, flip: !forward });
+      total += len;
+    }
+    const count = Math.max(1, Math.round(total / ARROW_SPACING));
+    for (let k = 0; k < count; k++) {
+      const at = ((k + 0.5) / count) * total;
+      const seg = segments.find((sg) => at <= sg.from + sg.len) ?? segments[segments.length - 1];
+      const t = seg.len ? (at - seg.from) / seg.len : 0.5;
+      const u = seg.flip ? 1 - t : t;
+      const dx = (seg.b.x - seg.a.x) / (seg.len || 1);
+      const dy = (seg.b.y - seg.a.y) / (seg.len || 1);
+      const mx = seg.a.x + (seg.b.x - seg.a.x) * u;
+      const my = seg.a.y + (seg.b.y - seg.a.y) * u;
+      ctx.beginPath();
+      ctx.moveTo(mx + dx * 5, my + dy * 5);
+      ctx.lineTo(mx - dx * 3 - dy * 4.5, my - dy * 3 + dx * 4.5);
+      ctx.lineTo(mx - dx * 1, my - dy * 1);
+      ctx.lineTo(mx - dx * 3 + dy * 4.5, my - dy * 3 - dx * 4.5);
+      ctx.closePath();
+      ctx.fill();
+    }
   }
 }
+
+/** Distanza circa fra due frecce di un senso unico. */
+const ARROW_SPACING = 55;
 
 /**
  * Le linee tratteggiate fra le due corsie.

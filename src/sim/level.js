@@ -147,8 +147,10 @@ const TUTORIAL_GOALS = ['avanti', 'collega', 'viaggi', 'rimuovi', 'tipoStrada', 
 
 /**
  * Un passo della soluzione di un rompicapo: una strada da disegnare, un punto da
- * toccare (quante volte) o una rotonda (centro, raggio e verso).
- * @typedef {{road: {x: number, y: number}[]} | {tap: {x: number, y: number}, times: number} | {circle: {x: number, y: number, r: number, ccw: boolean}}} SolutionStep
+ * toccare (quante volte), una rotonda (centro, raggio e verso), un senso unico
+ * (la strada lì va da un punto all'altro: si tocca finché le frecce vanno così)
+ * o una strada da togliere (pressione lunga).
+ * @typedef {{road: {x: number, y: number}[]} | {tap: {x: number, y: number}, times: number} | {circle: {x: number, y: number, r: number, ccw: boolean}} | {oneWay: {from: {x: number, y: number}, to: {x: number, y: number}}} | {remove: {x: number, y: number}}} SolutionStep
  */
 
 /**
@@ -415,6 +417,14 @@ function parsePuzzle(r, stations, shapes) {
     solution: (Array.isArray(r.soluzione) ? r.soluzione : []).map((/** @type {any} */ step) => {
       if (Array.isArray(step?.strada)) return { road: step.strada.map(point).filter(Boolean) };
       if (Array.isArray(step?.tocco)) return { tap: point(step.tocco), times: isNum(step.volte) ? step.volte : 1 };
+      if (Array.isArray(step?.senso) && step.senso.length === 2) {
+        const [from, to] = step.senso.map(point);
+        return from && to ? { oneWay: { from, to } } : null;
+      }
+      if (Array.isArray(step?.togli)) {
+        const at = point(step.togli);
+        return at ? { remove: at } : null;
+      }
       if (Array.isArray(step?.rotonda)) {
         const [x, y, radius] = step.rotonda;
         return { circle: { x, y, r: radius, ccw: step.verso !== 'orario' } };

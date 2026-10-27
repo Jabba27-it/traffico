@@ -108,7 +108,7 @@
     "monumenti": []
   },
   "strade": {
-    "iniziali": 43,
+    "iniziali": 42,
     "perGiorno": 0,
     "lunghezzaTratto": 40
   },
@@ -169,7 +169,7 @@
     ],
     "tempo": 40,
     "stelle": {
-      "tratti": 40,
+      "tratti": 39,
       "tempo": 34.5
     },
     "consiglio": "Un giro grande intorno ai due parchi, a senso unico, e una strada in mezzo fra i parchi da Ovest a Est. Le stazioni si attaccano al giro.",
@@ -259,46 +259,76 @@
         ]
       },
       {
-        "tocco": [
-          200,
-          161
-        ],
-        "volte": 2
+        "senso": [
+          [
+            175,
+            161
+          ],
+          [
+            225,
+            161
+          ]
+        ]
       },
       {
-        "tocco": [
-          310,
-          217
-        ],
-        "volte": 2
+        "senso": [
+          [
+            310,
+            197
+          ],
+          [
+            310,
+            236
+          ]
+        ]
       },
       {
-        "tocco": [
-          310,
-          343
-        ],
-        "volte": 2
+        "senso": [
+          [
+            310,
+            324
+          ],
+          [
+            310,
+            363
+          ]
+        ]
       },
       {
-        "tocco": [
-          200,
-          399
-        ],
-        "volte": 2
+        "senso": [
+          [
+            225,
+            399
+          ],
+          [
+            175,
+            399
+          ]
+        ]
       },
       {
-        "tocco": [
-          90,
-          343
-        ],
-        "volte": 2
+        "senso": [
+          [
+            90,
+            363
+          ],
+          [
+            90,
+            324
+          ]
+        ]
       },
       {
-        "tocco": [
-          90,
-          217
-        ],
-        "volte": 1
+        "senso": [
+          [
+            90,
+            236
+          ],
+          [
+            90,
+            197
+          ]
+        ]
       }
     ]
   }

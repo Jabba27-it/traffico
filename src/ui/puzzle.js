@@ -45,9 +45,12 @@ export function createPuzzle(parent, sim, options) {
   // Le strade già fatte dei "Ripara" (coi loro sensi unici): gratis e non annullabili.
   for (const line of goal.roads) {
     const budget = sim.roadBudget;
+    const bridges = sim.bridgeBudget;
     sim.roadBudget = Infinity;
+    sim.bridgeBudget = Infinity; // anche i loro ponti sono già fatti
     sim.buildRoad(options.sample(line), 28);
     sim.roadBudget = budget;
+    sim.bridgeBudget = bridges;
   }
   for (const t of goal.taps) sim.tap(t.x, t.y, 20);
   sim.startPuzzle();
@@ -180,7 +183,7 @@ export function createPuzzle(parent, sim, options) {
       text('div', options.label, 'tutorial-counter'),
       text('div', 'Consiglio', 'tutorial-title'),
       text('div', goal.hint || 'Guarda la soluzione tratteggiata sulla mappa e ricalcala.', 'tutorial-text'),
-      ...(showSolution ? [text('div', 'La soluzione è tratteggiata sulla mappa: ricalca le strade, tocca i punti che pulsano (il numero dice quante volte), disegna i cerchi nel verso della freccia.', 'tutorial-text puzzle-help-note')] : []),
+      ...(showSolution ? [text('div', 'La soluzione è tratteggiata sulla mappa: ricalca le strade, tocca i punti che pulsano (il numero dice quante volte), disegna i cerchi nel verso della freccia, tocca le strade con la freccia finché le loro frecce vanno così, togli con una pressione lunga le strade con la croce.', 'tutorial-text puzzle-help-note')] : []),
       buttons(back, ...(goal.solution.length > 0 ? [toggle] : []), button('Via!', () => {
         phase = 'via';
         showSpeed(true);
@@ -209,10 +212,21 @@ export function createPuzzle(parent, sim, options) {
     const starLine = document.createElement('div');
     starLine.className = 'puzzle-stars';
     starLine.innerHTML = starsHtml(stars);
-    const thrifty =
+    // Le tre stelle una per una: cosa chiedevano e com'è andata.
+    const thriftyGoal =
       goal.moves !== null
-        ? `${puzzle.moves} ${puzzle.moves === 1 ? 'mossa' : 'mosse'} (★ con al più ${goal.stars.moves ?? goal.moves})`
-        : `${sim.puzzleRoadsUsed} tratti (★ con al più ${goal.stars.roads})`;
+        ? `Al più ${goal.stars.moves ?? goal.moves} mosse: ne hai fatte ${puzzle.moves}`
+        : `Al più ${goal.stars.roads} tratti: ne hai usati ${sim.puzzleRoadsUsed}`;
+    const goals = document.createElement('div');
+    goals.className = 'puzzle-goals';
+    for (const [on, label] of /** @type {[boolean, string][]} */ ([
+      [stars[0], 'Risolto'],
+      [stars[1], thriftyGoal],
+      [stars[2], `Tutti arrivati entro ${clock(goal.stars.time)}: in ${clock(puzzle.finishedAt)}`],
+    ])) {
+      const row = text('div', `${on ? '✓' : '✗'} ${label}`, on ? 'puzzle-goal-on' : 'puzzle-goal-off');
+      goals.appendChild(row);
+    }
     const list = [
       button('Migliora', project, 'secondary'),
       ...(options.onNext ? [button('Prossimo', options.onNext)] : [button('Rompicapi', options.onList)]),
@@ -221,7 +235,7 @@ export function createPuzzle(parent, sim, options) {
       text('div', options.label, 'tutorial-counter'),
       text('div', 'Risolto!', 'tutorial-title'),
       starLine,
-      text('div', `Tutti arrivati in ${clock(puzzle.finishedAt)} (★ entro ${clock(goal.stars.time)}), ${thrifty}.`, 'tutorial-text'),
+      goals,
       buttons(...list),
     );
   };

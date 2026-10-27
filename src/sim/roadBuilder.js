@@ -27,6 +27,10 @@ const DEAD_END_RADIUS = ROAD_WIDTH;
 const OBSTACLE_MARGIN = ROAD_WIDTH / 2 - 3;
 /** Sotto questa distanza fra dove la strada nuova sale su una esistente e dove ne scende, è un attraversamento. */
 const CROSSING_GAP = 50;
+/** Un nodo che c'è già così vicino al punto d'incrocio fa da croce, senza farne un altro. */
+const CROSSING_SNAP = 1;
+/** Da quanto lontano dall'incrocio i due bracci della strada nuova si allineano. */
+const CROSSING_ARM = 30;
 /** Un estremo del tratto che cade così vicino a una stazione vi si aggancia. */
 const STATION_SNAP = STATION_RADIUS + 8;
 
@@ -218,13 +222,43 @@ export function buildPlannedRoad(graph, plan, snapRadius) {
     const b = runs[i + 1][0];
     if (distance(a, b) >= CROSSING_GAP) continue;
     const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-    const node = graph.findNodeNear(mid.x, mid.y, ROAD_WIDTH / 2);
-    if (node?.stationId !== undefined) continue; // dentro una stazione si entra e basta
-    const hit = node ?? graph.findEdgeNear(mid.x, mid.y, ROAD_WIDTH / 2);
-    if (!hit) continue;
-    const cross = { x: hit.x, y: hit.y };
-    runs[i][runs[i].length - 1] = cross;
-    runs[i + 1][0] = cross;
+    const near = graph.findNodeNear(mid.x, mid.y, ROAD_WIDTH / 2);
+    if (near?.stationId !== undefined) continue; // dentro una stazione si entra e basta
+    // Il punto vero dove la linea disegnata taglia la strada: lì nasce il nodo della
+    // croce. Agganciandosi al nodo più vicino (fino a 28 unità più in là) la strada
+    // nuova si piegava all'incrocio.
+    // I due bracci si allineano: un punto della linea un po' prima e uno un po' dopo
+    // l'incrocio, e l'incrocio sulla retta che li unisce (il dito che ondeggia
+    // proprio lì piegava la strada).
+    const before = runs[i].findLastIndex((q) => distance(q, mid) >= CROSSING_ARM);
+    const after = runs[i + 1].findIndex((q) => distance(q, mid) >= CROSSING_ARM);
+    const from = before >= 0 ? runs[i][before] : a;
+    const to = after >= 0 ? runs[i + 1][after] : b;
+    let cross = null;
+    for (const e of graph.edges.values()) {
+      const ea = graph.nodes.get(e.a);
+      const eb = graph.nodes.get(e.b);
+      const hit = ea && eb ? segmentIntersection(from, to, ea, eb) : null;
+      if (!hit) continue;
+      const close = graph.findNodeNear(hit.x, hit.y, CROSSING_SNAP);
+      cross = close ?? graph.nodes.get(graph.splitEdge(e.id, hit.x, hit.y).id);
+      break;
+    }
+    if (cross) {
+      // Fra quei due punti e l'incrocio la strada va dritta.
+      if (before >= 0) runs[i] = runs[i].slice(0, before + 1);
+      if (after >= 0) runs[i + 1] = runs[i + 1].slice(after);
+      runs[i].push({ x: cross.x, y: cross.y });
+      runs[i + 1].unshift({ x: cross.x, y: cross.y });
+      continue;
+    }
+    if (!cross) {
+      const hit = near ?? graph.findEdgeNear(mid.x, mid.y, ROAD_WIDTH / 2);
+      if (!hit) continue;
+      cross = { x: hit.x, y: hit.y };
+    }
+    runs[i][runs[i].length - 1] = { x: cross.x, y: cross.y };
+    runs[i + 1][0] = { x: cross.x, y: cross.y };
   }
   for (const run of runs) buildRoad(graph, run, snapRadius);
 }
@@ -330,6 +364,8 @@ function crossTo(graph, fromId, p) {
     if (!ea || !eb) continue;
     const hit = segmentIntersection(a, p, ea, eb);
     if (!hit) continue;
+    // Arrivare su una strada non è attraversarla: l'aggancio lo fa chi chiama.
+    if (distance(hit, p) < 1) continue;
     // Dentro una stazione non si creano incroci: ci pensa l'ingresso nella stazione.
     if (insideStation(ea, hit) || insideStation(eb, hit)) continue;
     hits.push({ edgeId: e.id, x: hit.x, y: hit.y, t: hit.t });

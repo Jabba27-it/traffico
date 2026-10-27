@@ -247,49 +247,79 @@
       ]
     ],
     "mosse": 12,
-    "consiglio": "Tocca ogni lato del giro finché le frecce vanno tutte nello stesso verso, come una rotonda grande. La strada in mezzo resta a doppio senso.",
+    "consiglio": "Tocca ogni lato del giro finché le frecce vanno tutte nello stesso verso, in senso antiorario, come una rotonda grande. La strada in mezzo resta a doppio senso.",
     "soluzione": [
       {
-        "tocco": [
-          200,
-          161
-        ],
-        "volte": 2
+        "senso": [
+          [
+            225,
+            161
+          ],
+          [
+            175,
+            161
+          ]
+        ]
       },
       {
-        "tocco": [
-          310,
-          217
-        ],
-        "volte": 2
+        "senso": [
+          [
+            310,
+            236
+          ],
+          [
+            310,
+            197
+          ]
+        ]
       },
       {
-        "tocco": [
-          310,
-          343
-        ],
-        "volte": 2
+        "senso": [
+          [
+            310,
+            363
+          ],
+          [
+            310,
+            324
+          ]
+        ]
       },
       {
-        "tocco": [
-          200,
-          399
-        ],
-        "volte": 2
+        "senso": [
+          [
+            175,
+            399
+          ],
+          [
+            225,
+            399
+          ]
+        ]
       },
       {
-        "tocco": [
-          90,
-          343
-        ],
-        "volte": 2
+        "senso": [
+          [
+            90,
+            324
+          ],
+          [
+            90,
+            363
+          ]
+        ]
       },
       {
-        "tocco": [
-          90,
-          217
-        ],
-        "volte": 1
+        "senso": [
+          [
+            90,
+            197
+          ],
+          [
+            90,
+            236
+          ]
+        ]
       }
     ]
   }
