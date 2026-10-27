@@ -20,6 +20,11 @@ const UPCOMING_MARGIN = 4;
 const MERGE_RADIUS = 12;
 /** Un tratto che passa così vicino all'estremità di una strada (le due si toccano a vista) vi si collega. */
 const DEAD_END_RADIUS = ROAD_WIDTH;
+/**
+ * Quanto l'asse di una strada deve stare lontano da parchi e monumenti: un po'
+ * meno di mezza strada, così il bordo della strada può sfiorare il bordo del verde.
+ */
+const OBSTACLE_MARGIN = ROAD_WIDTH / 2 - 3;
 /** Sotto questa distanza fra dove la strada nuova sale su una esistente e dove ne scende, è un attraversamento. */
 const CROSSING_GAP = 50;
 /** Un estremo del tratto che cade così vicino a una stazione vi si aggancia. */
@@ -82,7 +87,7 @@ export function planRoad(graph, points, limits) {
     for (const up of limits.upcoming ?? []) {
       if (Math.min(Math.hypot(p.x - up.x, p.y - up.y), Math.hypot(mid.x - up.x, mid.y - up.y)) < STATION_CLEARANCE + UPCOMING_MARGIN) return 'upcoming';
     }
-    return obstacleAt(limits.terrain, p, ROAD_WIDTH / 2) ?? obstacleAt(limits.terrain, mid, ROAD_WIDTH / 2);
+    return obstacleAt(limits.terrain, p, OBSTACLE_MARGIN) ?? obstacleAt(limits.terrain, mid, OBSTACLE_MARGIN);
   };
   const firstBlocked = points.findIndex((p, i) => blockedAt(p, i) !== null);
   const usable = firstBlocked === -1 ? points.length : firstBlocked;

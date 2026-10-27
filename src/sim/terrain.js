@@ -27,8 +27,44 @@ export function emptyTerrain() {
  */
 export function obstacleAt(terrain, p, margin = 0) {
   for (const m of terrain.monuments) if (distance(m, p) < m.radius + margin) return 'monument';
-  for (const v of terrain.villas) if (insidePolygon(v.points, p) || (margin > 0 && edgeDistance(v.points, p) < margin)) return 'villa';
+  for (const v of terrain.villas) {
+    // Si controlla il contorno come si vede, arrotondato: col poligono a spigoli
+    // vivi, vicino agli angoli il divieto arrivava ben oltre il verde.
+    const outline = smoothOutline(v.points);
+    if (insidePolygon(outline, p) || (margin > 0 && edgeDistance(outline, p) < margin)) return 'villa';
+  }
   return null;
+}
+
+/** @type {WeakMap<Point[], Point[]>} contorni arrotondati già calcolati */
+const outlines = new WeakMap();
+/** Punti per ogni curva del contorno arrotondato. */
+const OUTLINE_STEPS = 8;
+
+/**
+ * Il contorno di una villa come si disegna: ogni lato passa per il punto medio e
+ * gira attorno al vertice con una curva (come traceSmoothClosed in src/render/roads.js).
+ * @param {Point[]} points
+ * @returns {Point[]}
+ */
+export function smoothOutline(points) {
+  const cached = outlines.get(points);
+  if (cached) return cached;
+  const n = points.length;
+  const mid = (/** @type {number} */ i) => ({ x: (points[i % n].x + points[(i + 1) % n].x) / 2, y: (points[i % n].y + points[(i + 1) % n].y) / 2 });
+  /** @type {Point[]} */
+  const out = [];
+  for (let i = 1; i <= n; i++) {
+    const a = mid(i - 1);
+    const c = points[i % n];
+    const b = mid(i);
+    for (let k = 0; k < OUTLINE_STEPS; k++) {
+      const t = k / OUTLINE_STEPS;
+      out.push({ x: (1 - t) ** 2 * a.x + 2 * (1 - t) * t * c.x + t * t * b.x, y: (1 - t) ** 2 * a.y + 2 * (1 - t) * t * c.y + t * t * b.y });
+    }
+  }
+  outlines.set(points, out);
+  return out;
 }
 
 /**
