@@ -1,0 +1,118 @@
+{
+  "nome": "Il giro lungo",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "quadrato"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 200,
+      "y": 114,
+      "nome": "Nord"
+    },
+    {
+      "forma": "quadrato",
+      "x": 200,
+      "y": 446,
+      "nome": "Sud"
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 12,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Per andare da nord a sud la strada fa avanti e indietro per tutta la città: così il tempo non basta. Hai 3 mosse.",
+    "programma": [
+      {
+        "da": "Nord",
+        "a": "quadrato",
+        "quanti": 12,
+        "ogni": 1.2
+      },
+      {
+        "da": "Sud",
+        "a": "cerchio",
+        "quanti": 12,
+        "ogni": 1.2,
+        "inizio": 0.6
+      }
+    ],
+    "tempo": 40,
+    "stelle": {
+      "mosse": 1,
+      "tempo": 23
+    },
+    "strade": [
+      [
+        [
+          200,
+          114
+        ],
+        [
+          50,
+          138
+        ],
+        [
+          350,
+          185
+        ],
+        [
+          50,
+          232
+        ],
+        [
+          350,
+          280
+        ],
+        [
+          50,
+          328
+        ],
+        [
+          350,
+          375
+        ],
+        [
+          50,
+          422
+        ],
+        [
+          200,
+          446
+        ]
+      ]
+    ],
+    "mosse": 3
+  }
+}

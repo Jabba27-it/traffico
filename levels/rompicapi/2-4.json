@@ -1,0 +1,156 @@
+{
+  "nome": "Doppio incrocio",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "pentagono",
+    "quadrato",
+    "rombo",
+    "stella",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 130,
+      "y": 90,
+      "nome": "Nord-ovest",
+      "porta": [
+        0,
+        -1
+      ]
+    },
+    {
+      "forma": "rombo",
+      "x": 270,
+      "y": 90,
+      "nome": "Nord-est",
+      "porta": [
+        0,
+        -1
+      ]
+    },
+    {
+      "forma": "quadrato",
+      "x": 130,
+      "y": 470,
+      "nome": "Sud-ovest",
+      "porta": [
+        0,
+        1
+      ]
+    },
+    {
+      "forma": "stella",
+      "x": 270,
+      "y": 470,
+      "nome": "Sud-est",
+      "porta": [
+        0,
+        1
+      ]
+    },
+    {
+      "forma": "triangolo",
+      "x": 40,
+      "y": 280,
+      "nome": "Ovest",
+      "porta": [
+        -1,
+        0
+      ]
+    },
+    {
+      "forma": "pentagono",
+      "x": 360,
+      "y": 280,
+      "nome": "Est",
+      "porta": [
+        1,
+        0
+      ]
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 36,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 2
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Due strade da nord a sud e una da ovest a est che le taglia tutte e due. Due cavalcavia, tanto traffico.",
+    "programma": [
+      {
+        "da": "Nord-ovest",
+        "a": "quadrato",
+        "quanti": 12,
+        "ogni": 1.1
+      },
+      {
+        "da": "Sud-ovest",
+        "a": "cerchio",
+        "quanti": 12,
+        "ogni": 1.1,
+        "inizio": 0.5
+      },
+      {
+        "da": "Nord-est",
+        "a": "stella",
+        "quanti": 12,
+        "ogni": 1.1,
+        "inizio": 0.3
+      },
+      {
+        "da": "Sud-est",
+        "a": "rombo",
+        "quanti": 12,
+        "ogni": 1.1,
+        "inizio": 0.8
+      },
+      {
+        "da": "Ovest",
+        "a": "pentagono",
+        "quanti": 14,
+        "ogni": 1
+      },
+      {
+        "da": "Est",
+        "a": "triangolo",
+        "quanti": 14,
+        "ogni": 1,
+        "inizio": 0.5
+      }
+    ],
+    "tempo": 45,
+    "stelle": {
+      "tratti": 26,
+      "tempo": 24
+    }
+  }
+}

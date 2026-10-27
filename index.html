@@ -391,6 +391,9 @@
       /* Con tante città le schede sono basse: margini interni più stretti */
       .menu-card { row-gap: 1px; padding-top: 2px; padding-bottom: 2px; }
       .menu-mode { padding-top: 3px; padding-bottom: 3px; }
+      .menu { gap: 3px; }
+      .menu h1 { font-size: 22px; }
+      .menu-record { font-size: 11px; min-height: 0; }
     }
     /* Telefono in orizzontale: le schede su due colonne, così restano alte abbastanza */
     @media (max-height: 520px) and (orientation: landscape) {
@@ -415,6 +418,30 @@
       transition: border-color 0.3s;
     }
     .tutorial.done { border-left-color: #4d9a5b; }
+    /* Rompicapi: il programma del traffico, le stelle e l'elenco */
+    .puzzle-program { margin-top: 6px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+    .puzzle-card .tutorial-title { cursor: pointer; }
+    .puzzle-card .tutorial-title::after { content: ' ▾'; font-size: 12px; opacity: 0.5; }
+    .puzzle-card.collapsed .tutorial-title::after { content: ' ▸'; }
+    .puzzle-card.collapsed .tutorial-text, .puzzle-card.collapsed .puzzle-program, .puzzle-card.collapsed .puzzle-stars { display: none; }
+    .puzzle-row { display: flex; align-items: center; gap: 5px; }
+    .puzzle-shape { width: 16px; height: 16px; flex: none; }
+    .puzzle-stars { font-size: 22px; margin: 2px 0 4px; }
+    .puzzles .puzzle-group { flex: 1 1 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); align-content: stretch; padding-top: clamp(6px, 1.2vh, 14px); padding-bottom: clamp(6px, 1.2vh, 14px); }
+    .puzzles .menu-card > * { grid-column: 1; }
+    .puzzle-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(4px, 1.4vw, 8px); min-height: 0; max-height: 160px; }
+    .puzzle-tile {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+      min-width: 0; padding: clamp(3px, 0.8vh, 8px) 2px;
+      border: none; border-radius: clamp(8px, 1.4vh, 12px);
+      background: #ece2d0; color: var(--ink); font: inherit; cursor: pointer;
+    }
+    .puzzle-tile.solved { background: #dfe9d2; }
+    .puzzle-tile:disabled { opacity: 0.4; cursor: default; }
+    .puzzle-number { font-weight: 700; font-size: clamp(13px, 2.1vh, 18px); }
+    .puzzle-name { font-size: clamp(10px, 1.5vh, 13px); line-height: 1.15; max-width: 100%; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-align: center; }
+    .puzzle-tile-stars { font-size: clamp(10px, 1.6vh, 14px); }
+    .puzzle-back { flex: none; width: 100%; max-width: 480px; }
     .tutorial-counter { font-size: 11px; opacity: 0.6; letter-spacing: 0.05em; }
     .tutorial-title { font-size: 16px; font-weight: 700; margin: 2px 0 4px; }
     .tutorial.done .tutorial-title { color: #4d9a5b; }

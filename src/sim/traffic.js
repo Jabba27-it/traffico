@@ -45,9 +45,14 @@ const CONGESTION_RATE = 0.8;
 /**
  * Secondi dopo i quali chi aspetta su una laterale passa per primo: quelli della
  * principale si fermano a lasciarlo passare. Senza, un flusso continuo sulla
- * principale lo teneva fermo per sempre e la coda risaliva fino alle stazioni.
+ * principale teneva ferma la laterale per sempre e la coda risaliva fino alle stazioni.
  */
 const STARVING = 4;
+/**
+ * Lo stesso per chi aspetta sulla principale, ma più tardi (resta favorita): una
+ * laterale sempre piena non la blocca fino all'allarme ingorgo.
+ */
+const STARVING_MAIN = 12;
 
 /**
  * @typedef {Object} Request
@@ -202,8 +207,9 @@ export class Traffic {
       }
 
       if (piece.kind === 'turn') {
-        // Più la curva gira e più è stretta, più bisogna rallentare.
-        const byAngle = v.type.maxSpeed * (1 - (1 - SHARPEST_CURVE) * (piece.angle / Math.PI));
+        // Più la curva gira e più è stretta, più bisogna rallentare. Si parte dalla
+        // velocità della strada: sulle superstrade le curve dolci si fanno più veloci.
+        const byAngle = roadSpeed * (1 - (1 - SHARPEST_CURVE) * (piece.angle / Math.PI));
         const radius = piece.angle > 0.05 ? piece.length / piece.angle : Infinity;
         const curve = Math.min(byAngle, Math.sqrt(MAX_LATERAL * radius));
         limit = Math.min(limit, Math.sqrt(curve * curve + 2 * BRAKE * ahead));
@@ -280,8 +286,9 @@ export class Traffic {
    *   passa solo se nessuno della principale con una traiettoria in conflitto
    *   sta arrivando (è l'immissione: se il varco c'è, non serve fermarsi).
    * - Fra pari, passa chi è arrivato prima.
-   * - Chi aspetta su una laterale da più di STARVING secondi passa per primo, e
-   *   la principale gli lascia il passo: niente attese senza fine.
+   * - Chi aspetta da troppo (STARVING sulle laterali, STARVING_MAIN sulla
+   *   principale) passa per primo, in ordine d'attesa, e se è su una laterale la
+   *   principale gli lascia il passo: niente attese senza fine.
    * - Il permesso va solo al primo della fila su ogni strada d'arrivo: se lo
    *   prendesse uno più indietro, chi gli sta davanti e deve fare una curva che
    *   incrocia la sua aspetterebbe lui, e lui chi gli sta davanti, per sempre.
@@ -290,9 +297,14 @@ export class Traffic {
     for (const [node, j] of this.junctions) {
       const main = this.lanes.mainRoad(node);
       const fromMain = (/** @type {Request} */ r) => main.has(r.turn.from);
-      const hungry = (/** @type {Request} */ r) => !fromMain(r) && this.time - r.since > STARVING;
-      // Prima chi aspetta da troppo, poi la principale, poi le laterali, ognuno nel suo ordine d'arrivo.
-      const ordered = [...j.queue.filter(hungry), ...j.queue.filter(fromMain), ...j.queue.filter((r) => !fromMain(r) && !hungry(r))];
+      const hungry = (/** @type {Request} */ r) => this.time - r.since > (fromMain(r) ? STARVING_MAIN : STARVING);
+      // Prima chi aspetta da troppo (da qualunque strada, il più vecchio per primo),
+      // poi la principale, poi le laterali, ognuno nel suo ordine d'arrivo.
+      const ordered = [
+        ...j.queue.filter(hungry).sort((a, b) => a.since - b.since),
+        ...j.queue.filter((r) => fromMain(r) && !hungry(r)),
+        ...j.queue.filter((r) => !fromMain(r) && !hungry(r)),
+      ];
       /** @type {Request[]} */
       const waiting = [];
       // Chi arriva da una laterale aspetta anche chi sta arrivando sulla principale,

@@ -1,0 +1,140 @@
+{
+  "nome": "Senso vietato",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "quadrato",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 60,
+      "y": 280,
+      "nome": "Ovest"
+    },
+    {
+      "forma": "quadrato",
+      "x": 340,
+      "y": 280,
+      "nome": "Est"
+    },
+    {
+      "forma": "triangolo",
+      "x": 200,
+      "y": 130,
+      "nome": "Nord"
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 0,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Un pezzo di strada è a senso unico nel verso sbagliato: guarda le frecce. Non ci sono tratti da spendere, solo 3 mosse.",
+    "programma": [
+      {
+        "da": "Ovest",
+        "a": "quadrato",
+        "quanti": 8,
+        "ogni": 1.5
+      },
+      {
+        "da": "Est",
+        "a": "cerchio",
+        "quanti": 8,
+        "ogni": 1.5,
+        "inizio": 0.7
+      },
+      {
+        "da": "Nord",
+        "a": "quadrato",
+        "quanti": 6,
+        "ogni": 2
+      },
+      {
+        "da": "Nord",
+        "a": "cerchio",
+        "quanti": 6,
+        "ogni": 2,
+        "inizio": 1
+      },
+      {
+        "da": "Ovest",
+        "a": "triangolo",
+        "quanti": 4,
+        "ogni": 3,
+        "inizio": 2
+      },
+      {
+        "da": "Est",
+        "a": "triangolo",
+        "quanti": 4,
+        "ogni": 3,
+        "inizio": 3
+      }
+    ],
+    "tempo": 50,
+    "stelle": {
+      "mosse": 2,
+      "tempo": 40
+    },
+    "strade": [
+      [
+        [
+          60,
+          280
+        ],
+        [
+          340,
+          280
+        ]
+      ],
+      [
+        [
+          200,
+          130
+        ],
+        [
+          200,
+          280
+        ]
+      ]
+    ],
+    "tocchi": [
+      [
+        290,
+        280
+      ]
+    ],
+    "mosse": 3
+  }
+}

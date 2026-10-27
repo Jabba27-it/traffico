@@ -1,0 +1,67 @@
+{
+  "gruppi": [
+    {
+      "nome": "Primi passi",
+      "rompicapi": [
+        {
+          "file": "1-1",
+          "nome": "La prima strada"
+        },
+        {
+          "file": "1-2",
+          "nome": "Il primo incrocio"
+        },
+        {
+          "file": "1-3",
+          "nome": "La superstrada"
+        },
+        {
+          "file": "1-4",
+          "nome": "Un ponte solo"
+        }
+      ]
+    },
+    {
+      "nome": "Svincoli",
+      "rompicapi": [
+        {
+          "file": "2-1",
+          "nome": "Il cavalcavia"
+        },
+        {
+          "file": "2-2",
+          "nome": "Tutti a sinistra"
+        },
+        {
+          "file": "2-3",
+          "nome": "Lo svincolo a T"
+        },
+        {
+          "file": "2-4",
+          "nome": "Doppio incrocio"
+        }
+      ]
+    },
+    {
+      "nome": "Ripara",
+      "rompicapi": [
+        {
+          "file": "3-1",
+          "nome": "La stazione in mezzo"
+        },
+        {
+          "file": "3-2",
+          "nome": "Senso vietato"
+        },
+        {
+          "file": "3-3",
+          "nome": "Curve che si incrociano"
+        },
+        {
+          "file": "3-4",
+          "nome": "Il giro lungo"
+        }
+      ]
+    }
+  ]
+}

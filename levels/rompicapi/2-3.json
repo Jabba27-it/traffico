@@ -1,0 +1,123 @@
+{
+  "nome": "Lo svincolo a T",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "pentagono",
+    "quadrato",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "triangolo",
+      "x": 40,
+      "y": 280,
+      "nome": "Ovest",
+      "porta": [
+        -1,
+        0
+      ]
+    },
+    {
+      "forma": "pentagono",
+      "x": 360,
+      "y": 280,
+      "nome": "Est",
+      "porta": [
+        1,
+        0
+      ]
+    },
+    {
+      "forma": "quadrato",
+      "x": 200,
+      "y": 470,
+      "nome": "Sud",
+      "porta": [
+        0,
+        1
+      ]
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 26,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Una strada da ovest a est e una porta a sud che vuole andare da tutte e due le parti. Con un incrocio a T la porta a sud non riesce mai a entrare: serve un'idea migliore.",
+    "programma": [
+      {
+        "da": "Ovest",
+        "a": "pentagono",
+        "quanti": 12,
+        "ogni": 1.2
+      },
+      {
+        "da": "Est",
+        "a": "triangolo",
+        "quanti": 12,
+        "ogni": 1.2,
+        "inizio": 0.6
+      },
+      {
+        "da": "Sud",
+        "a": "triangolo",
+        "quanti": 7,
+        "ogni": 2
+      },
+      {
+        "da": "Sud",
+        "a": "pentagono",
+        "quanti": 7,
+        "ogni": 2,
+        "inizio": 1
+      },
+      {
+        "da": "Ovest",
+        "a": "quadrato",
+        "quanti": 5,
+        "ogni": 2.5,
+        "inizio": 1
+      },
+      {
+        "da": "Est",
+        "a": "quadrato",
+        "quanti": 5,
+        "ogni": 2.5,
+        "inizio": 2
+      }
+    ],
+    "tempo": 42,
+    "stelle": {
+      "tratti": 21,
+      "tempo": 30
+    }
+  }
+}

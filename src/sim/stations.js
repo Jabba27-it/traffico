@@ -36,6 +36,8 @@ export const STATION_RADIUS = 15;
  * @property {number} [matchCycle]  stadio: la partita di cui si contano tifosi e uscite
  * @property {number} [fans]  stadio: tifosi già mandati in questa partita
  * @property {number} [out]  stadio: veicoli già usciti in questa partita
+ * @property {{dx: number, dy: number}} [gate]  rompicapi: porta sul bordo, verso cui guarda
+ * @property {import('./vehicles.js').VehicleType[]} [types]  rompicapi: il tipo di ogni veicolo in coda (come queue)
  */
 
 /**
@@ -80,5 +82,6 @@ export function createStation(graph, def, id, bornAt, capacity) {
     ...(def.name ? { name: def.name } : {}),
     ...(def.landmark ? { landmark: true } : {}),
     ...(def.kind ? { kind: def.kind } : {}),
+    ...(def.gate ? { gate: def.gate } : {}),
   };
 }

@@ -1,0 +1,110 @@
+{
+  "nome": "La stazione in mezzo",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "quadrato",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 60,
+      "y": 280,
+      "nome": "Ovest"
+    },
+    {
+      "forma": "quadrato",
+      "x": 340,
+      "y": 280,
+      "nome": "Est"
+    },
+    {
+      "forma": "triangolo",
+      "x": 200,
+      "y": 280,
+      "nome": "Mercato"
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 12,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Qualcuno ha fatto passare la strada dentro il Mercato: le stazioni non si attraversano, così da ovest non si arriva a est. Hai 2 mosse.",
+    "programma": [
+      {
+        "da": "Ovest",
+        "a": "quadrato",
+        "quanti": 8,
+        "ogni": 1.5
+      },
+      {
+        "da": "Est",
+        "a": "cerchio",
+        "quanti": 8,
+        "ogni": 1.5,
+        "inizio": 0.7
+      },
+      {
+        "da": "Mercato",
+        "a": "cerchio",
+        "quanti": 4,
+        "ogni": 3
+      },
+      {
+        "da": "Mercato",
+        "a": "quadrato",
+        "quanti": 4,
+        "ogni": 3,
+        "inizio": 1.5
+      }
+    ],
+    "tempo": 45,
+    "stelle": {
+      "mosse": 1,
+      "tempo": 21
+    },
+    "strade": [
+      [
+        [
+          60,
+          280
+        ],
+        [
+          340,
+          280
+        ]
+      ]
+    ],
+    "mosse": 2
+  }
+}

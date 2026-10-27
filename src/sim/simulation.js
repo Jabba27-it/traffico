@@ -184,6 +184,16 @@ export class Simulation {
     /** true a fine settimana, finché il giocatore non ha scelto il premio. */
     this.rewardPending = false;
 
+    /**
+     * Rompicapo: quanti veicoli di ogni riga del programma sono già partiti, com'è
+     * finita la prova (null mentre è in corso), dove si è bloccato, quante mosse
+     * fatte e quanti tratti c'erano all'inizio del progetto.
+     * @type {{spawned: number[], result: 'risolto' | 'tempo' | 'ingorgo' | null, failPoint: Point | null, finishedAt: number, moves: number, roadsAtStart: number} | null}
+     */
+    this.puzzle = level.puzzle
+      ? { spawned: level.puzzle.program.map(() => 0), result: null, failPoint: null, finishedAt: 0, moves: 0, roadsAtStart: level.roads.initial }
+      : null;
+
     /** Le stazioni fisse che la vista non ha ancora raggiunto. */
     this.hiddenStations = [...level.stations];
     // Quelle già visibili all'inizio ci sono già: niente animazione di comparsa.
@@ -306,7 +316,7 @@ export class Simulation {
     // Prima stazione su una terra nuova: arriva il ponte per collegarla.
     const land = landOf(landsOf(this.level), station);
     if (land >= 0 && !this.landsWithStations.has(land)) {
-      if (this.landsWithStations.size > 0) {
+      if (this.landsWithStations.size > 0 && !this.puzzle) {
         this.bridgeBudget++;
         station.bridgeGift = true;
       }
@@ -479,7 +489,10 @@ export class Simulation {
     const after = this.budgets();
     const changed =
       this.graph.version !== before.version || Object.keys(after).some((k) => after[/** @type {keyof typeof after} */ (k)] !== before.budgets[/** @type {keyof typeof after} */ (k)]);
-    if (changed) this.lastMove = { before, after };
+    if (changed) {
+      this.lastMove = { before, after };
+      if (this.puzzle) this.puzzle.moves++;
+    }
     return result;
   }
 
@@ -562,6 +575,7 @@ export class Simulation {
     this.overpassBudget += before.budgets.overpass - after.overpass;
     this.lastMove = null;
     this.events.undo++;
+    if (this.puzzle) this.puzzle.moves = Math.max(0, this.puzzle.moves - 1);
     this.updateRoutes();
     return true;
   }
@@ -709,7 +723,7 @@ export class Simulation {
 
   /** true se il tempo scorre: né livello finito (perso o completato) né premio in attesa di scelta. */
   get running() {
-    return !this.failed && !this.completed && !this.rewardPending;
+    return !this.failed && !this.completed && !this.rewardPending && !this.puzzle?.result;
   }
 
   /** Premio di fine settimana: cavalcavia in più. */
@@ -854,13 +868,15 @@ export class Simulation {
     this.elapsed += dt;
 
     const day = this.day;
-    if (day > this.rewardedDay) {
+    // Nei rompicapi niente giorni: né tratti in più né premi.
+    if (this.puzzle) this.playProgram();
+    else if (day > this.rewardedDay) {
       this.roadBudget += (day - this.rewardedDay) * this.level.roads.perDay;
       this.rewardedDay = day;
     }
     // Alla fine di ogni settimana (7 giorni) il gioco si ferma per il premio.
     const weeks = Math.floor((day - 1) / 7);
-    if (weeks > this.rewardedWeeks) {
+    if (weeks > this.rewardedWeeks && !this.puzzle) {
       this.rewardedWeeks = weeks;
       this.rewardPending = true;
       return;
@@ -877,16 +893,19 @@ export class Simulation {
 
     for (const station of this.stations) {
       if (station.kind === 'stadio') this.playMatch(station);
-      const spawn = /** @type {number} */ (this.spawnTimers.get(station.id)) - dt;
-      if (spawn <= 0) this.enqueue(station);
-      this.spawnTimers.set(station.id, spawn > 0 ? spawn : spawn + this.nextSpawnDelay(station));
+      // Nei rompicapi i veicoli nascono solo dal programma (playProgram).
+      if (!this.puzzle) {
+        const spawn = /** @type {number} */ (this.spawnTimers.get(station.id)) - dt;
+        if (spawn <= 0) this.enqueue(station);
+        this.spawnTimers.set(station.id, spawn > 0 ? spawn : spawn + this.nextSpawnDelay(station));
+      }
 
       // Anche se nessuno può partire si riprova dopo DEPART_INTERVAL,
       // così il percorso non si ricalcola a ogni passo.
       const depart = /** @type {number} */ (this.departTimers.get(station.id)) - dt;
       if (depart <= 0 && station.queue.length > 0) {
         this.depart(station);
-        this.departTimers.set(station.id, station.kind ? SPECIAL_DEPART_INTERVAL : DEPART_INTERVAL);
+        this.departTimers.set(station.id, station.kind || station.gate ? SPECIAL_DEPART_INTERVAL : DEPART_INTERVAL);
       } else {
         this.departTimers.set(station.id, Math.max(0, depart));
       }
@@ -911,6 +930,11 @@ export class Simulation {
       this.trips += arrived.size;
       this.vehicles = this.vehicles.filter((v) => !arrived.has(v));
       for (const v of arrived) this.recordTrip(v);
+    }
+
+    if (this.puzzle) {
+      this.judgePuzzle(dt);
+      return;
     }
 
     const overloaded = updateCongestion(this.stations, dt, this.level.congestion.tolerance);
@@ -991,7 +1015,7 @@ export class Simulation {
       const v = {
         id: this.nextVehicleId,
         shape,
-        type: randomVehicleType(this.random, origin.kind === 'porto' || origin.kind === 'aeroporto' ? HEAVY_MIX[origin.kind] : undefined),
+        type: origin.types?.[i] ?? randomVehicleType(this.random, origin.kind === 'porto' || origin.kind === 'aeroporto' ? HEAVY_MIX[origin.kind] : undefined),
         fromStationId: origin.id,
         toStationId: target.id,
         path,
@@ -1003,15 +1027,16 @@ export class Simulation {
         departedAt: this.elapsed,
       };
       if (!this.traffic.roomToDepart(v)) {
-        // Porti, aeroporti e stadi non restano bloccati dietro al primo della fila:
-        // se la sua strada è piena, parte chi va da un'altra strada.
-        if (!origin.kind) return false;
+        // Porti, aeroporti, stadi e porte dei rompicapi non restano bloccati dietro
+        // al primo della fila: se la sua strada è piena, parte chi va da un'altra strada.
+        if (!origin.kind && !origin.gate) return false;
         full.add(path[1]);
         continue;
       }
       v.pose = pointOnVehicle(this.lanes, v);
       this.nextVehicleId++;
       origin.queue.splice(i, 1);
+      origin.types?.splice(i, 1);
       if (i < origin.returned) origin.returned--;
       this.vehicles.push(v);
       return true;
@@ -1306,6 +1331,108 @@ export class Simulation {
   nextSpawnDelay(station) {
     const factor = station?.kind ? SPAWN_FACTOR[station.kind] : 1;
     return (this.level.spawn.min + this.random() * (this.level.spawn.max - this.level.spawn.min)) / (1 + this.spawnIncrease()) / factor;
+  }
+
+  /**
+   * Rompicapo: mette in coda i veicoli del programma il cui momento è arrivato,
+   * ognuno col suo tipo.
+   */
+  playProgram() {
+    const puzzle = /** @type {NonNullable<typeof this.puzzle>} */ (this.puzzle);
+    /** @type {import('./level.js').Departure[]} */ (this.level.puzzle?.program).forEach((d, k) => {
+      const due = this.elapsed < d.start ? 0 : Math.min(d.count, Math.floor((this.elapsed - d.start) / d.every) + 1);
+      const station = this.stations.find((s) => s.name === d.from);
+      if (!station) return;
+      for (; puzzle.spawned[k] < due; puzzle.spawned[k]++) {
+        station.queue.push(d.shape);
+        (station.types ??= []).push(/** @type {import('./vehicles.js').VehicleType} */ (VEHICLE_TYPES.find((t) => t.name === d.type)));
+        station.generated++;
+      }
+    });
+  }
+
+  /** Rompicapo: quanti veicoli in tutto prevede il programma. */
+  get puzzleTotal() {
+    return (this.level.puzzle?.program ?? []).reduce((a, d) => a + d.count, 0);
+  }
+
+  /**
+   * Rompicapo: risolto quando sono arrivati tutti; fallito se scade il tempo o se
+   * un veicolo resta fermo in strada troppo a lungo (qui basta l'allarme).
+   * @param {number} dt
+   */
+  judgePuzzle(dt) {
+    const puzzle = /** @type {NonNullable<typeof this.puzzle>} */ (this.puzzle);
+    for (const v of this.vehicles) {
+      v.stopped = v.speed < JAM_SPEED ? (v.stopped ?? 0) + dt : 0;
+      if (v.stopped >= JAM_ALERT && !puzzle.result) {
+        puzzle.result = 'ingorgo';
+        puzzle.failPoint = { x: v.pose.x, y: v.pose.y };
+      }
+    }
+    if (puzzle.result) return;
+    if (this.trips >= this.puzzleTotal) {
+      puzzle.result = 'risolto';
+      puzzle.finishedAt = this.elapsed;
+    } else if (this.elapsed >= /** @type {import('./level.js').Puzzle} */ (this.level.puzzle).time) {
+      puzzle.result = 'tempo';
+      // Si indica la stazione con più veicoli che non sono riusciti a partire o,
+      // se sono partiti tutti, il veicolo fermo da più tempo.
+      const worst = [...this.stations].sort((a, b) => b.queue.length - a.queue.length)[0];
+      const stuck = [...this.vehicles].sort((a, b) => (b.stopped ?? 0) - (a.stopped ?? 0))[0];
+      puzzle.failPoint = worst && worst.queue.length > 0 ? { x: worst.x, y: worst.y } : stuck ? { x: stuck.pose.x, y: stuck.pose.y } : null;
+    }
+  }
+
+  /**
+   * Rompicapo: inizio del progetto. Quello che c'è già (le strade dei "Ripara")
+   * non conta come mossa e non si annulla.
+   */
+  startPuzzle() {
+    if (!this.puzzle) return;
+    this.puzzle.moves = 0;
+    this.puzzle.roadsAtStart = this.roadBudget;
+    this.lastMove = null;
+  }
+
+  /**
+   * Rompicapo: si torna al progetto. Le strade restano come sono, il traffico
+   * riparte da zero.
+   */
+  restartPuzzle() {
+    if (!this.puzzle) return;
+    for (const v of this.vehicles) this.traffic.forget(v);
+    this.vehicles = [];
+    this.traffic.reset([]);
+    for (const s of this.stations) {
+      s.queue = [];
+      s.types = [];
+      s.returned = 0;
+      s.overload = 0;
+      s.generated = 0;
+      this.departTimers.set(s.id, 0);
+    }
+    this.elapsed = 0;
+    this.trips = 0;
+    Object.assign(this.puzzle, { spawned: this.puzzle.spawned.map(() => 0), result: null, failPoint: null, finishedAt: 0 });
+  }
+
+  /**
+   * Rompicapo risolto: le stelle prese. Prima: risolto; seconda: pochi tratti (o
+   * poche mosse, nei "Ripara"); terza: tutti arrivati entro il tempo delle stelle.
+   * @returns {boolean[]}
+   */
+  puzzleStars() {
+    const goal = this.level.puzzle;
+    const puzzle = this.puzzle;
+    if (!goal || !puzzle || puzzle.result !== 'risolto') return [false, false, false];
+    const thrifty = goal.moves !== null ? puzzle.moves <= (goal.stars.moves ?? goal.moves) : this.puzzleRoadsUsed <= (goal.stars.roads ?? Infinity);
+    return [true, thrifty, puzzle.finishedAt <= goal.stars.time];
+  }
+
+  /** Rompicapo: tratti spesi nel progetto (quelli restituiti togliendo strade non contano). */
+  get puzzleRoadsUsed() {
+    return this.puzzle ? this.puzzle.roadsAtStart - this.roadBudget : 0;
   }
 
   /**

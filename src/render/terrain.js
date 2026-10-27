@@ -377,6 +377,16 @@ export function drawMonument(ctx, m) {
       ctx.quadraticCurveTo(x + s * 0.7, y + s * 0.85, x + s * 0.8, y + s * 0.2);
       ctx.stroke();
       break;
+    case 'rompicapo': // un incrocio a croce con il cavalcavia: la strada sopra interrompe quella sotto
+      ctx.lineWidth = Math.max(2, r * 0.16);
+      ctx.moveTo(x - s, y);
+      ctx.lineTo(x - s * 0.32, y);
+      ctx.moveTo(x + s * 0.32, y);
+      ctx.lineTo(x + s, y);
+      ctx.moveTo(x, y - s);
+      ctx.lineTo(x, y + s);
+      ctx.stroke();
+      break;
     case 'forme': // le tre forme delle stazioni
       ctx.arc(x - s * 0.55, y + s * 0.35, s * 0.32, 0, Math.PI * 2);
       ctx.rect(x + s * 0.25, y + s * 0.05, s * 0.6, s * 0.6);

@@ -15,6 +15,8 @@ import { emptyTerrain } from './terrain.js';
  * @property {boolean} [landmark]  true per i luoghi fissi del livello (non per i quartieri)
  * @property {import('./specials.js').SpecialKind} [kind]  stadio, porto o aeroporto (voce "tipo")
  * @property {number} [day]  giorno da cui può comparire (voce "giorno"), oltre a dover entrare nella vista
+ * @property {{dx: number, dy: number}} [gate]  rompicapi: è una porta sul bordo della mappa (voce "porta":
+ *   la direzione verso il bordo), da dove entrano ed escono i veicoli
  */
 
 /**
@@ -128,6 +130,33 @@ const TUTORIAL_GOALS = ['avanti', 'collega', 'viaggi', 'rimuovi', 'tipoStrada', 
  *   giorno fino a growthMaxAfter (+3% al giorno, al più +65%).
  * @property {{name: string, x: number, y: number}[]} districts
  *   quartieri: una stazione nata a caso prende il nome del quartiere più vicino
+ * @property {Puzzle | null} puzzle  solo nei rompicapi
+ */
+
+/**
+ * Una riga del programma di un rompicapo: quanti veicoli partono da una stazione
+ * (o porta) verso una forma, uno ogni tanti secondi.
+ * @typedef {Object} Departure
+ * @property {string} from    nome della stazione di partenza
+ * @property {Shape} shape    forma di destinazione
+ * @property {number} count
+ * @property {number} every   secondi fra un veicolo e il successivo
+ * @property {number} start   secondo del primo
+ * @property {'auto' | 'camion' | 'autobus'} type
+ */
+
+/**
+ * Un rompicapo: si costruisce a gioco fermo, poi "Via!" e il traffico, sempre
+ * uguale, deve arrivare tutto entro il tempo.
+ * @typedef {Object} Puzzle
+ * @property {string} text          cosa bisogna fare
+ * @property {Departure[]} program
+ * @property {number} time          secondi entro cui devono arrivare tutti
+ * @property {{roads: number | null, time: number, moves: number | null}} stars
+ *   seconda stella: al più tanti tratti (o tante mosse, nei "Ripara"); terza: tutti arrivati entro tanti secondi
+ * @property {{x: number, y: number}[][]} roads  strade già costruite (nei "Ripara"), gratis
+ * @property {{x: number, y: number}[]} taps  tocchi già dati su quelle strade (per i sensi unici dei "Ripara")
+ * @property {number | null} moves  mosse permesse (nei "Ripara"), null = senza limite
  */
 
 /**
@@ -154,6 +183,7 @@ export function parseLevel(json) {
       ...(typeof s.nome === 'string' ? { name: s.nome, landmark: true } : {}),
       ...(s.tipo ? { kind: s.tipo } : {}),
       ...(isNum(s.giorno) ? { day: s.giorno } : {}),
+      ...(Array.isArray(s.porta) && isNum(s.porta[0]) && isNum(s.porta[1]) ? { gate: { dx: s.porta[0], dy: s.porta[1] } } : {}),
     };
   });
 
@@ -312,9 +342,11 @@ export function parseLevel(json) {
 
   const terrain = parseTerrain(json.terreno);
   const tutorial = json.tutorial === undefined ? null : parseTutorial(json.tutorial);
+  const puzzle = json.rompicapo === undefined ? null : parsePuzzle(json.rompicapo, stations, shapes);
 
   return {
     tutorial,
+    puzzle,
     terrain,
     overpasses,
     spawn,
@@ -334,6 +366,43 @@ export function parseLevel(json) {
     stations,
     growth,
     zones,
+  };
+}
+
+/** Tipi di veicolo che un programma può chiedere. */
+const PROGRAM_TYPES = ['auto', 'camion', 'autobus'];
+
+/**
+ * La voce "rompicapo" del livello.
+ * @param {any} r
+ * @param {StationDef[]} stations
+ * @param {Shape[]} shapes
+ * @returns {Puzzle}
+ */
+function parsePuzzle(r, stations, shapes) {
+  if (!Array.isArray(r?.programma) || r.programma.length === 0) throw new Error('"rompicapo" deve avere un "programma"');
+  const program = r.programma.map((/** @type {any} */ d, /** @type {number} */ i) => {
+    const where = `Programma, riga ${i + 1}`;
+    if (!stations.some((s) => s.name === d?.da)) throw new Error(`${where}: "da" deve essere il nome di una stazione`);
+    if (!shapes.includes(d.a)) throw new Error(`${where}: "a" deve essere una forma del livello`);
+    if (!isNum(d.quanti) || d.quanti < 1) throw new Error(`${where}: "quanti" deve essere almeno 1`);
+    if (d.tipo !== undefined && !PROGRAM_TYPES.includes(d.tipo)) throw new Error(`${where}: "tipo" deve essere ${PROGRAM_TYPES.join(', ')}`);
+    return { from: d.da, shape: d.a, count: d.quanti, every: isNum(d.ogni) && d.ogni > 0 ? d.ogni : 2, start: isNum(d.inizio) ? d.inizio : 0, type: d.tipo ?? 'auto' };
+  });
+  if (!isNum(r.tempo) || r.tempo <= 0) throw new Error('"rompicapo" deve avere "tempo" (secondi)');
+  const point = (/** @type {any} */ q) => (Array.isArray(q) && isNum(q[0]) && isNum(q[1]) ? { x: q[0], y: q[1] } : null);
+  const roads = (Array.isArray(r.strade) ? r.strade : []).map((/** @type {any} */ line) =>
+    /** @type {{x: number, y: number}[]} */ ((Array.isArray(line) ? line : []).map(point).filter(Boolean)),
+  );
+  const st = r.stelle ?? {};
+  return {
+    text: String(r.testo ?? ''),
+    program,
+    time: r.tempo,
+    stars: { roads: isNum(st.tratti) ? st.tratti : null, time: isNum(st.tempo) ? st.tempo : r.tempo, moves: isNum(st.mosse) ? st.mosse : null },
+    roads,
+    taps: (Array.isArray(r.tocchi) ? r.tocchi : []).map(point).filter(Boolean),
+    moves: isNum(r.mosse) ? r.mosse : null,
   };
 }
 

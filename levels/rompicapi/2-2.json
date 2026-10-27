@@ -1,0 +1,121 @@
+{
+  "nome": "Tutti a sinistra",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "pentagono",
+    "quadrato",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 200,
+      "y": 90,
+      "nome": "Nord",
+      "porta": [
+        0,
+        -1
+      ]
+    },
+    {
+      "forma": "quadrato",
+      "x": 200,
+      "y": 470,
+      "nome": "Sud",
+      "porta": [
+        0,
+        1
+      ]
+    },
+    {
+      "forma": "triangolo",
+      "x": 40,
+      "y": 280,
+      "nome": "Ovest",
+      "porta": [
+        -1,
+        0
+      ]
+    },
+    {
+      "forma": "pentagono",
+      "x": 360,
+      "y": 280,
+      "nome": "Est",
+      "porta": [
+        1,
+        0
+      ]
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 30,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Da ogni porta si gira a sinistra: le curve si incrociano tutte. Disegna un cerchio intorno all'incrocio per farne una rotonda; per la terza stella prova anche l'altro verso e un'altra misura.",
+    "programma": [
+      {
+        "da": "Nord",
+        "a": "pentagono",
+        "quanti": 10,
+        "ogni": 1.8
+      },
+      {
+        "da": "Est",
+        "a": "quadrato",
+        "quanti": 10,
+        "ogni": 1.8,
+        "inizio": 0.45
+      },
+      {
+        "da": "Sud",
+        "a": "triangolo",
+        "quanti": 10,
+        "ogni": 1.8,
+        "inizio": 0.9
+      },
+      {
+        "da": "Ovest",
+        "a": "cerchio",
+        "quanti": 10,
+        "ogni": 1.8,
+        "inizio": 1.35
+      }
+    ],
+    "tempo": 50,
+    "stelle": {
+      "tratti": 25,
+      "tempo": 30
+    }
+  }
+}

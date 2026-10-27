@@ -1,0 +1,104 @@
+{
+  "nome": "Il primo incrocio",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "pentagono",
+    "quadrato",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 200,
+      "y": 114,
+      "nome": "Nord"
+    },
+    {
+      "forma": "quadrato",
+      "x": 200,
+      "y": 446,
+      "nome": "Sud"
+    },
+    {
+      "forma": "triangolo",
+      "x": 50,
+      "y": 280,
+      "nome": "Ovest"
+    },
+    {
+      "forma": "pentagono",
+      "x": 350,
+      "y": 280,
+      "nome": "Est"
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 24,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Due flussi si incrociano: da nord a sud e da ovest a est. All'incrocio la strada più dritta ha la precedenza.",
+    "programma": [
+      {
+        "da": "Nord",
+        "a": "quadrato",
+        "quanti": 8,
+        "ogni": 1.5
+      },
+      {
+        "da": "Sud",
+        "a": "cerchio",
+        "quanti": 8,
+        "ogni": 1.5,
+        "inizio": 0.7
+      },
+      {
+        "da": "Ovest",
+        "a": "pentagono",
+        "quanti": 8,
+        "ogni": 1.5
+      },
+      {
+        "da": "Est",
+        "a": "triangolo",
+        "quanti": 8,
+        "ogni": 1.5,
+        "inizio": 0.7
+      }
+    ],
+    "tempo": 60,
+    "stelle": {
+      "tratti": 15,
+      "tempo": 26
+    }
+  }
+}

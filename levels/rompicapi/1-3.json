@@ -1,0 +1,99 @@
+{
+  "nome": "La superstrada",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "quadrato"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 200,
+      "y": 106,
+      "nome": "Nord"
+    },
+    {
+      "forma": "quadrato",
+      "x": 200,
+      "y": 454,
+      "nome": "Sud"
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [
+      {
+        "nome": "Parco",
+        "punti": [
+          [
+            110,
+            225
+          ],
+          [
+            290,
+            225
+          ],
+          [
+            300,
+            343
+          ],
+          [
+            100,
+            343
+          ]
+        ]
+      }
+    ],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 30,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Il parco divide nord e sud: la strada deve girargli intorno ed è lunga. Tocca più volte la strada: diventa a senso unico, poi al contrario, poi superstrada, più veloce. Costa altri tratti.",
+    "programma": [
+      {
+        "da": "Nord",
+        "a": "quadrato",
+        "quanti": 14,
+        "ogni": 1
+      },
+      {
+        "da": "Sud",
+        "a": "cerchio",
+        "quanti": 14,
+        "ogni": 1,
+        "inizio": 0.5
+      }
+    ],
+    "tempo": 60,
+    "stelle": {
+      "tratti": 26,
+      "tempo": 23.5
+    }
+  }
+}

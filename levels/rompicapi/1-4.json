@@ -1,0 +1,128 @@
+{
+  "nome": "Un ponte solo",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "pentagono",
+    "quadrato",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 80,
+      "y": 145,
+      "nome": "Nord-ovest"
+    },
+    {
+      "forma": "triangolo",
+      "x": 320,
+      "y": 145,
+      "nome": "Nord-est"
+    },
+    {
+      "forma": "quadrato",
+      "x": 80,
+      "y": 422,
+      "nome": "Sud-ovest"
+    },
+    {
+      "forma": "pentagono",
+      "x": 320,
+      "y": 422,
+      "nome": "Sud-est"
+    }
+  ],
+  "acqua": [
+    {
+      "tipo": "fiume",
+      "larghezza": 40,
+      "punti": [
+        [
+          -40,
+          288
+        ],
+        [
+          120,
+          276
+        ],
+        [
+          280,
+          296
+        ],
+        [
+          440,
+          280
+        ]
+      ]
+    }
+  ],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 30,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 1
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Il fiume divide la città e hai un ponte solo: tutti devono passare di lì. Mettilo nel punto giusto.",
+    "programma": [
+      {
+        "da": "Nord-ovest",
+        "a": "quadrato",
+        "quanti": 6,
+        "ogni": 2
+      },
+      {
+        "da": "Nord-est",
+        "a": "pentagono",
+        "quanti": 6,
+        "ogni": 2,
+        "inizio": 1
+      },
+      {
+        "da": "Sud-ovest",
+        "a": "triangolo",
+        "quanti": 6,
+        "ogni": 2,
+        "inizio": 0.5
+      },
+      {
+        "da": "Sud-est",
+        "a": "cerchio",
+        "quanti": 6,
+        "ogni": 2,
+        "inizio": 1.5
+      }
+    ],
+    "tempo": 70,
+    "stelle": {
+      "tratti": 17,
+      "tempo": 31
+    }
+  }
+}

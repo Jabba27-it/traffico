@@ -37,6 +37,10 @@ const SPECIAL_SCALE = 1.35;
 const SPECIAL_ICONS = { stadio: 'stadio', porto: 'ancora', aeroporto: 'aereo' };
 /** Raggio del tondo con l'icona. */
 const BADGE_RADIUS = 9;
+/** Lunghezza massima del pezzo di strada delle porte (fino al bordo, se è più vicino). */
+const GATE_STUB = 70;
+/** Colore del pezzo di strada che porta alle porte dei rompicapi. */
+const GATE_ROAD = '#9a9389';
 /** Colore delle scritte e del fischietto della partita. */
 const MATCH_COLOR = '#c0392b';
 
@@ -209,6 +213,49 @@ export function drawUpcoming(ctx, upcoming, progress, time) {
   ctx.arc(x, y, STATION_RADIUS + 7, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
   ctx.stroke();
   ctx.restore();
+}
+
+/**
+ * Le porte dei rompicapi: un pezzo di strada che arriva verso il bordo della mappa
+ * fino alla porta, con una freccia doppia, così si capisce che di lì si entra e si esce.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Station[]} stations
+ * @param {{width: number, height: number}} world
+ */
+export function drawGates(ctx, stations, world) {
+  for (const s of stations) {
+    if (!s.gate) continue;
+    const { dx, dy } = s.gate;
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len;
+    const uy = dy / len;
+    // Fin dove arriva il bordo in quella direzione.
+    const tx = ux > 0 ? (world.width - s.x) / ux : ux < 0 ? -s.x / ux : Infinity;
+    const ty = uy > 0 ? (world.height - s.y) / uy : uy < 0 ? -s.y / uy : Infinity;
+    const reach = Math.min(tx + 20, ty + 20, GATE_STUB);
+    ctx.save();
+    ctx.lineCap = 'butt';
+    ctx.strokeStyle = GATE_ROAD;
+    ctx.lineWidth = 16;
+    ctx.beginPath();
+    ctx.moveTo(s.x, s.y);
+    ctx.lineTo(s.x + ux * reach, s.y + uy * reach);
+    ctx.stroke();
+    // La freccia doppia: si entra e si esce.
+    ctx.strokeStyle = OUTLINE;
+    ctx.lineWidth = 2;
+    const mid = STATION_RADIUS + 18;
+    for (const dir of [-1, 1]) {
+      const cx = s.x + ux * (mid + dir * 7);
+      const cy = s.y + uy * (mid + dir * 7);
+      ctx.beginPath();
+      ctx.moveTo(cx - uy * 4 - ux * 4 * dir, cy + ux * 4 - uy * 4 * dir);
+      ctx.lineTo(cx, cy);
+      ctx.lineTo(cx + uy * 4 - ux * 4 * dir, cy - ux * 4 - uy * 4 * dir);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
 }
 
 /**

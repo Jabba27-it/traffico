@@ -1,0 +1,77 @@
+{
+  "nome": "La prima strada",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "quadrato"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 80,
+      "y": 280,
+      "nome": "Ovest"
+    },
+    {
+      "forma": "quadrato",
+      "x": 320,
+      "y": 280,
+      "nome": "Est"
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 10,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Collega le due stazioni: dal cerchio partono veicoli per il quadrato e dal quadrato per il cerchio.",
+    "programma": [
+      {
+        "da": "Ovest",
+        "a": "quadrato",
+        "quanti": 6,
+        "ogni": 2
+      },
+      {
+        "da": "Est",
+        "a": "cerchio",
+        "quanti": 6,
+        "ogni": 2,
+        "inizio": 1
+      }
+    ],
+    "tempo": 45,
+    "stelle": {
+      "tratti": 6,
+      "tempo": 18
+    }
+  }
+}

@@ -34,6 +34,9 @@ import { createMuteButton } from './ui/mute.js';
 import { createUndoButton } from './ui/undo.js';
 import { unlockAudioOnTouch, playSegment, playRoad, playBridge, playRoundabout, playError, playStation, playRemove, playTap, playHeartbeat, playWeek, playStar } from './audio/sounds.js';
 import { waitingCount } from './sim/congestion.js';
+import { createPuzzle } from './ui/puzzle.js';
+import { parsePuzzleIndex, showPuzzleList, locatePuzzle, puzzleProgress } from './ui/puzzles.js';
+import { drawGates } from './render/stations.js';
 
 // Il livello si sceglie dall'indirizzo, es. ?livello=roma; senza livello si apre il menu.
 const LEVEL_PARAM = new URLSearchParams(location.search).get('livello');
@@ -50,8 +53,13 @@ const ENDLESS = SANDBOX || DAILY;
 // Copia del gioco sul telefono, per giocare anche offline (funziona su https e in locale).
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 const LEVEL_NAME = LEVEL_PARAM && /^[a-z0-9_-]+$/.test(LEVEL_PARAM) ? LEVEL_PARAM : null;
-const LEVEL_URL = `levels/${LEVEL_NAME}.json`;
+// ?rompicapo=1-1: un rompicapo; ?rompicapi: il loro elenco.
+const PUZZLE_PARAM = new URLSearchParams(location.search).get('rompicapo');
+const PUZZLE_NAME = PUZZLE_PARAM && /^[a-z0-9_-]+$/.test(PUZZLE_PARAM) ? PUZZLE_PARAM : null;
+const PUZZLE_LIST = new URLSearchParams(location.search).has('rompicapi');
+const LEVEL_URL = PUZZLE_NAME ? `levels/rompicapi/${PUZZLE_NAME}.json` : `levels/${LEVEL_NAME}.json`;
 const INDEX_URL = 'levels/indice.json';
+const PUZZLE_INDEX_URL = 'levels/rompicapi/indice.json';
 const MENU_ICON =
   '<svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><rect x="2" y="3" width="14" height="2.2" rx="1"/><rect x="2" y="8" width="14" height="2.2" rx="1"/><rect x="2" y="13" width="14" height="2.2" rx="1"/></svg>';
 const STAR_NAMES = ['Prima', 'Seconda', 'Terza'];
@@ -99,14 +107,22 @@ const MAX_FRAME_TIME = 0.25;
 async function start() {
   const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById('game'));
 
-  if (!LEVEL_NAME) {
+  if (!LEVEL_NAME && !PUZZLE_NAME) {
     try {
-      const res = await fetch(INDEX_URL);
-      if (!res.ok) throw new Error(`Impossibile caricare ${INDEX_URL} (${res.status})`);
-      showMenu(document.body, parseIndex(await res.json()), (file, mode) => {
+      if (PUZZLE_LIST) {
+        const groups = parsePuzzleIndex(await loadJson(PUZZLE_INDEX_URL));
+        showPuzzleList(document.body, groups, (file) => (location.search = `?rompicapo=${file}`), goToMenu);
+        return;
+      }
+      const groups = parsePuzzleIndex(await loadJson(PUZZLE_INDEX_URL));
+      showMenu(document.body, parseIndex(await loadJson(INDEX_URL)), (file, mode) => {
         location.search =
-          mode === 'sfida' ? `?livello=${file}&modalita=sfida&data=${todayKey()}` : `?livello=${file}${mode === 'sandbox' ? '&modalita=sandbox' : ''}`;
-      });
+          mode === 'rompicapi'
+            ? '?rompicapi'
+            : mode === 'sfida'
+              ? `?livello=${file}&modalita=sfida&data=${todayKey()}`
+              : `?livello=${file}${mode === 'sandbox' ? '&modalita=sandbox' : ''}`;
+      }, puzzleProgress(groups));
     } catch (err) {
       showError(err instanceof Error ? err.message : String(err));
     }
@@ -114,11 +130,12 @@ async function start() {
   }
 
   let level;
+  /** Nei rompicapi: dove si trova questo nell'elenco e qual è il successivo. */
+  let puzzlePlace = null;
   try {
-    const res = await fetch(LEVEL_URL);
-    if (!res.ok) throw new Error(`Impossibile caricare ${LEVEL_URL} (${res.status})`);
-    level = parseLevel(await res.json());
+    level = parseLevel(await loadJson(LEVEL_URL));
     if (ENDLESS) level = sandboxLevel(level);
+    if (PUZZLE_NAME) puzzlePlace = locatePuzzle(parsePuzzleIndex(await loadJson(PUZZLE_INDEX_URL)), PUZZLE_NAME);
   } catch (err) {
     showError(err instanceof Error ? err.message : String(err));
     return;
@@ -152,7 +169,7 @@ async function start() {
       sim.removeRoad(piece);
       playRemove();
     },
-    active: () => !choosingStation && !gameOverShown,
+    active: () => !choosingStation && !gameOverShown && (!puzzleUi || puzzleUi.canBuild()),
     tap: (x, y, radius) => {
       const result = sim.tap(x, y, Math.max(radius, 20));
       if (result) playTap(result);
@@ -169,7 +186,10 @@ async function start() {
   const hasWater = level.waters.some((w) => w.kind === 'river' || w.kind === 'bay');
   /** Quante volte sono stati aperti gli obiettivi delle stelle (serve al tutorial). */
   let goalsOpened = 0;
-  const hud = createHud(document.body, {
+  // Nei rompicapi la barra in alto è quella del rompicapo (tempo, arrivati, mosse).
+  const hud = level.puzzle
+    ? null
+    : createHud(document.body, {
     bridges: hasWater,
     stars: level.stars !== null,
     // Nei livelli contano le stelle, senza fine e nella sfida solo il punteggio.
@@ -180,6 +200,17 @@ async function start() {
     },
   });
   const speed = createSpeedControls(document.body);
+  const puzzleUi = level.puzzle
+    ? createPuzzle(document.body, sim, {
+        id: /** @type {string} */ (PUZZLE_NAME),
+        label: puzzlePlace?.label ?? 'Rompicapo',
+        sample: densify,
+        speed: document.querySelector('.speed'),
+        onNext: puzzlePlace?.next ? () => (location.search = `?rompicapo=${puzzlePlace?.next}`) : null,
+        onList: () => (location.search = '?rompicapi'),
+        onSolved: () => playStar(),
+      })
+    : null;
   const tutorial = level.tutorial
     ? createTutorial(document.body, sim, level.tutorial, {
         zoom: () => camera.zoom,
@@ -218,7 +249,7 @@ async function start() {
   createMuteButton(document.body);
   // Annulla l'ultima mossa.
   const undoButton = createUndoButton(document.body, {
-    canUndo: () => sim.canUndo && !gameOverShown && !choosingStation && !sim.rewardPending,
+    canUndo: () => sim.canUndo && !gameOverShown && !choosingStation && !sim.rewardPending && (!puzzleUi || puzzleUi.canUndo()),
     onUndo: () => {
       if (!sim.undo()) return;
       playRemove();
@@ -291,10 +322,12 @@ async function start() {
   function drawFrame(now) {
     updateReserved();
     tutorial?.update();
+    puzzleUi?.update();
     // A velocità doppia scorre il doppio del tempo di gioco, sempre a passi fissi.
     pending += Math.min((now - lastTime) / 1000, MAX_FRAME_TIME) * speed.speed();
     lastTime = now;
-    const running = sim.running && !askingToLeave;
+    // Nei rompicapi il traffico scorre solo dopo "Via!".
+    const running = sim.running && !askingToLeave && (!puzzleUi || puzzleUi.running());
     while (pending >= STEP && running && sim.running) {
       sim.step(STEP);
       pending -= STEP;
@@ -399,9 +432,9 @@ async function start() {
       daysAfterThree: sim.starState().daysAfterThree,
       slowTraffic: sim.slowTraffic,
     };
-    hud.update(results);
+    hud?.update(results);
     undoButton.update();
-    if ((sim.failed || sim.completed) && !gameOverShown) {
+    if ((sim.failed || sim.completed) && !gameOverShown && !level.puzzle) {
       gameOverShown = true;
       const daily = DAILY ? saveDaily(DAY_KEY, sim.score) : null;
       const best = daily
@@ -448,6 +481,8 @@ async function start() {
     drawWater(ctx, level.waters);
     drawMonuments(ctx, level.terrain);
     drawOutsideVeil(ctx, level.world, visible);
+    // Le porte dei rompicapi: il pezzo di strada che arriva dal bordo.
+    drawGates(ctx, sim.stations, level.world);
     drawRoads(ctx, graph, sim.traffic.congestion, level.look);
     drawLaneMarks(ctx, graph);
     drawRoundaboutIslands(ctx, sim.roundabouts.values(), level.look);
@@ -495,6 +530,8 @@ async function start() {
     // A partita persa, la stazione che ha fatto perdere pulsa in rosso.
     if (sim.failedStation) drawHint(ctx, sim.failedStation, now / 1000, labelScale * 1.4, STYLE.blockedText);
     if (sim.failedJam) drawHint(ctx, sim.failedJam, now / 1000, labelScale * 1.4, STYLE.blockedText);
+    // Rompicapo non riuscito: dove si è bloccato.
+    if (sim.puzzle?.failPoint) drawHint(ctx, sim.puzzle.failPoint, now / 1000, labelScale * 1.4, STYLE.blockedText);
   }
 
   requestAnimationFrame((now) => {
@@ -521,6 +558,16 @@ function densify(points) {
 
 function goToMenu() {
   location.href = location.pathname;
+}
+
+/**
+ * @param {string} url
+ * @returns {Promise<any>}
+ */
+async function loadJson(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Impossibile caricare ${url} (${res.status})`);
+  return res.json();
 }
 
 /** @param {string} message */

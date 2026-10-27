@@ -25,9 +25,10 @@ export const GAME_TITLE = 'Traffico';
 /**
  * @param {HTMLElement} parent
  * @param {LevelEntry[]} levels
- * @param {(file: string, mode: 'livello' | 'sandbox' | 'sfida') => void} onPick  la città e la modalità scelte
+ * @param {(file: string, mode: 'livello' | 'sandbox' | 'sfida' | 'rompicapi') => void} onPick  la città e la modalità scelte
+ * @param {{solved: number, total: number, stars: number} | null} [puzzles]  i rompicapi risolti, per la loro scheda
  */
-export function showMenu(parent, levels, onPick) {
+export function showMenu(parent, levels, onPick, puzzles = null) {
   const root = document.createElement('div');
   root.className = 'menu';
 
@@ -119,6 +120,33 @@ export function showMenu(parent, levels, onPick) {
       sandbox.addEventListener('click', () => onPick(level.file, 'sandbox'));
       modes.appendChild(sandbox);
     }
+    card.appendChild(modes);
+    root.appendChild(card);
+  }
+
+  // I rompicapi: traffico sempre uguale, da risolvere costruendo a gioco fermo.
+  if (puzzles && puzzles.total > 0) {
+    const card = document.createElement('div');
+    card.className = 'menu-card';
+    card.appendChild(monumentIcon('rompicapo'));
+    const head = document.createElement('div');
+    head.className = 'menu-head';
+    const name = document.createElement('span');
+    name.className = 'menu-name';
+    name.textContent = 'Rompicapi';
+    head.appendChild(name);
+    card.appendChild(head);
+    const line = document.createElement('div');
+    line.className = 'menu-record';
+    line.textContent = puzzles.solved > 0 ? `Risolti ${puzzles.solved} su ${puzzles.total} · ★ ${puzzles.stars}` : `${puzzles.total} incroci e città da sbrogliare`;
+    card.appendChild(line);
+    const modes = document.createElement('div');
+    modes.className = 'menu-modes';
+    const play = document.createElement('button');
+    play.className = 'menu-mode';
+    play.textContent = 'Gioca';
+    play.addEventListener('click', () => onPick('', 'rompicapi'));
+    modes.appendChild(play);
     card.appendChild(modes);
     root.appendChild(card);
   }
