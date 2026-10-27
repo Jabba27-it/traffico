@@ -235,6 +235,28 @@ export function drawOverpasses(ctx, graph, look) {
 }
 
 /**
+ * I veicoli da disegnare sopra i cavalcavia: chi sta per salire, è sopra o è
+ * appena sceso (fino a due nodi dal nodo alto). Contava solo il pezzo dove sta il
+ * centro del veicolo, così il muso entrava sotto l'impalcato e per un attimo
+ * spariva. Chi passa sotto non ha il nodo alto nel percorso e resta sotto.
+ * @param {RoadGraph} graph
+ * @param {import('../sim/vehicles.js').Vehicle[]} vehicles
+ */
+export function vehiclesOnDecks(graph, vehicles) {
+  const uppers = [...graph.nodes.values()].filter((n) => n.overpass?.upper).map((n) => n.id);
+  if (uppers.length === 0) return [];
+  return vehicles.filter((v) =>
+    uppers.some((id) => {
+      const i = v.path.indexOf(id);
+      return i >= 0 && Math.abs(i - v.leg) <= DECK_REACH;
+    }),
+  );
+}
+
+/** Fin dove (in nodi dal nodo alto) un veicolo si disegna sopra il cavalcavia. */
+const DECK_REACH = 2;
+
+/**
  * Frecce sui sensi unici: una ogni due archi circa, nel verso di marcia.
  * @param {CanvasRenderingContext2D} ctx
  * @param {RoadGraph} graph

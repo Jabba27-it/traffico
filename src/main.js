@@ -4,8 +4,7 @@ import { Simulation, JAM_LOSS, STATION_PREVIEW } from './sim/simulation.js';
 import { setupCanvas, fitCamera, scaleFor, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
 import { createCamera, cameraRect, zoomAround } from './render/camera.js';
 import { attachPinch } from './input/pinch.js';
-import { drawRoads, drawBridgeTops, drawLaneMarks, drawOverpasses, drawPreview, drawRemoval, drawWater, drawOutsideVeil } from './render/roads.js';
-import { currentPiece } from './sim/vehicles.js';
+import { drawRoads, drawBridgeTops, drawLaneMarks, drawOverpasses, drawPreview, drawRemoval, drawWater, drawOutsideVeil, vehiclesOnDecks } from './render/roads.js';
 import { drawJunctionMarks, drawRoundaboutIslands } from './render/junctions.js';
 import { STYLE } from './render/style.js';
 import { drawHint } from './render/hint.js';
@@ -500,7 +499,7 @@ async function start() {
     const finger = drawing.finger();
     if (removal && finger) drawRemoval(ctx, graph, removal, sim.refundOf(removal), finger, framed);
     // Chi passa sotto un cavalcavia sparisce sotto l'impalcato; chi passa sopra si vede sopra.
-    const elevated = sim.vehicles.filter((v) => currentPiece(sim.lanes, v).elevated);
+    const elevated = vehiclesOnDecks(graph, sim.vehicles);
     drawVehicles(ctx, sim.vehicles.filter((v) => !elevated.includes(v)));
     drawOverpasses(ctx, graph, level.look);
     drawVehicles(ctx, elevated);
