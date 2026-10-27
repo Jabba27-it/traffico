@@ -25,8 +25,6 @@ export const ROAD_WIDTH = 24;
  * @property {number} [cost]  tratti di strada pagati per questo arco (anche frazioni)
  * @property {number} [bridgeId]  presente se l'arco fa parte di un ponte
  * @property {boolean} [oneWay]  senso unico: si percorre solo da `a` verso `b`
- * @property {'super'} [kind]    superstrada: più veloce, con la precedenza
- * @property {number} [superPaid]  tratti pagati in più per farne una superstrada
  * @property {number} [ring]       presente se l'arco fa parte dell'anello di una rotatoria (id della rotatoria)
  */
 
@@ -109,7 +107,6 @@ export class RoadGraph {
   copyRoadKind(from, to) {
     if (!to) return;
     if (from.oneWay) to.oneWay = true;
-    if (from.kind) to.kind = from.kind;
   }
 
   /** @param {number} edgeId */
@@ -139,10 +136,6 @@ export class RoadGraph {
       if (edge.cost) {
         first.cost = edge.cost * share;
         second.cost = edge.cost - first.cost;
-      }
-      if (edge.superPaid) {
-        first.superPaid = edge.superPaid * share;
-        second.superPaid = edge.superPaid - first.superPaid;
       }
     }
     if (edge.bridgeId !== undefined && first && second) first.bridgeId = second.bridgeId = edge.bridgeId;

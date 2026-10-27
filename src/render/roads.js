@@ -22,7 +22,6 @@ const BASE_VIEW_WIDTH = 520;
  * @typedef {Object} Chain  una fila di archi dello stesso tipo, fra due incroci
  * @property {Point[]} points
  * @property {RoadEdge[]} edges
- * @property {boolean} super
  * @property {boolean} bridge
  * @property {boolean} oneWay
  */
@@ -45,7 +44,7 @@ function roadChains(graph) {
       /** @type {RoadEdge[]} */ (byNode.get(id)).push(e);
     }
   }
-  const kindOf = (/** @type {RoadEdge} */ e) => `${e.kind ?? ''}|${e.bridgeId !== undefined}|${Boolean(e.oneWay)}`;
+  const kindOf = (/** @type {RoadEdge} */ e) => `${e.bridgeId !== undefined}|${Boolean(e.oneWay)}`;
   const passThrough = (/** @type {number} */ id, /** @type {string} */ kind) => {
     const n = graph.nodes.get(id);
     const around = byNode.get(id) ?? [];
@@ -77,7 +76,7 @@ function roadChains(graph) {
       }
     }
     const points = ids.map((id) => graph.nodes.get(id)).filter((n) => n !== undefined);
-    chains.push({ points, edges, super: start.kind === 'super', bridge: start.bridgeId !== undefined, oneWay: Boolean(start.oneWay) });
+    chains.push({ points, edges, bridge: start.bridgeId !== undefined, oneWay: Boolean(start.oneWay) });
   }
   chainCache = { version: graph.version, chains };
   return chains;
@@ -151,12 +150,8 @@ export function drawRoads(ctx, graph, congestion, look) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   const chains = roadChains(graph);
-  const supers = chains.filter((c) => c.super);
   const bridges = chains.filter((c) => c.bridge);
-  // Superstrade: un bordo dorato sotto, così si riconoscono a colpo d'occhio.
-  strokeChains(ctx, supers, ROAD_WIDTH + 4, STYLE.superEdge);
   strokeChains(ctx, chains, ROAD_WIDTH, STYLE.road);
-  strokeChains(ctx, supers, ROAD_WIDTH - 3, STYLE.superRoad);
   // Ponti: impalcato più chiaro fra due parapetti. Torri, archi e cavi vanno
   // disegnati dopo i veicoli, con drawBridgeTops, perché i veicoli ci passano sotto.
   const colors = bridgeColors(look);
@@ -215,7 +210,7 @@ export function drawOverpasses(ctx, graph, look) {
     if (around.length !== 2) continue;
     const ends = around.map((e) => graph.nodes.get(e.a === n.id ? e.b : e.a));
     if (!ends[0] || !ends[1]) continue;
-    decks.push({ points: [ends[0], n, ends[1]], edges: around, super: false, bridge: false, oneWay: false });
+    decks.push({ points: [ends[0], n, ends[1]], edges: around, bridge: false, oneWay: false });
   }
   if (decks.length === 0) return;
   ctx.lineCap = 'butt';

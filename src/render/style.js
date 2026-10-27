@@ -27,8 +27,7 @@ export const STYLE = {
   // Strade
   road: '#55504b',
   laneMark: 'rgba(255, 250, 240, 0.4)',
-  superRoad: '#4a4541',
-  superEdge: '#e2b65f',
+  flowerGold: '#e2b65f',
   bridgeRail: '#3f3b38',
   bridgeDeck: '#8a837b',
   overpassDeck: '#6b655f',

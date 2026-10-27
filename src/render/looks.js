@@ -451,7 +451,7 @@ export function drawIsland(ctx, r, look) {
     // Classica: prato con una corona di fiori e tre cespugli.
     for (let i = 0; i < 14; i++) {
       const a = (i / 14) * Math.PI * 2;
-      disc(ri * 0.11, i % 2 ? STYLE.superEdge : STYLE.hint, Math.cos(a) * ri * 0.78, Math.sin(a) * ri * 0.78);
+      disc(ri * 0.11, i % 2 ? STYLE.flowerGold : STYLE.hint, Math.cos(a) * ri * 0.78, Math.sin(a) * ri * 0.78);
     }
     for (let i = 0; i < 3; i++) {
       const a = (i / 3) * Math.PI * 2 + 0.5;

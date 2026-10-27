@@ -160,8 +160,6 @@ const TAP_PITCH = {
   two: 800,
   forward: 900,
   backward: 900,
-  super: 1000,
-  'super-too-expensive': 800,
 };
 
 /**

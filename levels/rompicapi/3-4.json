@@ -52,7 +52,7 @@
     "tolleranza": 1000000
   },
   "rompicapo": {
-    "testo": "Per andare da nord a sud la strada fa avanti e indietro per tutta la città: così il tempo non basta. Hai 3 mosse.",
+    "testo": "Per andare da nord a sud la strada fa avanti e indietro sul lato est: così il tempo non basta. Hai 3 mosse.",
     "programma": [
       {
         "da": "Nord",
@@ -68,7 +68,7 @@
         "inizio": 0.6
       }
     ],
-    "tempo": 40,
+    "tempo": 31,
     "stelle": {
       "mosse": 1,
       "tempo": 23
@@ -80,32 +80,40 @@
           114
         ],
         [
-          50,
-          138
+          300,
+          118
         ],
         [
-          350,
-          185
+          370,
+          161
         ],
         [
-          50,
-          232
+          270,
+          201
         ],
         [
-          350,
+          370,
+          240
+        ],
+        [
+          270,
           280
         ],
         [
-          50,
-          328
+          370,
+          320
         ],
         [
-          350,
-          375
+          270,
+          359
         ],
         [
-          50,
-          422
+          370,
+          399
+        ],
+        [
+          300,
+          442
         ],
         [
           200,

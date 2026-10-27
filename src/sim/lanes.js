@@ -33,7 +33,6 @@ const CURVE_SAMPLES = 20;
  * @property {number} angle     per le curve: quanto si gira, in radianti (0..π)
  * @property {boolean} guarded  per le curve: serve il permesso per entrarci (incroci e stazioni)
  * @property {boolean} elevated sale o scende dal cavalcavia: lì si va più piano
- * @property {boolean} fast     corsia di superstrada: lì si va più veloci
  * @property {number} hill      quanto è ripido (0 in pianura, 1 in cima a un colle): lì si va più piano
  * @property {number} from      per le curve: il nodo da cui si arriva
  * @property {number} to        per le curve: il nodo verso cui si va
@@ -112,7 +111,6 @@ export class LaneGeometry {
     const end = { x: pb.x + nx - dx * rb, y: pb.y + ny - dy * rb };
     const piece = makePiece(key, 'lane', [start, end], -1, 0, false);
     piece.elevated = Boolean(pa.overpass?.upper || pb.overpass?.upper);
-    piece.fast = this.graph.getEdge(a, b)?.kind === 'super';
     piece.hill = hillAt(this.terrain, { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 });
     this.cache.set(key, piece);
     return piece;
@@ -176,8 +174,6 @@ export class LaneGeometry {
     const alongRing = this.graph.getEdge(a, b)?.ring !== undefined && this.graph.getEdge(b, c)?.ring !== undefined;
     const piece = makePiece(key, 'turn', points, b, angle, this.isJunction(b) && !alongRing);
     piece.elevated = Boolean(node(this.graph, b).overpass?.upper);
-    // Una curva fra due tratti di superstrada fa parte della superstrada.
-    piece.fast = inLane.fast && outLane.fast;
     piece.from = a;
     piece.to = c;
     this.cache.set(key, piece);
@@ -186,8 +182,8 @@ export class LaneGeometry {
 
   /**
    * La strada principale di un incrocio: i due nodi vicini da cui la strada
-   * attraversa più dritta (preferendo le superstrade e gli anelli delle
-   * rotatorie). Chi arriva da lì ha la precedenza.
+   * attraversa più dritta (preferendo gli anelli delle rotatorie). Chi arriva da
+   * lì ha la precedenza.
    * @param {number} id
    * @returns {Set<number>}
    */
@@ -210,7 +206,6 @@ export class LaneGeometry {
         // 1 se le due strade sono una il proseguimento dell'altra, 0 se ad angolo retto o meno.
         let score = Math.max(0, (diff - Math.PI / 2) / (Math.PI / 2));
         for (const e of [around[i], around[j]]) {
-          if (e.kind === 'super') score += 0.6;
           if (e.ring) score += 2;
         }
         if (score > bestScore) {
@@ -281,7 +276,7 @@ function makePiece(key, kind, points, nodeId, angle, guarded) {
   for (let i = 1; i < points.length; i++) {
     lengths.push(lengths[i - 1] + Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y));
   }
-  return { key, kind, points, lengths, length: lengths[lengths.length - 1], node: nodeId, angle, guarded, elevated: false, fast: false, hill: 0, from: -1, to: -1 };
+  return { key, kind, points, lengths, length: lengths[lengths.length - 1], node: nodeId, angle, guarded, elevated: false, hill: 0, from: -1, to: -1 };
 }
 
 /**

@@ -20,6 +20,8 @@ const UPCOMING_MARGIN = 4;
 const MERGE_RADIUS = 12;
 /** Un tratto che passa così vicino all'estremità di una strada (le due si toccano a vista) vi si collega. */
 const DEAD_END_RADIUS = ROAD_WIDTH;
+/** Sotto questa distanza fra dove la strada nuova sale su una esistente e dove ne scende, è un attraversamento. */
+const CROSSING_GAP = 50;
 /** Un estremo del tratto che cade così vicino a una stazione vi si aggancia. */
 const STATION_SNAP = STATION_RADIUS + 8;
 
@@ -201,7 +203,25 @@ function planBudget(points, count, onRoad, maxLength) {
  * @param {number} snapRadius
  */
 export function buildPlannedRoad(graph, plan, snapRadius) {
-  for (const run of plan.runs) buildRoad(graph, run, snapRadius);
+  const runs = plan.runs.map((run) => [...run]);
+  // Una strada che ne attraversa un'altra un po' di sbieco ci passa sopra per un
+  // pezzetto: entrata e uscita si agganciavano in due punti diversi e nascevano
+  // due incroci a T attaccati (lì niente cavalcavia, e il traffico si blocca).
+  // Se il pezzo sovrapposto è corto, tutte e due si agganciano a metà: una croce.
+  for (let i = 0; i + 1 < runs.length; i++) {
+    const a = runs[i][runs[i].length - 1];
+    const b = runs[i + 1][0];
+    if (distance(a, b) >= CROSSING_GAP) continue;
+    const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    const node = graph.findNodeNear(mid.x, mid.y, ROAD_WIDTH / 2);
+    if (node?.stationId !== undefined) continue; // dentro una stazione si entra e basta
+    const hit = node ?? graph.findEdgeNear(mid.x, mid.y, ROAD_WIDTH / 2);
+    if (!hit) continue;
+    const cross = { x: hit.x, y: hit.y };
+    runs[i][runs[i].length - 1] = cross;
+    runs[i + 1][0] = cross;
+  }
+  for (const run of runs) buildRoad(graph, run, snapRadius);
 }
 
 /**

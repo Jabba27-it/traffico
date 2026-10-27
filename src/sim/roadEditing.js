@@ -59,7 +59,7 @@ export function findRoadPiece(graph, x, y, radius = ROAD_WIDTH) {
   for (const id of piece) {
     const e = graph.edges.get(id);
     length += edgeLength(graph, id);
-    cost += (e?.cost ?? 0) + (e?.superPaid ?? 0);
+    cost += e?.cost ?? 0;
     if (e?.bridgeId !== undefined) bridgeIds.add(e.bridgeId);
   }
   return { edgeIds: [...piece], length, cost, bridges: bridgeIds.size };
@@ -67,8 +67,8 @@ export function findRoadPiece(graph, x, y, radius = ROAD_WIDTH) {
 
 /**
  * Tipo di un pezzo di strada: doppio senso, senso unico in un verso o
- * nell'altro (rispetto all'ordine della catena), superstrada.
- * @typedef {'two' | 'forward' | 'backward' | 'super'} RoadType
+ * nell'altro (rispetto all'ordine della catena).
+ * @typedef {'two' | 'forward' | 'backward'} RoadType
  */
 
 /**
@@ -109,7 +109,6 @@ export function orderedChain(graph, piece) {
 export function pieceType(graph, piece) {
   const first = orderedChain(graph, piece)[0];
   if (!first) return 'two';
-  if (first.edge.kind === 'super') return 'super';
   if (!first.edge.oneWay) return 'two';
   return first.edge.a === first.from ? 'forward' : 'backward';
 }
@@ -122,9 +121,7 @@ export function pieceType(graph, piece) {
  */
 export function setPieceType(graph, piece, type) {
   for (const { edge, from, to } of orderedChain(graph, piece)) {
-    delete edge.kind;
     delete edge.oneWay;
-    if (type === 'super') edge.kind = 'super';
     if (type === 'forward' || type === 'backward') {
       edge.oneWay = true;
       // Il senso unico va da `a` a `b`: si girano gli estremi se serve.

@@ -158,7 +158,6 @@ export function buildRoundabout(graph, c, id, cost) {
     const toward = e.oneWay && inB; // senso unico che va verso il centro
     const away = e.oneWay && inA; // senso unico che esce dal centro
     let cost = e.cost ?? 0;
-    let superPaid = e.superPaid ?? 0;
     let bridgeId = e.bridgeId;
     graph.removeEdge(e.id);
     let outer = graph.nodes.get(inA ? e.b : e.a);
@@ -177,7 +176,6 @@ export function buildRoundabout(graph, c, id, cost) {
       const nextNode = graph.nodes.get(nextId);
       if (!nextNode || inside.has(nextId)) break;
       cost += back.cost ?? 0;
-      superPaid += back.superPaid ?? 0;
       bridgeId ??= back.bridgeId;
       graph.removeEdge(back.id);
       graph.nodes.delete(here.id);
@@ -188,7 +186,6 @@ export function buildRoundabout(graph, c, id, cost) {
     const spoke = toward ? graph.addEdge(outer.id, target.id) : away ? graph.addEdge(target.id, outer.id) : graph.addEdge(outer.id, target.id);
     if (spoke) {
       if (cost) spoke.cost = cost;
-      if (superPaid) spoke.superPaid = superPaid;
       if (bridgeId !== undefined) spoke.bridgeId = bridgeId;
       graph.copyRoadKind(e, spoke);
     }
@@ -223,7 +220,6 @@ export function removeRoundabout(graph, r) {
     if (moved) {
       spokes.push(moved.id);
       if (e.cost) moved.cost = e.cost;
-      if (e.superPaid) moved.superPaid = e.superPaid;
       if (e.bridgeId !== undefined) moved.bridgeId = e.bridgeId;
       graph.copyRoadKind(e, moved);
     }

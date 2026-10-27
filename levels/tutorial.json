@@ -91,8 +91,8 @@
       "punta": [340, 420]
     },
     {
-      "titolo": "Sensi unici e superstrade",
-      "testo": "Dai un tocco breve su una strada: diventa a senso unico. Altri tocchi la girano, la fanno superstrada (più veloce, con la precedenza, costa altrettanti tratti) e la riportano normale.",
+      "titolo": "Sensi unici",
+      "testo": "Dai un tocco breve su una strada: diventa a senso unico (lo dicono le frecce). Un altro tocco la gira, il terzo la riporta a doppio senso.",
       "obiettivo": "tipoStrada",
       "punta": [250, 330]
     },

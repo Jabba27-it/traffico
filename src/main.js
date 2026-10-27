@@ -72,8 +72,6 @@ const TAP_MESSAGES = {
   two: 'Doppio senso',
   forward: 'Senso unico',
   backward: 'Senso unico (al contrario)',
-  super: 'Superstrada',
-  'super-too-expensive': 'Doppio senso: per la superstrada servono più tratti',
   roundabout: 'Rotatoria',
   'roundabout-removed': 'Rotatoria tolta: torna incrocio',
 };

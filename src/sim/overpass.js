@@ -82,7 +82,6 @@ function moveEdgeEnd(graph, e, from, to) {
   const moved = graph.addEdge(e.a === from ? to : e.a, e.b === from ? to : e.b);
   if (moved) {
     if (e.cost) moved.cost = e.cost;
-    if (e.superPaid) moved.superPaid = e.superPaid;
     if (e.bridgeId !== undefined) moved.bridgeId = e.bridgeId;
     graph.copyRoadKind(e, moved);
   }

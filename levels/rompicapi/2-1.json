@@ -87,34 +87,34 @@
       {
         "da": "Nord",
         "a": "quadrato",
-        "quanti": 24,
-        "ogni": 0.55
+        "quanti": 18,
+        "ogni": 0.7
       },
       {
         "da": "Sud",
         "a": "cerchio",
-        "quanti": 24,
-        "ogni": 0.55,
-        "inizio": 0.25
+        "quanti": 18,
+        "ogni": 0.7,
+        "inizio": 0.35
       },
       {
         "da": "Ovest",
         "a": "pentagono",
-        "quanti": 24,
-        "ogni": 0.55
+        "quanti": 18,
+        "ogni": 0.7
       },
       {
         "da": "Est",
         "a": "triangolo",
-        "quanti": 24,
-        "ogni": 0.55,
-        "inizio": 0.25
+        "quanti": 18,
+        "ogni": 0.7,
+        "inizio": 0.35
       }
     ],
-    "tempo": 45,
+    "tempo": 36,
     "stelle": {
-      "tratti": 17,
-      "tempo": 34
+      "tratti": 18,
+      "tempo": 28.5
     }
   }
 }

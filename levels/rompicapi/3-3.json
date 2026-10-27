@@ -67,7 +67,7 @@
     "monumenti": []
   },
   "strade": {
-    "iniziali": 10,
+    "iniziali": 12,
     "perGiorno": 0,
     "lunghezzaTratto": 40
   },
@@ -112,10 +112,10 @@
         "inizio": 1.35
       }
     ],
-    "tempo": 50,
+    "tempo": 40,
     "stelle": {
       "mosse": 1,
-      "tempo": 30
+      "tempo": 32.5
     },
     "strade": [
       [

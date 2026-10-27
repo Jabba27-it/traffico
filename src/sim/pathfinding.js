@@ -3,9 +3,6 @@
 
 import { distance } from './geometry.js';
 
-/** Costo di una superstrada rispetto a una strada normale lunga uguale. */
-const SUPER_COST = 0.7;
-
 /** @typedef {import('./graph.js').RoadGraph} RoadGraph */
 
 /**
@@ -30,8 +27,7 @@ export function shortestPaths(graph, sourceId, nodeCost, stopsAt) {
     const a = graph.nodes.get(e.a);
     const b = graph.nodes.get(e.b);
     if (!a || !b) continue;
-    // Sulle superstrade si va più veloci: a parità di lunghezza "costano" meno.
-    const cost = distance(a, b) * (e.kind === 'super' ? SUPER_COST : 1);
+    const cost = distance(a, b);
     if (!adj.has(e.a)) adj.set(e.a, []);
     if (!adj.has(e.b)) adj.set(e.b, []);
     /** @type {{to: number, cost: number}[]} */ (adj.get(e.a)).push({ to: e.b, cost });

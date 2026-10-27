@@ -30,8 +30,6 @@ const MOVING_SPEED = 4;
 const SHARPEST_CURVE = 0.3;
 /** Accelerazione laterale massima in curva: v² / raggio. */
 const MAX_LATERAL = 90;
-/** Sulle superstrade si va più veloci della velocità massima normale. */
-const SUPER_SPEED = 1.35;
 /** Quanto si perde in cima a un colle, in frazione della velocità: automobili e mezzi pesanti. */
 const HILL_CAR = 0.3;
 const HILL_HEAVY = 0.6;
@@ -53,6 +51,16 @@ const STARVING = 4;
  * laterale sempre piena non la blocca fino all'allarme ingorgo.
  */
 const STARVING_MAIN = 12;
+/**
+ * Due incroci più vicini di così (fra la fine di una curva e l'inizio della
+ * successiva) contano come uno solo: il permesso si chiede per tutti e due
+ * insieme. Capita disegnando a mano un incrocio un po' storto: ne nascono due
+ * attaccati, e chi aveva il permesso nel primo aspettava chi era nel secondo e
+ * viceversa, per sempre.
+ */
+const CHAINED_JUNCTION = 30;
+/** Al più tanti incroci attaccati si prenotano insieme. */
+const MAX_CHAIN = 5;
 
 /**
  * @typedef {Object} Request
@@ -190,8 +198,7 @@ export class Traffic {
       if (toStart > LOOKAHEAD) break;
       const ahead = Math.max(0, toStart);
 
-      // Velocità della strada: sulle superstrade più alta. Prima di lasciarle si frena.
-      const roadSpeed = v.type.maxSpeed * (piece.fast ? SUPER_SPEED : 1);
+      const roadSpeed = v.type.maxSpeed;
       limit = Math.min(limit, Math.sqrt(roadSpeed * roadSpeed + 2 * BRAKE * ahead));
 
       // Colli: in salita le auto rallentano un po', i mezzi pesanti molto di più.
@@ -207,8 +214,7 @@ export class Traffic {
       }
 
       if (piece.kind === 'turn') {
-        // Più la curva gira e più è stretta, più bisogna rallentare. Si parte dalla
-        // velocità della strada: sulle superstrade le curve dolci si fanno più veloci.
+        // Più la curva gira e più è stretta, più bisogna rallentare.
         const byAngle = roadSpeed * (1 - (1 - SHARPEST_CURVE) * (piece.angle / Math.PI));
         const radius = piece.angle > 0.05 ? piece.length / piece.angle : Infinity;
         const curve = Math.min(byAngle, Math.sqrt(MAX_LATERAL * radius));
@@ -316,9 +322,12 @@ export class Traffic {
       j.queue = ordered.filter((r) => {
         // Non è il primo della sua fila: aspetta senza bloccare nessuno.
         if (r.dist > /** @type {number} */ (front.get(r.turn.from))) return true;
+        // Incroci attaccati subito dopo: si entra solo se si possono passare anche quelli.
+        const chained = this.chainedTurns(r.v, r.turn);
         const blocked =
           (!fromMain(r) && !hungry(r) && arrivals.some((t) => this.conflicts(t, r.turn))) ||
           [...j.inside.values()].some((t) => this.conflicts(t, r.turn)) ||
+          chained.some((next) => this.chainBlocked(r, next)) ||
           waiting.some((w) => this.conflicts(w.turn, r.turn)) ||
           !this.exitIsFree(r.v, r.turn);
         if (blocked) {
@@ -326,9 +335,47 @@ export class Traffic {
           return true;
         }
         j.inside.set(r.v.id, r.turn);
+        for (const next of chained) this.junctionAt(next.node).inside.set(r.v.id, next);
         return false;
       });
     }
+  }
+
+  /**
+   * true se chi chiede il permesso non può prenotare la curva di un incrocio
+   * attaccato: c'è dentro qualcuno con una curva che incrocia la sua, oppure lì
+   * aspetta chi è arrivato prima di lui con una curva che incrocia (la
+   * prenotazione non salta la fila).
+   * @param {Request} r
+   * @param {Piece} next
+   */
+  chainBlocked(r, next) {
+    const j = this.junctionAt(next.node);
+    return (
+      [...j.inside].some(([id, t]) => id !== r.v.id && this.conflicts(t, next)) ||
+      j.queue.some((q) => q.v !== r.v && q.since < r.since && this.conflicts(q.turn, next))
+    );
+  }
+
+  /**
+   * Le curve che il veicolo farà negli incroci subito dopo questo, finché sono
+   * così vicini da contare come lo stesso incrocio (vedi CHAINED_JUNCTION).
+   * @param {Vehicle} v
+   * @param {Piece} turn
+   * @returns {Piece[]}
+   */
+  chainedTurns(v, turn) {
+    /** @type {Piece[]} */
+    const chain = [];
+    let i = v.path.indexOf(turn.node, Math.max(0, v.leg - 1));
+    if (i < 0) return chain;
+    while (i + 2 < v.path.length && chain.length < MAX_CHAIN) {
+      const next = this.lanes.turn(v.path[i], v.path[i + 1], v.path[i + 2]);
+      if (!next.guarded || this.lanes.lane(v.path[i], v.path[i + 1]).length >= CHAINED_JUNCTION) break;
+      chain.push(next);
+      i++;
+    }
+    return chain;
   }
 
   /**

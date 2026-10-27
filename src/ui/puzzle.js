@@ -12,6 +12,14 @@ import { saveRecord } from './records.js';
 /** Prefisso dei record dei rompicapi, accanto a quelli delle città. */
 export const PUZZLE_RECORD = 'rompicapo.';
 
+/** Dove si ricorda l'ultima soluzione riuscita di ogni rompicapo (le mosse fatte). */
+const SOLUTION_PREFIX = 'traffico.soluzione.';
+
+/**
+ * Una mossa del progetto, per rifarla quando si riapre il rompicapo.
+ * @typedef {{road: {x: number, y: number}[]} | {tap: {x: number, y: number}} | {remove: {x: number, y: number}}} PuzzleMove
+ */
+
 /** Lato in pixel delle forme disegnate nel programma. */
 const SHAPE_ICON = 16;
 
@@ -44,6 +52,66 @@ export function createPuzzle(parent, sim, options) {
   for (const t of goal.taps) sim.tap(t.x, t.y, 20);
   sim.startPuzzle();
 
+  // Le mosse del progetto si annotano (l'annulla toglie l'ultima): quando il
+  // rompicapo è risolto si salvano, e riaprendolo si ritrova la propria rete.
+  /** @type {PuzzleMove[]} */
+  let log = [];
+  const changed = (/** @type {() => any} */ action, /** @type {PuzzleMove} */ move) => {
+    const before = puzzle.moves;
+    const result = action();
+    if (puzzle.moves > before) log.push(move);
+    return result;
+  };
+  const build = sim.buildRoad.bind(sim);
+  const tap = sim.tap.bind(sim);
+  const remove = sim.removeRoad.bind(sim);
+  const undo = sim.undo.bind(sim);
+  sim.buildRoad = (points, snap) => changed(() => build(points, snap), { road: points.map((p) => ({ x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 })) });
+  sim.tap = (x, y, radius) => changed(() => tap(x, y, radius), { tap: { x, y } });
+  sim.removeRoad = (piece) => {
+    const at = sim.pieceMiddle(piece);
+    return changed(() => remove(piece), { remove: at });
+  };
+  sim.undo = () => {
+    const done = undo();
+    if (done) log.pop();
+    return done;
+  };
+  /** @type {PuzzleMove[] | null} */
+  let saved = null;
+  try {
+    saved = JSON.parse(localStorage.getItem(SOLUTION_PREFIX + options.id) ?? 'null');
+  } catch {
+    saved = null;
+  }
+  if (Array.isArray(saved)) {
+    for (const m of saved) {
+      if ('road' in m) sim.buildRoad(m.road, 28);
+      else if ('tap' in m) sim.tap(m.tap.x, m.tap.y, 20);
+      else if ('remove' in m) {
+        const piece = sim.findRoadPiece(m.remove.x, m.remove.y, 6);
+        if (piece) sim.removeRoad(piece);
+      }
+    }
+    sim.lastMove = null;
+  }
+  const saveSolution = () => {
+    try {
+      localStorage.setItem(SOLUTION_PREFIX + options.id, JSON.stringify(log));
+    } catch {
+      // niente salvataggio: la rete resta solo per questa volta
+    }
+  };
+  /** Ricomincia da zero: via la soluzione ricordata e la rete. */
+  const startOver = () => {
+    try {
+      localStorage.removeItem(SOLUTION_PREFIX + options.id);
+    } catch {
+      // niente da togliere
+    }
+    location.reload();
+  };
+
   /** @type {'progetto' | 'via' | 'esito'} */
   let phase = 'progetto';
 
@@ -72,11 +140,14 @@ export function createPuzzle(parent, sim, options) {
     card.replaceChildren(...parts.map((p) => (typeof p === 'string' ? text('div', p) : p)));
     card.classList.remove('collapsed');
   };
-  // Un tocco sul titolo richiude il riquadro (restano i tasti), per vedere tutta la mappa.
+  // Un tocco sul titolo richiude o riapre il riquadro (restano titolo e tasti).
   card.addEventListener('click', (e) => {
     const target = /** @type {HTMLElement} */ (e.target);
     if (target.closest('.tutorial-counter, .tutorial-title')) card.classList.toggle('collapsed');
   });
+  // Appena si tocca la mappa per costruire, il riquadro si richiude da solo:
+  // il testo non copre mai stazioni e strade.
+  document.getElementById('game')?.addEventListener('pointerdown', () => card.classList.add('collapsed'));
 
   const project = () => {
     phase = 'progetto';
@@ -88,7 +159,9 @@ export function createPuzzle(parent, sim, options) {
       showSpeed(true);
       running();
     });
-    fill(text('div', options.label, 'tutorial-counter'), text('div', sim.level.name, 'tutorial-title'), text('div', goal.text, 'tutorial-text'), programList(), buttons(go));
+    // Con una rete già fatta (anche ritrovata dall'ultima volta) si può ripartire da zero.
+    const again = log.length > 0 ? [button('Ricomincia', startOver, 'link')] : [];
+    fill(text('div', options.label, 'tutorial-counter'), text('div', sim.level.name, 'tutorial-title'), text('div', goal.text, 'tutorial-text'), programList(), buttons(...again, go));
   };
 
   const running = () => {
@@ -103,6 +176,7 @@ export function createPuzzle(parent, sim, options) {
   const solved = () => {
     const stars = sim.puzzleStars();
     saveRecord(PUZZLE_RECORD + options.id, 0, stars);
+    saveSolution();
     options.onSolved(stars);
     card.classList.add('done');
     showSpeed(false);
