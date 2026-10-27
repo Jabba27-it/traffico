@@ -467,7 +467,9 @@
     .puzzle-card .tutorial-title::after { content: ' ▾'; font-size: 12px; opacity: 0.5; }
     .puzzle-card.collapsed .tutorial-title::after { content: ' ▸'; }
     .puzzle-card.collapsed .tutorial-text, .puzzle-card.collapsed .puzzle-program, .puzzle-card.collapsed .puzzle-stars { display: none; }
-    .puzzle-row { display: flex; align-items: center; gap: 5px; }
+    .puzzle-row { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+    .puzzle-to { font-weight: 600; }
+    .puzzle-rate { opacity: 0.7; overflow: hidden; text-overflow: ellipsis; }
     .puzzle-shape { width: 16px; height: 16px; flex: none; }
     .puzzle-stars { font-size: 22px; margin: 2px 0 4px; }
     .puzzles .puzzle-group { flex: 1 1 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); align-content: stretch; padding-top: clamp(6px, 1.2vh, 14px); padding-bottom: clamp(6px, 1.2vh, 14px); }

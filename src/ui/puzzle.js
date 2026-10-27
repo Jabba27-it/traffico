@@ -213,10 +213,15 @@ export function createPuzzle(parent, sim, options) {
   function programList() {
     const list = document.createElement('div');
     list.className = 'puzzle-program';
+    const stations = sim.level.stations;
     for (const d of goal.program) {
       const row = document.createElement('div');
       row.className = 'puzzle-row';
-      row.append(text('span', `${d.from} →`), shapeIcon(d.shape), text('span', `${d.count} ${TYPE_NAMES[d.type]} ogni ${String(d.every).replace('.', ',')} s`));
+      // Partenza e arrivo con la loro forma e il loro nome: "▲ Est → ● Nord".
+      const from = stations.find((st) => st.name === d.from);
+      const to = stations.filter((st) => st.shape === d.shape).map((st) => st.name).join(' o ');
+      if (from) row.appendChild(shapeIcon(from.shape));
+      row.append(text('span', `${d.from} →`), shapeIcon(d.shape), text('span', `${to}:`, 'puzzle-to'), text('span', `${d.count} ${TYPE_NAMES[d.type]} ogni ${String(d.every).replace('.', ',')} s`, 'puzzle-rate'));
       list.appendChild(row);
     }
     return list;
