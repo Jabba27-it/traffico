@@ -11,6 +11,18 @@ export const SPECIAL_KINDS = ['stadio', 'porto', 'aeroporto'];
 /** La capienza di una stazione speciale, rispetto a una normale. */
 export const SPECIAL_CAPACITY = 2;
 
+/**
+ * Ogni quanti secondi una stazione speciale prova a far partire un veicolo (le
+ * normali ogni secondo): generano tanto e devono anche riuscire a svuotarsi.
+ */
+export const SPECIAL_DEPART_INTERVAL = 0.5;
+
+/**
+ * Quanto spazio lasciano intorno a sé le stazioni speciali: le stazioni nate a
+ * caso stanno almeno a questa volta la distanza minima del livello.
+ */
+export const SPECIAL_SPACE = 1.5;
+
 /** Quanti veicoli genera una stazione speciale, rispetto a una normale. */
 export const SPAWN_FACTOR = { stadio: 1 / 3, porto: 2, aeroporto: 2 };
 

@@ -42,12 +42,19 @@ const RAMP_HEAVY = 0.65;
 export const SLOW = 0.3;
 /** Quanto in fretta il colore del traffico di una strada segue la realtà. */
 const CONGESTION_RATE = 0.8;
+/**
+ * Secondi dopo i quali chi aspetta su una laterale passa per primo: quelli della
+ * principale si fermano a lasciarlo passare. Senza, un flusso continuo sulla
+ * principale lo teneva fermo per sempre e la coda risaliva fino alle stazioni.
+ */
+const STARVING = 4;
 
 /**
  * @typedef {Object} Request
  * @property {Vehicle} v
  * @property {Piece} turn  la curva in cui vuole entrare
  * @property {number} dist  quanto manca all'inizio della curva
+ * @property {number} since  da quando aspetta (secondi di traffico)
  */
 
 /**
@@ -70,6 +77,8 @@ export class Traffic {
     this.conflictCache = new Map();
     /** @type {Map<string, number>} traffico lento su ogni strada, 0..1, per coppia di nodi */
     this.congestion = new Map();
+    /** Secondi di traffico passati: servono a sapere da quanto aspetta ogni richiesta. */
+    this.time = 0;
   }
 
   /**
@@ -79,6 +88,7 @@ export class Traffic {
    * @returns {Vehicle[]} i veicoli arrivati a destinazione
    */
   step(vehicles, dt) {
+    this.time += dt;
     this.indexVehicles(vehicles);
     this.grantPermissions();
 
@@ -261,7 +271,7 @@ export class Traffic {
     if (mine) {
       mine.turn = turn;
       mine.dist = dist;
-    } else j.queue.push({ v, turn, dist });
+    } else j.queue.push({ v, turn, dist, since: this.time });
   }
 
   /**
@@ -270,6 +280,8 @@ export class Traffic {
    *   passa solo se nessuno della principale con una traiettoria in conflitto
    *   sta arrivando (è l'immissione: se il varco c'è, non serve fermarsi).
    * - Fra pari, passa chi è arrivato prima.
+   * - Chi aspetta su una laterale da più di STARVING secondi passa per primo, e
+   *   la principale gli lascia il passo: niente attese senza fine.
    * - Il permesso va solo al primo della fila su ogni strada d'arrivo: se lo
    *   prendesse uno più indietro, chi gli sta davanti e deve fare una curva che
    *   incrocia la sua aspetterebbe lui, e lui chi gli sta davanti, per sempre.
@@ -278,8 +290,9 @@ export class Traffic {
     for (const [node, j] of this.junctions) {
       const main = this.lanes.mainRoad(node);
       const fromMain = (/** @type {Request} */ r) => main.has(r.turn.from);
-      // Le richieste della principale prima, ognuna nel suo ordine d'arrivo.
-      const ordered = [...j.queue.filter(fromMain), ...j.queue.filter((r) => !fromMain(r))];
+      const hungry = (/** @type {Request} */ r) => !fromMain(r) && this.time - r.since > STARVING;
+      // Prima chi aspetta da troppo, poi la principale, poi le laterali, ognuno nel suo ordine d'arrivo.
+      const ordered = [...j.queue.filter(hungry), ...j.queue.filter(fromMain), ...j.queue.filter((r) => !fromMain(r) && !hungry(r))];
       /** @type {Request[]} */
       const waiting = [];
       // Chi arriva da una laterale aspetta anche chi sta arrivando sulla principale,
@@ -292,7 +305,7 @@ export class Traffic {
         // Non è il primo della sua fila: aspetta senza bloccare nessuno.
         if (r.dist > /** @type {number} */ (front.get(r.turn.from))) return true;
         const blocked =
-          (!fromMain(r) && arrivals.some((t) => this.conflicts(t, r.turn))) ||
+          (!fromMain(r) && !hungry(r) && arrivals.some((t) => this.conflicts(t, r.turn))) ||
           [...j.inside.values()].some((t) => this.conflicts(t, r.turn)) ||
           waiting.some((w) => this.conflicts(w.turn, r.turn)) ||
           !this.exitIsFree(r.v, r.turn);

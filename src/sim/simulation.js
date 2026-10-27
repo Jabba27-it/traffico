@@ -18,7 +18,7 @@ import { starGoals, platinumGoal } from './stars.js';
 import { buildOverpass, overpassPairs, removeOverpass } from './overpass.js';
 import { drawnCircle, buildRoundabout, removeRoundabout, ringCost, ringPoints, clipAtRings } from './roundabout.js';
 import { obstacleAt } from './terrain.js';
-import { SPECIAL_CAPACITY, SPAWN_FACTOR, HEAVY_MIX, MATCH, matchState } from './specials.js';
+import { SPECIAL_CAPACITY, SPAWN_FACTOR, HEAVY_MIX, MATCH, SPECIAL_DEPART_INTERVAL, SPECIAL_SPACE, matchState } from './specials.js';
 
 /** @typedef {import('./roadEditing.js').RoadPiece} RoadPiece */
 /** @typedef {import('./graph.js').RoadEdge} RoadEdge */
@@ -336,7 +336,11 @@ export class Simulation {
     const i = SPAWN_INSET;
     const area = insetRect(this.view, i.left, i.top, i.right, i.bottom);
     const random = this.growthRandom();
-    const def = pickNewStation(random, this.level, this.stations, area, this.graph, (p) => !this.isReserved(p), this.roundabouts.values());
+    // Lontano anche dai luoghi fissi che devono ancora comparire (stadi, porti e
+    // aeroporti compresi) e da quelli in anteprima; dalle speciali ancora di più.
+    const places = [...this.stations.filter((s) => s.kind), ...this.hiddenStations, ...this.upcoming.map((u) => u.def)];
+    const roomy = (/** @type {Point} */ p) => places.every((d) => distance(d, p) >= growth.minDistance * (d.kind ? SPECIAL_SPACE : 1));
+    const def = pickNewStation(random, this.level, this.stations, area, this.graph, (p) => !this.isReserved(p) && roomy(p), this.roundabouts.values());
     if (def) {
       // Prima si vede in anteprima, poi nasce (vedi hatchUpcoming).
       this.upcoming.push({ def, at: this.elapsed + STATION_PREVIEW });
@@ -882,7 +886,7 @@ export class Simulation {
       const depart = /** @type {number} */ (this.departTimers.get(station.id)) - dt;
       if (depart <= 0 && station.queue.length > 0) {
         this.depart(station);
-        this.departTimers.set(station.id, DEPART_INTERVAL);
+        this.departTimers.set(station.id, station.kind ? SPECIAL_DEPART_INTERVAL : DEPART_INTERVAL);
       } else {
         this.departTimers.set(station.id, Math.max(0, depart));
       }
@@ -975,10 +979,14 @@ export class Simulation {
    */
   depart(origin) {
     const paths = this.paths(origin.nodeId);
+    /** @type {Set<number>} strade d'uscita senza posto: chi va di lì aspetta */
+    const full = new Set();
     for (let i = 0; i < origin.queue.length; i++) {
       const shape = origin.queue[i];
       const target = this.nearestStation(paths, shape);
       if (!target) continue;
+      const path = /** @type {number[]} */ (pathTo(paths, target.nodeId));
+      if (full.has(path[1])) continue;
       /** @type {Vehicle} */
       const v = {
         id: this.nextVehicleId,
@@ -986,7 +994,7 @@ export class Simulation {
         type: randomVehicleType(this.random, origin.kind === 'porto' || origin.kind === 'aeroporto' ? HEAVY_MIX[origin.kind] : undefined),
         fromStationId: origin.id,
         toStationId: target.id,
-        path: /** @type {number[]} */ (pathTo(paths, target.nodeId)),
+        path,
         leg: 0,
         phase: 'lane',
         s: 0,
@@ -994,7 +1002,13 @@ export class Simulation {
         pose: { x: origin.x, y: origin.y, dx: 1, dy: 0 },
         departedAt: this.elapsed,
       };
-      if (!this.traffic.roomToDepart(v)) return false;
+      if (!this.traffic.roomToDepart(v)) {
+        // Porti, aeroporti e stadi non restano bloccati dietro al primo della fila:
+        // se la sua strada è piena, parte chi va da un'altra strada.
+        if (!origin.kind) return false;
+        full.add(path[1]);
+        continue;
+      }
       v.pose = pointOnVehicle(this.lanes, v);
       this.nextVehicleId++;
       origin.queue.splice(i, 1);
