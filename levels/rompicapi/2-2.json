@@ -67,7 +67,7 @@
     "monumenti": []
   },
   "strade": {
-    "iniziali": 30,
+    "iniziali": 28,
     "perGiorno": 0,
     "lunghezzaTratto": 40
   },
@@ -112,10 +112,45 @@
         "inizio": 1.35
       }
     ],
-    "tempo": 41,
+    "tempo": 37,
     "stelle": {
       "tratti": 28,
       "tempo": 33.5
-    }
+    },
+    "consiglio": "Fai la croce e poi disegna un cerchio intorno all'incrocio: diventa una rotonda.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            200,
+            90
+          ],
+          [
+            200,
+            470
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            40,
+            280
+          ],
+          [
+            360,
+            280
+          ]
+        ]
+      },
+      {
+        "rotonda": [
+          200,
+          280,
+          45
+        ],
+        "verso": "antiorario"
+      }
+    ]
   }
 }

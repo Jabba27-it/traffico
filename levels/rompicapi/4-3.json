@@ -1,0 +1,211 @@
+{
+  "nome": "Il ponte intasato",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "pentagono",
+    "quadrato",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 80,
+      "y": 138,
+      "nome": "Nord-ovest"
+    },
+    {
+      "forma": "triangolo",
+      "x": 320,
+      "y": 138,
+      "nome": "Nord-est"
+    },
+    {
+      "forma": "quadrato",
+      "x": 80,
+      "y": 422,
+      "nome": "Sud-ovest"
+    },
+    {
+      "forma": "pentagono",
+      "x": 320,
+      "y": 422,
+      "nome": "Sud-est"
+    }
+  ],
+  "acqua": [
+    {
+      "tipo": "fiume",
+      "larghezza": 40,
+      "punti": [
+        [
+          -40,
+          280
+        ],
+        [
+          440,
+          280
+        ]
+      ]
+    }
+  ],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 35,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 1
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Quattro stazioni, un ponte solo e tanto traffico che lo attraversa in tutte le direzioni. All'uscita del ponte gli incroci si intasano.",
+    "programma": [
+      {
+        "da": "Nord-ovest",
+        "a": "quadrato",
+        "quanti": 6,
+        "ogni": 1.6
+      },
+      {
+        "da": "Nord-ovest",
+        "a": "pentagono",
+        "quanti": 6,
+        "ogni": 1.6,
+        "inizio": 0.8
+      },
+      {
+        "da": "Nord-est",
+        "a": "quadrato",
+        "quanti": 6,
+        "ogni": 1.6,
+        "inizio": 0.4
+      },
+      {
+        "da": "Nord-est",
+        "a": "pentagono",
+        "quanti": 6,
+        "ogni": 1.6,
+        "inizio": 1.2
+      },
+      {
+        "da": "Sud-ovest",
+        "a": "cerchio",
+        "quanti": 6,
+        "ogni": 1.6,
+        "inizio": 0.2
+      },
+      {
+        "da": "Sud-ovest",
+        "a": "triangolo",
+        "quanti": 6,
+        "ogni": 1.6,
+        "inizio": 1
+      },
+      {
+        "da": "Sud-est",
+        "a": "cerchio",
+        "quanti": 6,
+        "ogni": 1.6,
+        "inizio": 0.6
+      },
+      {
+        "da": "Sud-est",
+        "a": "triangolo",
+        "quanti": 6,
+        "ogni": 1.6,
+        "inizio": 1.4
+      }
+    ],
+    "tempo": 39,
+    "stelle": {
+      "tratti": 32,
+      "tempo": 30
+    },
+    "consiglio": "Un ponte solo al centro e, a ciascuna delle due teste del ponte, una rotonda dove arrivano le strade delle stazioni.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            80,
+            138
+          ],
+          [
+            200,
+            197
+          ],
+          [
+            320,
+            138
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            200,
+            197
+          ],
+          [
+            200,
+            363
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            80,
+            422
+          ],
+          [
+            200,
+            363
+          ],
+          [
+            320,
+            422
+          ]
+        ]
+      },
+      {
+        "rotonda": [
+          200,
+          197,
+          34
+        ],
+        "verso": "antiorario"
+      },
+      {
+        "rotonda": [
+          200,
+          363,
+          34
+        ],
+        "verso": "antiorario"
+      }
+    ]
+  }
+}

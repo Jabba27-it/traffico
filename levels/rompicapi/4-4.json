@@ -1,0 +1,155 @@
+{
+  "nome": "Il fiume a S",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "quadrato"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 200,
+      "y": 114,
+      "nome": "Nord"
+    },
+    {
+      "forma": "quadrato",
+      "x": 200,
+      "y": 446,
+      "nome": "Sud"
+    }
+  ],
+  "acqua": [
+    {
+      "tipo": "fiume",
+      "larghezza": 34,
+      "punti": [
+        [
+          -40,
+          185
+        ],
+        [
+          250,
+          185
+        ],
+        [
+          300,
+          209
+        ],
+        [
+          300,
+          288
+        ],
+        [
+          250,
+          312
+        ],
+        [
+          140,
+          312
+        ],
+        [
+          100,
+          335
+        ],
+        [
+          100,
+          375
+        ],
+        [
+          140,
+          399
+        ],
+        [
+          440,
+          399
+        ]
+      ]
+    }
+  ],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 20,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 1
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Il fiume serpeggia: una strada dritta da Nord a Sud lo attraverserebbe tre volte, ma hai un ponte solo. Trova la strada che lo attraversa una volta sola.",
+    "programma": [
+      {
+        "da": "Nord",
+        "a": "quadrato",
+        "quanti": 14,
+        "ogni": 1
+      },
+      {
+        "da": "Sud",
+        "a": "cerchio",
+        "quanti": 14,
+        "ogni": 1,
+        "inizio": 0.5
+      }
+    ],
+    "tempo": 37,
+    "stelle": {
+      "tratti": 17,
+      "tempo": 29
+    },
+    "consiglio": "Non serve attraversare tre volte: gira intorno alle anse del fiume. Da Nord scendi sulla destra, oltre la prima ansa, e attraversa una volta sola verso Sud.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            200,
+            114
+          ],
+          [
+            360,
+            153
+          ],
+          [
+            360,
+            351
+          ],
+          [
+            230,
+            351
+          ],
+          [
+            180,
+            399
+          ],
+          [
+            200,
+            446
+          ]
+        ]
+      }
+    ]
+  }
+}

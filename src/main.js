@@ -4,7 +4,7 @@ import { Simulation, JAM_LOSS, STATION_PREVIEW } from './sim/simulation.js';
 import { setupCanvas, fitCamera, scaleFor, useScreenSpace, useWorldSpace, screenToWorld } from './render/canvas.js';
 import { createCamera, cameraRect, zoomAround } from './render/camera.js';
 import { attachPinch } from './input/pinch.js';
-import { drawRoads, drawBridgeTops, drawLaneMarks, drawOverpasses, drawPreview, drawRemoval, drawWater, drawOutsideVeil, vehiclesOnDecks } from './render/roads.js';
+import { drawRoads, drawBridgeTops, drawLaneMarks, drawOverpasses, drawPreview, drawRemoval, drawWater, drawOutsideVeil, vehiclesOnDecks, drawSolution } from './render/roads.js';
 import { drawJunctionMarks, drawRoundaboutIslands } from './render/junctions.js';
 import { STYLE } from './render/style.js';
 import { drawHint } from './render/hint.js';
@@ -527,6 +527,9 @@ async function start() {
     // A partita persa, la stazione che ha fatto perdere pulsa in rosso.
     if (sim.failedStation) drawHint(ctx, sim.failedStation, now / 1000, labelScale * 1.4, STYLE.blockedText);
     if (sim.failedJam) drawHint(ctx, sim.failedJam, now / 1000, labelScale * 1.4, STYLE.blockedText);
+    // Rompicapo: la soluzione tratteggiata, se chi gioca ha chiesto aiuto.
+    const solution = puzzleUi?.solution();
+    if (solution) drawSolution(ctx, solution, now / 1000);
     // Rompicapo non riuscito: dove si è bloccato.
     if (sim.puzzle?.failPoint) drawHint(ctx, sim.puzzle.failPoint, now / 1000, labelScale * 1.4, STYLE.blockedText);
   }

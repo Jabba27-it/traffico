@@ -235,6 +235,66 @@ export function drawOverpasses(ctx, graph, look) {
 }
 
 /**
+ * La soluzione di un rompicapo, tratteggiata sopra la mappa: le strade da
+ * ricalcare, i punti da toccare (pulsano, col numero di tocchi) e le rotonde col
+ * verso in cui disegnarle.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {import('../sim/level.js').SolutionStep[]} steps
+ * @param {number} time  secondi, per la pulsazione
+ */
+export function drawSolution(ctx, steps, time) {
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = STYLE.solution;
+  ctx.fillStyle = STYLE.solution;
+  ctx.lineWidth = 4;
+  ctx.setLineDash([10, 8]);
+  ctx.lineDashOffset = -time * 20; // il tratteggio scorre nel verso in cui disegnare
+  for (const st of steps) {
+    if ('road' in st && st.road.length >= 2) {
+      ctx.beginPath();
+      st.road.forEach((p, k) => (k === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+      ctx.stroke();
+    } else if ('circle' in st) {
+      const { x, y, r, ccw } = st.circle;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.stroke();
+      // Una freccia sul cerchio: il verso in cui disegnarlo.
+      const a = -Math.PI / 2;
+      const tx = Math.cos(a) * r + x, ty = Math.sin(a) * r + y;
+      const dir = ccw ? -1 : 1;
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(tx - dir * 7, ty - 6);
+      ctx.lineTo(tx + dir * 3, ty);
+      ctx.lineTo(tx - dir * 7, ty + 6);
+      ctx.stroke();
+      ctx.setLineDash([10, 8]);
+    }
+  }
+  ctx.setLineDash([]);
+  for (const st of steps) {
+    if (!('tap' in st)) continue;
+    const pulse = 0.5 + 0.5 * Math.sin(time * 5);
+    ctx.globalAlpha = 0.5 + 0.5 * pulse;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(st.tap.x, st.tap.y, 14 + pulse * 4, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    if (st.times > 1) {
+      ctx.font = '700 13px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`×${st.times}`, st.tap.x + 24, st.tap.y - 16);
+    }
+  }
+  ctx.restore();
+}
+
+/**
  * I veicoli da disegnare sopra i cavalcavia: chi sta per salire, è sopra o è
  * appena sceso (fino a due nodi dal nodo alto). Contava solo il pezzo dove sta il
  * centro del veicolo, così il muso entrava sotto l'impalcato e per un attimo

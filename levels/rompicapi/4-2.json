@@ -1,0 +1,168 @@
+{
+  "nome": "Due fiumi",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "quadrato",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 110,
+      "y": 122,
+      "nome": "Nord"
+    },
+    {
+      "forma": "quadrato",
+      "x": 290,
+      "y": 280,
+      "nome": "Centro"
+    },
+    {
+      "forma": "triangolo",
+      "x": 110,
+      "y": 438,
+      "nome": "Sud"
+    }
+  ],
+  "acqua": [
+    {
+      "tipo": "fiume",
+      "larghezza": 34,
+      "punti": [
+        [
+          -40,
+          217
+        ],
+        [
+          440,
+          217
+        ]
+      ]
+    },
+    {
+      "tipo": "fiume",
+      "larghezza": 34,
+      "punti": [
+        [
+          -40,
+          343
+        ],
+        [
+          440,
+          343
+        ]
+      ]
+    }
+  ],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 17,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 2
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Tre rive una sopra l'altra e due ponti. Il traffico più forte va da Nord a Sud, attraverso tutti e due i fiumi.",
+    "programma": [
+      {
+        "da": "Nord",
+        "a": "triangolo",
+        "quanti": 10,
+        "ogni": 1.3
+      },
+      {
+        "da": "Sud",
+        "a": "cerchio",
+        "quanti": 10,
+        "ogni": 1.3,
+        "inizio": 0.65
+      },
+      {
+        "da": "Nord",
+        "a": "quadrato",
+        "quanti": 5,
+        "ogni": 2.5,
+        "inizio": 1
+      },
+      {
+        "da": "Sud",
+        "a": "quadrato",
+        "quanti": 5,
+        "ogni": 2.5,
+        "inizio": 2
+      },
+      {
+        "da": "Centro",
+        "a": "cerchio",
+        "quanti": 5,
+        "ogni": 2.5,
+        "inizio": 0.5
+      },
+      {
+        "da": "Centro",
+        "a": "triangolo",
+        "quanti": 5,
+        "ogni": 2.5,
+        "inizio": 1.5
+      }
+    ],
+    "tempo": 51,
+    "stelle": {
+      "tratti": 14,
+      "tempo": 41
+    },
+    "consiglio": "I due ponti vanno sulla stessa strada dritta da Nord a Sud; il Centro si attacca con un pezzetto, senza far passare nessuno dentro la stazione.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            110,
+            122
+          ],
+          [
+            110,
+            438
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            290,
+            280
+          ],
+          [
+            110,
+            280
+          ]
+        ]
+      }
+    ]
+  }
+}

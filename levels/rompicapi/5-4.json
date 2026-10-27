@@ -1,0 +1,380 @@
+{
+  "nome": "Tre isolati",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "croce",
+    "goccia",
+    "pentagono",
+    "quadrato",
+    "rombo",
+    "stella",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 50,
+      "y": 106,
+      "nome": "Nord-ovest"
+    },
+    {
+      "forma": "quadrato",
+      "x": 350,
+      "y": 106,
+      "nome": "Nord-est"
+    },
+    {
+      "forma": "triangolo",
+      "x": 350,
+      "y": 454,
+      "nome": "Sud-est"
+    },
+    {
+      "forma": "pentagono",
+      "x": 50,
+      "y": 454,
+      "nome": "Sud-ovest"
+    },
+    {
+      "forma": "stella",
+      "x": 40,
+      "y": 240,
+      "nome": "Ovest alta"
+    },
+    {
+      "forma": "rombo",
+      "x": 360,
+      "y": 240,
+      "nome": "Est alta"
+    },
+    {
+      "forma": "croce",
+      "x": 40,
+      "y": 320,
+      "nome": "Ovest bassa"
+    },
+    {
+      "forma": "goccia",
+      "x": 360,
+      "y": 320,
+      "nome": "Est bassa"
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [
+      {
+        "nome": "Parco Nord",
+        "punti": [
+          [
+            130,
+            173
+          ],
+          [
+            270,
+            173
+          ],
+          [
+            270,
+            217
+          ],
+          [
+            130,
+            217
+          ]
+        ]
+      },
+      {
+        "nome": "Parco",
+        "punti": [
+          [
+            130,
+            260
+          ],
+          [
+            270,
+            260
+          ],
+          [
+            270,
+            300
+          ],
+          [
+            130,
+            300
+          ]
+        ]
+      },
+      {
+        "nome": "Parco Sud",
+        "punti": [
+          [
+            130,
+            343
+          ],
+          [
+            270,
+            343
+          ],
+          [
+            270,
+            387
+          ],
+          [
+            130,
+            387
+          ]
+        ]
+      }
+    ],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 53,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Tre parchi in fila, otto stazioni e due strade che attraversano la città da Ovest a Est. Tanto traffico in tutte le direzioni: un giro a senso unico intorno a tutto e le due traverse.",
+    "programma": [
+      {
+        "da": "Nord-ovest",
+        "a": "triangolo",
+        "quanti": 8,
+        "ogni": 1.4
+      },
+      {
+        "da": "Sud-est",
+        "a": "cerchio",
+        "quanti": 8,
+        "ogni": 1.4,
+        "inizio": 0.7
+      },
+      {
+        "da": "Nord-est",
+        "a": "pentagono",
+        "quanti": 8,
+        "ogni": 1.4,
+        "inizio": 0.35
+      },
+      {
+        "da": "Sud-ovest",
+        "a": "quadrato",
+        "quanti": 8,
+        "ogni": 1.4,
+        "inizio": 1.05
+      },
+      {
+        "da": "Ovest alta",
+        "a": "rombo",
+        "quanti": 6,
+        "ogni": 2,
+        "inizio": 0.5
+      },
+      {
+        "da": "Est alta",
+        "a": "stella",
+        "quanti": 6,
+        "ogni": 2,
+        "inizio": 1.5
+      },
+      {
+        "da": "Ovest bassa",
+        "a": "goccia",
+        "quanti": 6,
+        "ogni": 2,
+        "inizio": 1
+      },
+      {
+        "da": "Est bassa",
+        "a": "croce",
+        "quanti": 6,
+        "ogni": 2,
+        "inizio": 0.2
+      }
+    ],
+    "tempo": 47,
+    "stelle": {
+      "tratti": 50,
+      "tempo": 36
+    },
+    "consiglio": "Un giro grande intorno ai tre parchi, a senso unico, e le due traverse da Ovest a Est fra un parco e l'altro, a doppio senso. Le stazioni d'angolo si attaccano agli angoli del giro.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            90,
+            145
+          ],
+          [
+            310,
+            145
+          ],
+          [
+            310,
+            415
+          ],
+          [
+            90,
+            415
+          ],
+          [
+            90,
+            145
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            50,
+            106
+          ],
+          [
+            90,
+            145
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            350,
+            106
+          ],
+          [
+            310,
+            145
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            350,
+            454
+          ],
+          [
+            310,
+            415
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            50,
+            454
+          ],
+          [
+            90,
+            415
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            40,
+            240
+          ],
+          [
+            360,
+            240
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            40,
+            320
+          ],
+          [
+            360,
+            320
+          ]
+        ]
+      },
+      {
+        "tocco": [
+          200,
+          145
+        ],
+        "volte": 1
+      },
+      {
+        "tocco": [
+          310,
+          193
+        ],
+        "volte": 1
+      },
+      {
+        "tocco": [
+          310,
+          280
+        ],
+        "volte": 1
+      },
+      {
+        "tocco": [
+          310,
+          367
+        ],
+        "volte": 1
+      },
+      {
+        "tocco": [
+          200,
+          415
+        ],
+        "volte": 1
+      },
+      {
+        "tocco": [
+          90,
+          367
+        ],
+        "volte": 1
+      },
+      {
+        "tocco": [
+          90,
+          280
+        ],
+        "volte": 1
+      },
+      {
+        "tocco": [
+          90,
+          193
+        ],
+        "volte": 2
+      }
+    ]
+  }
+}

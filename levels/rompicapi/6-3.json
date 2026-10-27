@@ -1,0 +1,240 @@
+{
+  "nome": "La rotonda grande",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "pentagono",
+    "quadrato",
+    "rombo",
+    "stella",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 200,
+      "y": 90,
+      "nome": "Nord",
+      "porta": [
+        0,
+        -1
+      ]
+    },
+    {
+      "forma": "quadrato",
+      "x": 200,
+      "y": 470,
+      "nome": "Sud",
+      "porta": [
+        0,
+        1
+      ]
+    },
+    {
+      "forma": "triangolo",
+      "x": 40,
+      "y": 280,
+      "nome": "Ovest",
+      "porta": [
+        -1,
+        0
+      ]
+    },
+    {
+      "forma": "pentagono",
+      "x": 360,
+      "y": 280,
+      "nome": "Est",
+      "porta": [
+        1,
+        0
+      ]
+    },
+    {
+      "forma": "stella",
+      "x": 320,
+      "y": 90,
+      "nome": "Nord-est",
+      "porta": [
+        0,
+        -1
+      ]
+    },
+    {
+      "forma": "rombo",
+      "x": 80,
+      "y": 470,
+      "nome": "Sud-ovest",
+      "porta": [
+        0,
+        1
+      ]
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 37,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Sei porte e tutti vogliono andare da tutte le parti. Un incrocio con sei strade è un groviglio: serve una rotonda grande.",
+    "programma": [
+      {
+        "da": "Nord",
+        "a": "quadrato",
+        "quanti": 8,
+        "ogni": 1.5
+      },
+      {
+        "da": "Sud",
+        "a": "stella",
+        "quanti": 8,
+        "ogni": 1.5,
+        "inizio": 0.5
+      },
+      {
+        "da": "Ovest",
+        "a": "pentagono",
+        "quanti": 8,
+        "ogni": 1.5,
+        "inizio": 0.25
+      },
+      {
+        "da": "Est",
+        "a": "rombo",
+        "quanti": 8,
+        "ogni": 1.5,
+        "inizio": 0.75
+      },
+      {
+        "da": "Nord-est",
+        "a": "triangolo",
+        "quanti": 8,
+        "ogni": 1.5,
+        "inizio": 1
+      },
+      {
+        "da": "Sud-ovest",
+        "a": "cerchio",
+        "quanti": 8,
+        "ogni": 1.5,
+        "inizio": 1.25
+      }
+    ],
+    "tempo": 36,
+    "stelle": {
+      "tratti": 34,
+      "tempo": 28.5
+    },
+    "consiglio": "Una rotonda grande al centro e una strada da ogni porta fino all'anello.",
+    "soluzione": [
+      {
+        "rotonda": [
+          200,
+          280,
+          60
+        ],
+        "verso": "antiorario"
+      },
+      {
+        "strada": [
+          [
+            200,
+            90
+          ],
+          [
+            200,
+            232
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            200,
+            470
+          ],
+          [
+            200,
+            328
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            40,
+            280
+          ],
+          [
+            140,
+            280
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            360,
+            280
+          ],
+          [
+            260,
+            280
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            320,
+            90
+          ],
+          [
+            240,
+            244
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            80,
+            470
+          ],
+          [
+            160,
+            316
+          ]
+        ]
+      }
+    ]
+  }
+}

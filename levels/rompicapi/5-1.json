@@ -1,0 +1,181 @@
+{
+  "nome": "Tre sensi vietati",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "quadrato",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 70,
+      "y": 138,
+      "nome": "Nord-ovest"
+    },
+    {
+      "forma": "quadrato",
+      "x": 330,
+      "y": 138,
+      "nome": "Nord-est"
+    },
+    {
+      "forma": "triangolo",
+      "x": 200,
+      "y": 438,
+      "nome": "Sud"
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 0,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Tre pezzi di strada sono a senso unico nel verso sbagliato. Guarda bene le frecce: hai 6 mosse e nessun tratto.",
+    "programma": [
+      {
+        "da": "Nord-ovest",
+        "a": "quadrato",
+        "quanti": 8,
+        "ogni": 1.5
+      },
+      {
+        "da": "Nord-est",
+        "a": "cerchio",
+        "quanti": 8,
+        "ogni": 1.5,
+        "inizio": 0.7
+      },
+      {
+        "da": "Nord-ovest",
+        "a": "triangolo",
+        "quanti": 6,
+        "ogni": 2,
+        "inizio": 0.3
+      },
+      {
+        "da": "Sud",
+        "a": "cerchio",
+        "quanti": 6,
+        "ogni": 2,
+        "inizio": 1
+      },
+      {
+        "da": "Nord-est",
+        "a": "triangolo",
+        "quanti": 6,
+        "ogni": 2,
+        "inizio": 0.6
+      },
+      {
+        "da": "Sud",
+        "a": "quadrato",
+        "quanti": 6,
+        "ogni": 2,
+        "inizio": 1.4
+      }
+    ],
+    "tempo": 54,
+    "stelle": {
+      "mosse": 5,
+      "tempo": 45
+    },
+    "strade": [
+      [
+        [
+          70,
+          138
+        ],
+        [
+          200,
+          201
+        ],
+        [
+          330,
+          138
+        ]
+      ],
+      [
+        [
+          200,
+          201
+        ],
+        [
+          200,
+          438
+        ]
+      ]
+    ],
+    "tocchi": [
+      [
+        135,
+        169
+      ],
+      [
+        265,
+        169
+      ],
+      [
+        265,
+        169
+      ],
+      [
+        200,
+        328
+      ]
+    ],
+    "mosse": 6,
+    "consiglio": "Tocca ogni pezzo con le frecce finché torna a doppio senso (senza frecce). Alcuni vogliono un tocco, altri due.",
+    "soluzione": [
+      {
+        "tocco": [
+          135,
+          169
+        ],
+        "volte": 2
+      },
+      {
+        "tocco": [
+          265,
+          169
+        ],
+        "volte": 1
+      },
+      {
+        "tocco": [
+          200,
+          328
+        ],
+        "volte": 2
+      }
+    ]
+  }
+}

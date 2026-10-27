@@ -67,7 +67,7 @@
     "monumenti": []
   },
   "strade": {
-    "iniziali": 24,
+    "iniziali": 20,
     "perGiorno": 0,
     "lunghezzaTratto": 40
   },
@@ -111,10 +111,44 @@
         "inizio": 0.35
       }
     ],
-    "tempo": 36,
+    "tempo": 29.5,
     "stelle": {
       "tratti": 20,
       "tempo": 28.5
-    }
+    },
+    "consiglio": "Fai le due strade dritte che si incrociano, poi tocca l'incrocio: diventa un cavalcavia.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            200,
+            90
+          ],
+          [
+            200,
+            470
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            40,
+            280
+          ],
+          [
+            360,
+            280
+          ]
+        ]
+      },
+      {
+        "tocco": [
+          200,
+          280
+        ],
+        "volte": 1
+      }
+    ]
   }
 }

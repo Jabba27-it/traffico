@@ -56,7 +56,7 @@
     "monumenti": []
   },
   "strade": {
-    "iniziali": 26,
+    "iniziali": 23,
     "perGiorno": 0,
     "lunghezzaTratto": 40
   },
@@ -114,10 +114,45 @@
         "inizio": 2
       }
     ],
-    "tempo": 37,
+    "tempo": 33,
     "stelle": {
       "tratti": 22,
       "tempo": 29
-    }
+    },
+    "consiglio": "Una strada da Ovest a Est e una da Sud fino a lei; poi una rotonda dove si incontrano.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            40,
+            280
+          ],
+          [
+            360,
+            280
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            200,
+            470
+          ],
+          [
+            200,
+            280
+          ]
+        ]
+      },
+      {
+        "rotonda": [
+          200,
+          280,
+          40
+        ],
+        "verso": "antiorario"
+      }
+    ]
   }
 }

@@ -37,7 +37,7 @@
     "monumenti": []
   },
   "strade": {
-    "iniziali": 10,
+    "iniziali": 8,
     "perGiorno": 0,
     "lunghezzaTratto": 40
   },
@@ -68,10 +68,25 @@
         "inizio": 1
       }
     ],
-    "tempo": 26,
+    "tempo": 22,
     "stelle": {
       "tratti": 8,
       "tempo": 18
-    }
+    },
+    "consiglio": "Una strada dritta da una stazione all'altra basta.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            80,
+            280
+          ],
+          [
+            320,
+            280
+          ]
+        ]
+      }
+    ]
   }
 }

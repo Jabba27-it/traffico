@@ -62,6 +62,69 @@
           "nome": "Il giro lungo"
         }
       ]
+    },
+    {
+      "nome": "Fiumi e ponti",
+      "rompicapi": [
+        {
+          "file": "4-1",
+          "nome": "L'isola"
+        },
+        {
+          "file": "4-2",
+          "nome": "Due fiumi"
+        },
+        {
+          "file": "4-3",
+          "nome": "Il ponte intasato"
+        },
+        {
+          "file": "4-4",
+          "nome": "Il fiume a S"
+        }
+      ]
+    },
+    {
+      "nome": "Sensi unici",
+      "rompicapi": [
+        {
+          "file": "5-1",
+          "nome": "Tre sensi vietati"
+        },
+        {
+          "file": "5-2",
+          "nome": "Il giro da sistemare"
+        },
+        {
+          "file": "5-3",
+          "nome": "Due isolati"
+        },
+        {
+          "file": "5-4",
+          "nome": "Tre isolati"
+        }
+      ]
+    },
+    {
+      "nome": "Svincoli veri",
+      "rompicapi": [
+        {
+          "file": "6-1",
+          "nome": "Le rampe"
+        },
+        {
+          "file": "6-2",
+          "nome": "Il quadrifoglio"
+        },
+        {
+          "file": "6-3",
+          "nome": "La rotonda grande"
+        },
+        {
+          "file": "6-4",
+          "nome": "Il ponte e le rampe"
+        }
+      ]
     }
   ]
 }

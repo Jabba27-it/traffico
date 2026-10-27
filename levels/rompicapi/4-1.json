@@ -1,0 +1,175 @@
+{
+  "nome": "L'isola",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "quadrato",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 60,
+      "y": 280,
+      "nome": "Ovest"
+    },
+    {
+      "forma": "quadrato",
+      "x": 210,
+      "y": 296,
+      "nome": "Isola"
+    },
+    {
+      "forma": "triangolo",
+      "x": 340,
+      "y": 280,
+      "nome": "Est"
+    }
+  ],
+  "acqua": [
+    {
+      "tipo": "fiume",
+      "larghezza": 34,
+      "punti": [
+        [
+          150,
+          -5
+        ],
+        [
+          150,
+          739
+        ]
+      ]
+    },
+    {
+      "tipo": "fiume",
+      "larghezza": 34,
+      "punti": [
+        [
+          270,
+          -5
+        ],
+        [
+          270,
+          739
+        ]
+      ]
+    }
+  ],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 15,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 2
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Due bracci di fiume e un'isola in mezzo, con la sua stazione. Hai due ponti: chi va da Ovest a Est deve attraversare l'isola, ma non la stazione.",
+    "programma": [
+      {
+        "da": "Ovest",
+        "a": "triangolo",
+        "quanti": 10,
+        "ogni": 1.2
+      },
+      {
+        "da": "Est",
+        "a": "cerchio",
+        "quanti": 10,
+        "ogni": 1.2,
+        "inizio": 0.6
+      },
+      {
+        "da": "Isola",
+        "a": "cerchio",
+        "quanti": 5,
+        "ogni": 2.4,
+        "inizio": 1
+      },
+      {
+        "da": "Isola",
+        "a": "triangolo",
+        "quanti": 5,
+        "ogni": 2.4,
+        "inizio": 2
+      },
+      {
+        "da": "Ovest",
+        "a": "quadrato",
+        "quanti": 4,
+        "ogni": 3
+      },
+      {
+        "da": "Est",
+        "a": "quadrato",
+        "quanti": 4,
+        "ogni": 3,
+        "inizio": 1.5
+      }
+    ],
+    "tempo": 49,
+    "stelle": {
+      "tratti": 12,
+      "tempo": 39.5
+    },
+    "consiglio": "Una strada da Ovest a Est che passa sopra la stazione dell'isola, con un ponte per braccio; poi un pezzetto dall'isola fino alla strada.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            60,
+            280
+          ],
+          [
+            110,
+            217
+          ],
+          [
+            310,
+            217
+          ],
+          [
+            340,
+            280
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            210,
+            296
+          ],
+          [
+            210,
+            217
+          ]
+        ]
+      }
+    ]
+  }
+}

@@ -67,7 +67,7 @@
     "monumenti": []
   },
   "strade": {
-    "iniziali": 12,
+    "iniziali": 10,
     "perGiorno": 0,
     "lunghezzaTratto": 40
   },
@@ -112,7 +112,7 @@
         "inizio": 1.35
       }
     ],
-    "tempo": 40,
+    "tempo": 37,
     "stelle": {
       "mosse": 1,
       "tempo": 32.5
@@ -139,6 +139,17 @@
         ]
       ]
     ],
-    "mosse": 2
+    "mosse": 2,
+    "consiglio": "Disegna un cerchio intorno all'incrocio: una rotonda scioglie le curve.",
+    "soluzione": [
+      {
+        "rotonda": [
+          200,
+          280,
+          45
+        ],
+        "verso": "antiorario"
+      }
+    ]
   }
 }

@@ -114,6 +114,8 @@ export function createPuzzle(parent, sim, options) {
 
   /** @type {'progetto' | 'via' | 'esito'} */
   let phase = 'progetto';
+  /** true mentre la soluzione si vede tratteggiata sulla mappa. */
+  let showSolution = false;
 
   // ---- in alto: tempo, arrivati, risorse
   const hud = document.createElement('div');
@@ -161,7 +163,31 @@ export function createPuzzle(parent, sim, options) {
     });
     // Con una rete già fatta (anche ritrovata dall'ultima volta) si può ripartire da zero.
     const again = log.length > 0 ? [button('Ricomincia', startOver, 'link')] : [];
-    fill(text('div', options.label, 'tutorial-counter'), text('div', sim.level.name, 'tutorial-title'), text('div', goal.text, 'tutorial-text'), programList(), buttons(...again, go));
+    const help = goal.hint || goal.solution.length > 0 ? [button('Aiuto', helpCard, 'secondary')] : [];
+    fill(text('div', options.label, 'tutorial-counter'), text('div', sim.level.name, 'tutorial-title'), text('div', goal.text, 'tutorial-text'), programList(), buttons(...again, ...help, go));
+  };
+
+  // L'aiuto, in due passi: prima un consiglio, poi (se serve) la soluzione
+  // tratteggiata sulla mappa, da ricalcare. Non costruisce niente al posto tuo.
+  const helpCard = () => {
+    const toggle = button(showSolution ? 'Nascondi la soluzione' : 'Mostra la soluzione', () => {
+      showSolution = !showSolution;
+      card.classList.add('collapsed');
+      helpCard();
+    }, 'secondary');
+    const back = button('Indietro', project, 'link');
+    fill(
+      text('div', options.label, 'tutorial-counter'),
+      text('div', 'Consiglio', 'tutorial-title'),
+      text('div', goal.hint || 'Guarda la soluzione tratteggiata sulla mappa e ricalcala.', 'tutorial-text'),
+      ...(showSolution ? [text('div', 'La soluzione è tratteggiata sulla mappa: ricalca le strade, tocca i punti che pulsano (il numero dice quante volte), disegna i cerchi nel verso della freccia.', 'tutorial-text puzzle-help-note')] : []),
+      buttons(back, ...(goal.solution.length > 0 ? [toggle] : []), button('Via!', () => {
+        phase = 'via';
+        showSpeed(true);
+        running();
+      })),
+    );
+    if (showSolution) card.classList.add('collapsed');
   };
 
   const running = () => {
@@ -232,6 +258,8 @@ export function createPuzzle(parent, sim, options) {
   return {
     /** true se il traffico deve scorrere. */
     running: () => phase === 'via',
+    /** La soluzione da disegnare tratteggiata, se chi gioca l'ha chiesta (solo nel progetto). */
+    solution: () => (showSolution && phase === 'progetto' ? goal.solution : null),
     /** true se si può costruire: solo nel progetto, e nei "Ripara" finché restano mosse. */
     canBuild: () => phase === 'progetto' && (goal.moves === null || puzzle.moves < goal.moves),
     /** true se si può annullare: solo nel progetto. */

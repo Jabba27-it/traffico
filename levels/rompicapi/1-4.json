@@ -74,7 +74,7 @@
     "monumenti": []
   },
   "strade": {
-    "iniziali": 30,
+    "iniziali": 21,
     "perGiorno": 0,
     "lunghezzaTratto": 40
   },
@@ -119,10 +119,57 @@
         "inizio": 1.5
       }
     ],
-    "tempo": 44,
+    "tempo": 39,
     "stelle": {
       "tratti": 21,
       "tempo": 32.5
-    }
+    },
+    "consiglio": "Unisci le due stazioni di sopra in un punto al centro, quelle di sotto in un altro, e collega i due punti con un solo ponte dritto.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            80,
+            145
+          ],
+          [
+            200,
+            201
+          ],
+          [
+            320,
+            145
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            200,
+            201
+          ],
+          [
+            200,
+            367
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            80,
+            422
+          ],
+          [
+            200,
+            367
+          ],
+          [
+            320,
+            422
+          ]
+        ]
+      }
+    ]
   }
 }

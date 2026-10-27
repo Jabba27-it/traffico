@@ -51,7 +51,7 @@
     "monumenti": []
   },
   "strade": {
-    "iniziali": 24,
+    "iniziali": 18,
     "perGiorno": 0,
     "lunghezzaTratto": 40
   },
@@ -95,10 +95,37 @@
         "inizio": 0.7
       }
     ],
-    "tempo": 34,
+    "tempo": 30,
     "stelle": {
       "tratti": 18,
       "tempo": 26
-    }
+    },
+    "consiglio": "Due strade dritte che si incrociano nel mezzo: una da Nord a Sud, una da Ovest a Est.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            200,
+            114
+          ],
+          [
+            200,
+            446
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            50,
+            280
+          ],
+          [
+            350,
+            280
+          ]
+        ]
+      }
+    ]
   }
 }

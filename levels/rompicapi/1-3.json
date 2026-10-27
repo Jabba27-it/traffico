@@ -66,7 +66,7 @@
     "monumenti": []
   },
   "strade": {
-    "iniziali": 24,
+    "iniziali": 15,
     "perGiorno": 0,
     "lunghezzaTratto": 40
   },
@@ -111,10 +111,45 @@
         "inizio": 2
       }
     ],
-    "tempo": 40,
+    "tempo": 38,
     "stelle": {
       "tratti": 14,
       "tempo": 32
-    }
+    },
+    "consiglio": "Strada da Nord a Sud passando a destra del parco, accanto a Est ma non dentro; poi un pezzetto da Est fino alla strada.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            200,
+            106
+          ],
+          [
+            305,
+            209
+          ],
+          [
+            305,
+            359
+          ],
+          [
+            200,
+            454
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            350,
+            280
+          ],
+          [
+            305,
+            280
+          ]
+        ]
+      }
+    ]
   }
 }

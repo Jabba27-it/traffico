@@ -68,7 +68,7 @@
         "inizio": 0.6
       }
     ],
-    "tempo": 31,
+    "tempo": 26,
     "stelle": {
       "mosse": 1,
       "tempo": 23
@@ -121,6 +121,21 @@
         ]
       ]
     ],
-    "mosse": 3
+    "mosse": 3,
+    "consiglio": "Una strada dritta da Nord a Sud: il giro lungo resta, ma nessuno lo usa più.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            200,
+            114
+          ],
+          [
+            200,
+            446
+          ]
+        ]
+      }
+    ]
   }
 }

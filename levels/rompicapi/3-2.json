@@ -102,7 +102,7 @@
         "inizio": 3
       }
     ],
-    "tempo": 52,
+    "tempo": 47,
     "stelle": {
       "mosse": 2,
       "tempo": 43.5
@@ -135,6 +135,16 @@
         280
       ]
     ],
-    "mosse": 3
+    "mosse": 3,
+    "consiglio": "Tocca il pezzo di strada con la freccia sbagliata finché torna a doppio senso.",
+    "soluzione": [
+      {
+        "tocco": [
+          290,
+          280
+        ],
+        "volte": 2
+      }
+    ]
   }
 }

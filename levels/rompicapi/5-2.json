@@ -1,0 +1,296 @@
+{
+  "nome": "Il giro da sistemare",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "pentagono",
+    "quadrato",
+    "rombo",
+    "stella",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 50,
+      "y": 122,
+      "nome": "Nord-ovest"
+    },
+    {
+      "forma": "quadrato",
+      "x": 350,
+      "y": 122,
+      "nome": "Nord-est"
+    },
+    {
+      "forma": "triangolo",
+      "x": 350,
+      "y": 438,
+      "nome": "Sud-est"
+    },
+    {
+      "forma": "pentagono",
+      "x": 50,
+      "y": 438,
+      "nome": "Sud-ovest"
+    },
+    {
+      "forma": "stella",
+      "x": 40,
+      "y": 280,
+      "nome": "Ovest"
+    },
+    {
+      "forma": "rombo",
+      "x": 360,
+      "y": 280,
+      "nome": "Est"
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [
+      {
+        "nome": "Parco Nord",
+        "punti": [
+          [
+            130,
+            193
+          ],
+          [
+            270,
+            193
+          ],
+          [
+            270,
+            256
+          ],
+          [
+            130,
+            256
+          ]
+        ]
+      },
+      {
+        "nome": "Parco Sud",
+        "punti": [
+          [
+            130,
+            304
+          ],
+          [
+            270,
+            304
+          ],
+          [
+            270,
+            367
+          ],
+          [
+            130,
+            367
+          ]
+        ]
+      }
+    ],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 0,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Due parchi, sei stazioni e un giro intorno a doppio senso: agli incroci tutti si tagliano la strada. Fai girare il giro in un verso solo. Hai 12 mosse.",
+    "programma": [
+      {
+        "da": "Nord-ovest",
+        "a": "triangolo",
+        "quanti": 8,
+        "ogni": 1.4
+      },
+      {
+        "da": "Sud-est",
+        "a": "cerchio",
+        "quanti": 8,
+        "ogni": 1.4,
+        "inizio": 0.7
+      },
+      {
+        "da": "Nord-est",
+        "a": "pentagono",
+        "quanti": 8,
+        "ogni": 1.4,
+        "inizio": 0.35
+      },
+      {
+        "da": "Sud-ovest",
+        "a": "quadrato",
+        "quanti": 8,
+        "ogni": 1.4,
+        "inizio": 1.05
+      },
+      {
+        "da": "Ovest",
+        "a": "rombo",
+        "quanti": 6,
+        "ogni": 2,
+        "inizio": 0.5
+      },
+      {
+        "da": "Est",
+        "a": "stella",
+        "quanti": 6,
+        "ogni": 2,
+        "inizio": 1.5
+      }
+    ],
+    "tempo": 33.5,
+    "stelle": {
+      "mosse": 11,
+      "tempo": 32.5
+    },
+    "strade": [
+      [
+        [
+          90,
+          161
+        ],
+        [
+          310,
+          161
+        ],
+        [
+          310,
+          399
+        ],
+        [
+          90,
+          399
+        ],
+        [
+          90,
+          161
+        ]
+      ],
+      [
+        [
+          50,
+          122
+        ],
+        [
+          90,
+          161
+        ]
+      ],
+      [
+        [
+          350,
+          122
+        ],
+        [
+          310,
+          161
+        ]
+      ],
+      [
+        [
+          350,
+          438
+        ],
+        [
+          310,
+          399
+        ]
+      ],
+      [
+        [
+          50,
+          438
+        ],
+        [
+          90,
+          399
+        ]
+      ],
+      [
+        [
+          40,
+          280
+        ],
+        [
+          360,
+          280
+        ]
+      ]
+    ],
+    "mosse": 12,
+    "consiglio": "Tocca ogni lato del giro finché le frecce vanno tutte nello stesso verso, come una rotonda grande. La strada in mezzo resta a doppio senso.",
+    "soluzione": [
+      {
+        "tocco": [
+          200,
+          161
+        ],
+        "volte": 2
+      },
+      {
+        "tocco": [
+          310,
+          217
+        ],
+        "volte": 2
+      },
+      {
+        "tocco": [
+          310,
+          343
+        ],
+        "volte": 2
+      },
+      {
+        "tocco": [
+          200,
+          399
+        ],
+        "volte": 2
+      },
+      {
+        "tocco": [
+          90,
+          343
+        ],
+        "volte": 2
+      },
+      {
+        "tocco": [
+          90,
+          217
+        ],
+        "volte": 1
+      }
+    ]
+  }
+}

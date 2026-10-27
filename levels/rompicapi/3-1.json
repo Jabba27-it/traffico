@@ -88,7 +88,7 @@
         "inizio": 1.5
       }
     ],
-    "tempo": 29,
+    "tempo": 26,
     "stelle": {
       "mosse": 1,
       "tempo": 21
@@ -105,6 +105,29 @@
         ]
       ]
     ],
-    "mosse": 2
+    "mosse": 2,
+    "consiglio": "Una strada che passa sopra il Mercato, da Ovest a Est, senza entrarci.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            60,
+            280
+          ],
+          [
+            120,
+            217
+          ],
+          [
+            280,
+            217
+          ],
+          [
+            340,
+            280
+          ]
+        ]
+      }
+    ]
   }
 }

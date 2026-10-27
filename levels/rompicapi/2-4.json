@@ -89,7 +89,7 @@
     "monumenti": []
   },
   "strade": {
-    "iniziali": 36,
+    "iniziali": 30,
     "perGiorno": 0,
     "lunghezzaTratto": 40
   },
@@ -147,10 +147,63 @@
         "inizio": 0.5
       }
     ],
-    "tempo": 31,
+    "tempo": 26,
     "stelle": {
       "tratti": 29,
       "tempo": 23.5
-    }
+    },
+    "consiglio": "Tre strade dritte e un cavalcavia su ognuno dei due incroci.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            130,
+            90
+          ],
+          [
+            130,
+            470
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            270,
+            90
+          ],
+          [
+            270,
+            470
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            40,
+            280
+          ],
+          [
+            360,
+            280
+          ]
+        ]
+      },
+      {
+        "tocco": [
+          130,
+          280
+        ],
+        "volte": 1
+      },
+      {
+        "tocco": [
+          270,
+          280
+        ],
+        "volte": 1
+      }
+    ]
   }
 }

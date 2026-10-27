@@ -111,7 +111,7 @@ export function showPuzzleList(parent, groups, onPick, onBack) {
       tile.className = 'puzzle-tile';
       tile.disabled = !open[gi];
       const stars = puzzleStars(p.file);
-      tile.innerHTML = `<span class="puzzle-number">${gi + 1}.${pi + 1}</span><span class="puzzle-name"></span><span class="puzzle-tile-stars">${starsHtml(stars)}</span>`;
+      tile.innerHTML = `<span class="puzzle-tile-top"><span class="puzzle-number">${gi + 1}.${pi + 1}</span><span class="puzzle-tile-stars">${starsHtml(stars)}</span></span><span class="puzzle-name"></span>`;
       /** @type {HTMLElement} */ (tile.querySelector('.puzzle-name')).textContent = p.name;
       if (stars[0]) tile.classList.add('solved');
       tile.addEventListener('click', () => onPick(p.file));
