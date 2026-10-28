@@ -51,6 +51,8 @@ const ENDLESS = SANDBOX || DAILY;
 
 // Copia del gioco sul telefono, per giocare anche offline (funziona su https e in locale).
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+// Chiede al telefono di non cancellare la copia per giocare offline quando manca spazio.
+navigator.storage?.persist?.().catch(() => {});
 const LEVEL_NAME = LEVEL_PARAM && /^[a-z0-9_-]+$/.test(LEVEL_PARAM) ? LEVEL_PARAM : null;
 // ?rompicapo=1-1: un rompicapo; ?rompicapi: il loro elenco.
 const PUZZLE_PARAM = new URLSearchParams(location.search).get('rompicapo');
