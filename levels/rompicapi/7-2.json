@@ -1,0 +1,200 @@
+{
+  "nome": "Il fiume in mezzo",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "pentagono",
+    "quadrato",
+    "rombo",
+    "stella",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 60,
+      "y": 130,
+      "nome": "Nord-ovest"
+    },
+    {
+      "forma": "triangolo",
+      "x": 40,
+      "y": 280,
+      "nome": "Ovest"
+    },
+    {
+      "forma": "rombo",
+      "x": 60,
+      "y": 430,
+      "nome": "Sud-ovest"
+    },
+    {
+      "forma": "quadrato",
+      "x": 340,
+      "y": 130,
+      "nome": "Nord-est"
+    },
+    {
+      "forma": "pentagono",
+      "x": 360,
+      "y": 280,
+      "nome": "Est"
+    },
+    {
+      "forma": "stella",
+      "x": 340,
+      "y": 430,
+      "nome": "Sud-est"
+    }
+  ],
+  "acqua": [
+    {
+      "tipo": "fiume",
+      "larghezza": 36,
+      "punti": [
+        [
+          200,
+          -5
+        ],
+        [
+          200,
+          739
+        ]
+      ]
+    }
+  ],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 44,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 2
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Il fiume divide tre stazioni da altre tre e da ognuna si va in tutte le altre. Hai due ponti, ma i tratti sono contati.",
+    "programma": [
+      {
+        "da": "tutte",
+        "a": "tutte",
+        "quanti": 3,
+        "ogni": 1.3
+      }
+    ],
+    "tempo": 58,
+    "stelle": {
+      "tratti": 41,
+      "tempo": 45.5
+    },
+    "consiglio": "Basta un ponte solo, al centro: a ognuna delle due teste del ponte metti una rotonda, dove arrivano le strade delle tre stazioni di quella riva.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            60,
+            130
+          ],
+          [
+            110,
+            280
+          ],
+          [
+            60,
+            430
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            40,
+            280
+          ],
+          [
+            110,
+            280
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            340,
+            130
+          ],
+          [
+            290,
+            280
+          ],
+          [
+            340,
+            430
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            360,
+            280
+          ],
+          [
+            290,
+            280
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            110,
+            280
+          ],
+          [
+            290,
+            280
+          ]
+        ]
+      },
+      {
+        "rotonda": [
+          110,
+          280,
+          38
+        ],
+        "verso": "antiorario"
+      },
+      {
+        "rotonda": [
+          290,
+          280,
+          38
+        ],
+        "verso": "antiorario"
+      }
+    ]
+  }
+}

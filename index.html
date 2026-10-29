@@ -469,6 +469,7 @@
     .puzzle-card.collapsed .tutorial-text, .puzzle-card.collapsed .puzzle-program, .puzzle-card.collapsed .puzzle-stars { display: none; }
     .puzzle-row { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
     .puzzle-to { font-weight: 600; }
+    .puzzle-row-all { flex-wrap: wrap; white-space: normal; column-gap: 4px; row-gap: 0; }
     .puzzle-help-note { margin-top: 6px; font-size: 13px; opacity: 0.75; }
     .puzzle-goals { display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
     .puzzle-goal-on { color: #4d9a5b; font-weight: 600; }
@@ -476,7 +477,9 @@
     .puzzle-rate { opacity: 0.7; overflow: hidden; text-overflow: ellipsis; }
     .puzzle-shape { width: 16px; height: 16px; flex: none; }
     .puzzle-stars { font-size: 22px; margin: 2px 0 4px; }
-    .puzzles .puzzle-group { flex: 1 1 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); align-content: stretch; padding-top: clamp(6px, 1.2vh, 14px); padding-bottom: clamp(6px, 1.2vh, 14px); }
+    .puzzles .puzzle-group { flex: 1 1 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); align-content: stretch; row-gap: clamp(2px, 0.5vh, 8px); padding-top: clamp(4px, 0.8vh, 14px); padding-bottom: clamp(4px, 0.8vh, 14px); }
+    /* sette gruppi devono stare in uno schermo: nomi dei gruppi un po' più piccoli */
+    .puzzles .puzzle-group .menu-name { font-size: clamp(13px, 2vh, 22px); line-height: 1.2; }
     .puzzles .menu-card > * { grid-column: 1; }
     .puzzle-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(4px, 1.4vw, 8px); min-height: 0; max-height: 120px; }
     .puzzle-tile {

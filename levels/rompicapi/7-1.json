@@ -1,0 +1,119 @@
+{
+  "nome": "Lo svincolo",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "pentagono",
+    "quadrato",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 200,
+      "y": 106,
+      "nome": "Nord"
+    },
+    {
+      "forma": "quadrato",
+      "x": 200,
+      "y": 454,
+      "nome": "Sud"
+    },
+    {
+      "forma": "triangolo",
+      "x": 50,
+      "y": 280,
+      "nome": "Ovest"
+    },
+    {
+      "forma": "pentagono",
+      "x": 350,
+      "y": 280,
+      "nome": "Est"
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 29,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Quattro stazioni e da ognuna si va in tutte le altre: dritto, a destra e a sinistra. Con un incrocio semplice le curve si tagliano la strada.",
+    "programma": [
+      {
+        "da": "tutte",
+        "a": "tutte",
+        "quanti": 6,
+        "ogni": 1.2
+      }
+    ],
+    "tempo": 44,
+    "stelle": {
+      "tratti": 26,
+      "tempo": 36
+    },
+    "consiglio": "Due strade dritte che si incrociano e una rotonda intorno all'incrocio.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            200,
+            106
+          ],
+          [
+            200,
+            454
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            50,
+            280
+          ],
+          [
+            350,
+            280
+          ]
+        ]
+      },
+      {
+        "rotonda": [
+          200,
+          280,
+          45
+        ],
+        "verso": "antiorario"
+      }
+    ]
+  }
+}

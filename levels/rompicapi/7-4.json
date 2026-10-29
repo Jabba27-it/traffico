@@ -1,0 +1,194 @@
+{
+  "nome": "Il raccordo",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "pentagono",
+    "quadrato",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 200,
+      "y": 106,
+      "nome": "Nord"
+    },
+    {
+      "forma": "quadrato",
+      "x": 200,
+      "y": 454,
+      "nome": "Sud"
+    },
+    {
+      "forma": "triangolo",
+      "x": 50,
+      "y": 280,
+      "nome": "Ovest"
+    },
+    {
+      "forma": "pentagono",
+      "x": 350,
+      "y": 280,
+      "nome": "Est"
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 37,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 1
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Tanto traffico dritto, da Nord a Sud e da Ovest a Est, e qualche veicolo che va da tutte le parti. Una rotonda si intasa e un incrocio semplice è lento.",
+    "programma": [
+      {
+        "da": "Nord",
+        "a": "quadrato",
+        "quanti": 16,
+        "ogni": 0.8
+      },
+      {
+        "da": "Sud",
+        "a": "cerchio",
+        "quanti": 16,
+        "ogni": 0.8,
+        "inizio": 0.4
+      },
+      {
+        "da": "Ovest",
+        "a": "pentagono",
+        "quanti": 16,
+        "ogni": 0.8,
+        "inizio": 0.2
+      },
+      {
+        "da": "Est",
+        "a": "triangolo",
+        "quanti": 16,
+        "ogni": 0.8,
+        "inizio": 0.6
+      },
+      {
+        "da": "tutte",
+        "a": "tutte",
+        "quanti": 2,
+        "ogni": 2.4,
+        "inizio": 1
+      }
+    ],
+    "tempo": 48,
+    "stelle": {
+      "tratti": 34,
+      "tempo": 40.5
+    },
+    "consiglio": "La croce col cavalcavia al centro, così il traffico dritto non si ferma, e quattro rampe in diagonale che collegano le strade fra loro per chi deve girare.",
+    "soluzione": [
+      {
+        "strada": [
+          [
+            200,
+            106
+          ],
+          [
+            200,
+            454
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            50,
+            280
+          ],
+          [
+            350,
+            280
+          ]
+        ]
+      },
+      {
+        "tocco": [
+          200,
+          280
+        ],
+        "volte": 1
+      },
+      {
+        "strada": [
+          [
+            200,
+            177
+          ],
+          [
+            90,
+            280
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            90,
+            280
+          ],
+          [
+            200,
+            383
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            200,
+            383
+          ],
+          [
+            310,
+            280
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            310,
+            280
+          ],
+          [
+            200,
+            177
+          ]
+        ]
+      }
+    ]
+  }
+}

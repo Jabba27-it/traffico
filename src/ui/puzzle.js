@@ -254,7 +254,16 @@ export function createPuzzle(parent, sim, options) {
     const list = document.createElement('div');
     list.className = 'puzzle-program';
     const stations = sim.level.stations;
+    if (goal.everyone) {
+      // "da tutte a tutte": una riga sola invece di una per coppia
+      const { count, every, type } = goal.everyone;
+      const row = document.createElement('div');
+      row.className = 'puzzle-row puzzle-row-all';
+      row.append(text('span', 'Da ogni stazione a ognuna delle altre:', 'puzzle-to'), text('span', `${count} ${TYPE_NAMES[type]} per ognuna, ne parte una ogni ${String(every).replace('.', ',')} s`, 'puzzle-rate'));
+      list.appendChild(row);
+    }
     for (const d of goal.program) {
+      if (d.everyone) continue;
       const row = document.createElement('div');
       row.className = 'puzzle-row';
       // Partenza e arrivo con la loro forma e il loro nome: "▲ Est → ● Nord".

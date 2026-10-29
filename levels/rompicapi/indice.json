@@ -125,6 +125,27 @@
           "nome": "Il ponte e le rampe"
         }
       ]
+    },
+    {
+      "nome": "Autostrade",
+      "rompicapi": [
+        {
+          "file": "7-1",
+          "nome": "Lo svincolo"
+        },
+        {
+          "file": "7-2",
+          "nome": "Il fiume in mezzo"
+        },
+        {
+          "file": "7-3",
+          "nome": "La fabbrica e il quartiere"
+        },
+        {
+          "file": "7-4",
+          "nome": "Il raccordo"
+        }
+      ]
     }
   ]
 }

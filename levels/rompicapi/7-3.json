@@ -1,0 +1,181 @@
+{
+  "nome": "La fabbrica e il quartiere",
+  "mondo": {
+    "larghezza": 400,
+    "altezza": 800
+  },
+  "forme": [
+    "cerchio",
+    "pentagono",
+    "quadrato",
+    "rombo",
+    "stella",
+    "triangolo"
+  ],
+  "vista": [
+    {
+      "giorno": 1,
+      "x": 0,
+      "y": 0,
+      "larghezza": 400
+    }
+  ],
+  "stazioni": [
+    {
+      "forma": "cerchio",
+      "x": 200,
+      "y": 106,
+      "nome": "Nord"
+    },
+    {
+      "forma": "stella",
+      "x": 340,
+      "y": 177,
+      "nome": "Fabbrica"
+    },
+    {
+      "forma": "pentagono",
+      "x": 340,
+      "y": 383,
+      "nome": "Est"
+    },
+    {
+      "forma": "quadrato",
+      "x": 200,
+      "y": 454,
+      "nome": "Sud"
+    },
+    {
+      "forma": "rombo",
+      "x": 60,
+      "y": 383,
+      "nome": "Quartiere"
+    },
+    {
+      "forma": "triangolo",
+      "x": 60,
+      "y": 177,
+      "nome": "Ovest"
+    }
+  ],
+  "acqua": [],
+  "terreno": {
+    "ville": [],
+    "colli": [],
+    "monumenti": []
+  },
+  "strade": {
+    "iniziali": 32,
+    "perGiorno": 0,
+    "lunghezzaTratto": 40
+  },
+  "ponti": {
+    "iniziali": 0
+  },
+  "cavalcavia": {
+    "iniziali": 0
+  },
+  "congestione": {
+    "capienza": 99,
+    "tolleranza": 1000000
+  },
+  "rompicapo": {
+    "testo": "Sei stazioni intorno alla città, con la Fabbrica e il Quartiere: da ognuna si va in tutte le altre.",
+    "programma": [
+      {
+        "da": "tutte",
+        "a": "tutte",
+        "quanti": 3,
+        "ogni": 1.7
+      }
+    ],
+    "tempo": 53,
+    "stelle": {
+      "tratti": 29,
+      "tempo": 43.5
+    },
+    "consiglio": "Una rotonda grande al centro e da ogni stazione una strada dritta fino all'anello.",
+    "soluzione": [
+      {
+        "rotonda": [
+          200,
+          280,
+          60
+        ],
+        "verso": "antiorario"
+      },
+      {
+        "strada": [
+          [
+            200,
+            106
+          ],
+          [
+            200,
+            218
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            340,
+            177
+          ],
+          [
+            250,
+            244
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            340,
+            383
+          ],
+          [
+            250,
+            316
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            200,
+            454
+          ],
+          [
+            200,
+            342
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            60,
+            383
+          ],
+          [
+            150,
+            316
+          ]
+        ]
+      },
+      {
+        "strada": [
+          [
+            60,
+            177
+          ],
+          [
+            150,
+            244
+          ]
+        ]
+      }
+    ]
+  }
+}

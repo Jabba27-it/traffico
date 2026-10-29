@@ -143,6 +143,7 @@ const TUTORIAL_GOALS = ['avanti', 'collega', 'viaggi', 'rimuovi', 'tipoStrada', 
  * @property {number} every   secondi fra un veicolo e il successivo
  * @property {number} start   secondo del primo
  * @property {'auto' | 'camion' | 'autobus'} type
+ * @property {boolean} [everyone]  nata dalla riga "da tutte a tutte"
  */
 
 /**
@@ -167,6 +168,8 @@ const TUTORIAL_GOALS = ['avanti', 'collega', 'viaggi', 'rimuovi', 'tipoStrada', 
  * @property {string} hint  il consiglio, per chi non sa come andare avanti (voce "consiglio")
  * @property {SolutionStep[]} solution  una soluzione, da mostrare tratteggiata (voce "soluzione")
  * @property {number | null} moves  mosse permesse (nei "Ripara"), null = senza limite
+ * @property {{count: number, every: number, type: Departure['type']} | null} everyone
+ *   la riga "da tutte a tutte", com'era scritta (per mostrarla in una riga sola)
  */
 
 /**
@@ -391,8 +394,27 @@ const PROGRAM_TYPES = ['auto', 'camion', 'autobus'];
  */
 function parsePuzzle(r, stations, shapes) {
   if (!Array.isArray(r?.programma) || r.programma.length === 0) throw new Error('"rompicapo" deve avere un "programma"');
-  const program = r.programma.map((/** @type {any} */ d, /** @type {number} */ i) => {
+  /** @type {Puzzle['everyone']} */
+  let everyone = null;
+  const program = r.programma.flatMap((/** @type {any} */ d, /** @type {number} */ i) => {
     const where = `Programma, riga ${i + 1}`;
+    if (d?.da === 'tutte' && d?.a === 'tutte') {
+      // Ogni stazione manda "quanti" veicoli a ognuna delle altre forme: uno ogni
+      // "ogni" secondi, a giro fra le destinazioni, e le stazioni sfasate fra loro.
+      if (!isNum(d.quanti) || d.quanti < 1) throw new Error(`${where}: "quanti" deve essere almeno 1`);
+      if (d.tipo !== undefined && !PROGRAM_TYPES.includes(d.tipo)) throw new Error(`${where}: "tipo" deve essere ${PROGRAM_TYPES.join(', ')}`);
+      const every = isNum(d.ogni) && d.ogni > 0 ? d.ogni : 2;
+      const type = d.tipo ?? 'auto';
+      const start = isNum(d.inizio) ? d.inizio : 0;
+      everyone = { count: d.quanti, every, type };
+      return stations.flatMap((s, k) => {
+        const targets = [...new Set(stations.map((t) => t.shape))].filter((shape) => shape !== s.shape);
+        return targets.map((shape, j) => ({
+          from: s.name, shape, count: d.quanti, every: every * targets.length, type,
+          start: start + (k * every) / stations.length + j * every, everyone: true,
+        }));
+      });
+    }
     if (!stations.some((s) => s.name === d?.da)) throw new Error(`${where}: "da" deve essere il nome di una stazione`);
     if (!shapes.includes(d.a)) throw new Error(`${where}: "a" deve essere una forma del livello`);
     if (!isNum(d.quanti) || d.quanti < 1) throw new Error(`${where}: "quanti" deve essere almeno 1`);
@@ -413,6 +435,7 @@ function parsePuzzle(r, stations, shapes) {
     roads,
     taps: (Array.isArray(r.tocchi) ? r.tocchi : []).map(point).filter(Boolean),
     moves: isNum(r.mosse) ? r.mosse : null,
+    everyone,
     hint: String(r.consiglio ?? ''),
     solution: (Array.isArray(r.soluzione) ? r.soluzione : []).map((/** @type {any} */ step) => {
       if (Array.isArray(step?.strada)) return { road: step.strada.map(point).filter(Boolean) };
